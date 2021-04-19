@@ -2,7 +2,7 @@ pub mod user {
     use serde::{ Serialize, Deserialize};
     use std::str;
     use chrono::{ DateTime, Utc };
-    use bcrypt::{ hash, DEFAULT_COST, verify };
+    use bcrypt::{ hash, DEFAULT_COST, verify, BcryptError };
     use mysql::*;
     use mysql::prelude::*;
 
@@ -122,11 +122,65 @@ pub mod user {
             Ok(user)
         }
 
-        pub fn verify(username: String, password: String) {
-            let user = Self::get_one(username).unwrap();
+        pub fn verify(username: String, password: String) -> Result<bool> {
+            let user = Self::get_one(username)?;
             let v = verify(password, &user[0].password).unwrap();
-            println!("{}", v);
-            // Ok(v)
+            Ok(v)
+        }
+
+        pub fn change_password(u: String, p: String) -> Result<()> {
+            let verified_user = Self::verify(u.clone(), p.clone()).unwrap();
+
+            if verified_user {
+                let mut new_password = String::new();
+                println!("Enter new password:");
+                std::io::stdin()
+                                .read_line(&mut new_password)
+                                .expect("Failed to read input");
+                let hashed = hash(new_password.to_string().trim_end_matches("\r\n").to_string(), DEFAULT_COST).unwrap();
+
+                let query = format!("UPDATE user SET password = '{}' WHERE username = '{}';", hashed.to_string(), u.to_string());
+
+                let url = "mysql://root:@localhost:3306/mws_database";
+
+                let pool = Pool::new(url)?;
+    
+                let mut conn = pool.get_conn()?;
+
+                conn.query_drop(query)?;
+                
+            } else {
+                println!("You are not authorized to change the password.");
+            }
+
+            Ok(())
+        }
+
+        pub fn change_role(u: String, p: String) -> Result<()> {
+            let verified_user = Self::verify(u.clone(), p.clone()).unwrap();
+
+            if verified_user {
+                let mut new_role = String::new();
+                println!("Enter new role:");
+                std::io::stdin()
+                                .read_line(&mut new_role)
+                                .expect("Failed to read input");
+
+                let query = format!("UPDATE user SET role = '{}' WHERE username = '{}';", new_role.to_string(), u.to_string());
+
+                let url = "mysql://root:@localhost:3306/mws_database";
+
+                let pool = Pool::new(url)?;
+    
+                let mut conn = pool.get_conn()?;
+
+                conn.query_drop(query)?;
+                
+            } else {
+                println!("You are not authorized to change the role.");
+            }
+
+            Ok(())
         }
     }
 }
