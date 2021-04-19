@@ -1,6 +1,6 @@
 pub mod user {
     use serde::{ Serialize, Deserialize};
-    use std::io::Read;
+    use std::str;
     use chrono::{ DateTime, Utc };
     use bcrypt::{ hash, DEFAULT_COST };
     use mysql::*;
@@ -63,7 +63,7 @@ pub mod user {
             }
         }
 
-        pub fn push(u: User) -> Result<()> {
+        pub fn post(u: User) -> Result<()> {
             let table = "CREATE TABLE IF NOT EXISTS user(
                 id          INT             NOT NULL            PRIMARY KEY AUTO_INCREMENT,
                 email       VARCHAR(50)     NOT NULL,
@@ -85,27 +85,21 @@ pub mod user {
             Ok(())
         }
 
-        pub fn get<T: FromRow>() -> Result<()> {
-            let query = "SELECT * FROM user;";
-
+        pub fn get() -> Result<Vec<User>> {
             let url = "mysql://root:@localhost:3306/mws_database";
 
             let pool = Pool::new(url)?;
 
             let mut conn = pool.get_conn()?;
 
-            let json = conn.query_map(query, |(email, username, password, role)| {
-                User {
-                    email,
-                    username,
-                    password,
-                    role
-                }
-            })?;
-
-            println!("{:#?}", json);
-
-            Ok(())
+            let all_users = conn
+                                .query_map(
+                                    "SELECT email, username, role, password FROM user",
+                                    |(email, username, role, password)| {
+                                        User { email, username, role, password }
+                                    },
+                                )?;
+            Ok(all_users)
         }
     }
 }
