@@ -101,5 +101,30 @@ pub mod user {
                                 )?;
             Ok(all_users)
         }
+
+        pub fn get_one(username: String) -> Result<Vec<User>> {
+
+            let query = format!("SELECT email, username, role, password FROM user WHERE username = '{}';", username);
+            let url = "mysql://root:@localhost:3306/mws_database";
+
+            let pool = Pool::new(url)?;
+
+            let mut conn = pool.get_conn()?;
+
+            let user = conn
+                            .query_map(
+                                query,
+                                |(email, username, password, role)| {
+                                    User{ email, username, role, password}
+                                },
+                            )?;
+
+            Ok(user)
+        }
+
+        pub fn verify(&self, username: String, password: String) -> Result<bool> {
+            let user = Self::get_one(username)?;
+            let v = verify(password, user.password)
+        }
     }
 }
