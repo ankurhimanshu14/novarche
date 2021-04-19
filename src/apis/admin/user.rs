@@ -2,7 +2,7 @@ pub mod user {
     use serde::{ Serialize, Deserialize};
     use std::str;
     use chrono::{ DateTime, Utc };
-    use bcrypt::{ hash, DEFAULT_COST };
+    use bcrypt::{ hash, DEFAULT_COST, verify };
     use mysql::*;
     use mysql::prelude::*;
 
@@ -81,7 +81,7 @@ pub mod user {
             let mut conn = pool.get_conn()?;
 
             conn.query_drop(table)?;
-            conn.exec_drop(insert, (u.email, u.username, u.password, u.role)).unwrap();
+            conn.exec_drop(insert, (u.email, u.username, u.password, u.role))?;
             Ok(())
         }
 
@@ -94,7 +94,7 @@ pub mod user {
 
             let all_users = conn
                                 .query_map(
-                                    "SELECT email, username, role, password FROM user",
+                                    "SELECT email, username, role, password FROM user;",
                                     |(email, username, role, password)| {
                                         User { email, username, role, password }
                                     },
@@ -114,17 +114,19 @@ pub mod user {
             let user = conn
                             .query_map(
                                 query,
-                                |(email, username, password, role)| {
-                                    User{ email, username, role, password}
+                                |(email, username, role, password)| {
+                                    User{ email, username, role, password }
                                 },
                             )?;
 
             Ok(user)
         }
 
-        pub fn verify(&self, username: String, password: String) -> Result<bool> {
-            let user = Self::get_one(username)?;
-            let v = verify(password, user.password)
+        pub fn verify(username: String, password: String) {
+            let user = Self::get_one(username).unwrap();
+            let v = verify(password, &user[0].password).unwrap();
+            println!("{}", v);
+            // Ok(v)
         }
     }
 }
