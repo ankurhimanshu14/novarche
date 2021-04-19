@@ -9,10 +9,7 @@ fn main() -> Result<(), mysql::Error> {
 
     // println!("{:#?}", &user[0]);
 
-    // User::change_password("ankur123".to_string(), "Ankur@123".to_string());
+    User::change_password("pawan123".to_string(), "Pawan@123".to_string())?;
 
-    let v = User::verify("ankur123".to_string(), "Plasticskey@814".to_string()).unwrap();
-
-    println!("{}", v);
     Ok(())
 }

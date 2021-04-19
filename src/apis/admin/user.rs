@@ -2,7 +2,7 @@ pub mod user {
     use serde::{ Serialize, Deserialize};
     use std::str;
     use chrono::{ DateTime, Utc };
-    use bcrypt::{ hash, DEFAULT_COST, verify, BcryptError };
+    use bcrypt::{ hash, DEFAULT_COST, verify };
     use mysql::*;
     use mysql::prelude::*;
 
@@ -14,6 +14,12 @@ pub mod user {
         pub role: String,
         // created_at: DateTime<Utc>,
         // modified_at: Option<DateTime<Utc>>
+    }
+
+    fn verify_user(username: String, password: String) -> Result<bool> {
+        let user = User::get_one(username)?;
+        let v = verify(password, &user[0].password).unwrap();
+        Ok(v)
     }
 
     impl User {
@@ -122,14 +128,8 @@ pub mod user {
             Ok(user)
         }
 
-        pub fn verify(username: String, password: String) -> Result<bool> {
-            let user = Self::get_one(username)?;
-            let v = verify(password, &user[0].password).unwrap();
-            Ok(v)
-        }
-
         pub fn change_password(u: String, p: String) -> Result<()> {
-            let verified_user = Self::verify(u.clone(), p.clone()).unwrap();
+            let verified_user = verify_user(u.clone(), p.clone()).unwrap();
 
             if verified_user {
                 let mut new_password = String::new();
@@ -157,7 +157,7 @@ pub mod user {
         }
 
         pub fn change_role(u: String, p: String) -> Result<()> {
-            let verified_user = Self::verify(u.clone(), p.clone()).unwrap();
+            let verified_user = verify_user(u.clone(), p.clone()).unwrap();
 
             if verified_user {
                 let mut new_role = String::new();
