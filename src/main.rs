@@ -6,6 +6,8 @@ use crate::apis::human_resources::employee::employee::Employee;
 fn main() -> Result<(), mysql::Error> {
 
     let new_emp = Employee::new();
+
+    println!("{:#?}", &new_emp);
     Employee::post(new_emp)?;
 
     // let new_user = User::new();
