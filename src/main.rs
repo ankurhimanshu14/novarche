@@ -9,7 +9,7 @@ fn main() -> Result<(), mysql::Error> {
 
     // Employee::post(new_emp)?;
 
-    Employee::get("MWS1004".to_string())?;
+    Employee::get_name_by_emp_id("MWS10004".to_string())?;
 
     // let new_user = User::new();
     // User::post(new_user)?;

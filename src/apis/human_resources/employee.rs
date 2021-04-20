@@ -367,8 +367,15 @@ pub mod employee {
             Ok(())
         }
 
-        pub fn get(emp_id: String) -> Result<()> {
-            let query = format!("SELECT first_name, middle_name, last_name FROM employee WHERE employee_id = :employee_id;");
+        pub fn get_name_by_emp_id(emp_id: String) -> Result<()> {
+            #[derive(Debug)]
+            struct Name {
+                first_name: String,
+                middle_name: Option<String>,
+                last_name: String
+            }
+
+            let query = format!("SELECT first_name, middle_name, last_name FROM employee WHERE employee_id = '{}'", emp_id);
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -376,10 +383,13 @@ pub mod employee {
 
             let mut conn = pool.get_conn()?;
 
-            let result = conn.exec_drop(
-                query,
-                params! { "employee_id" => emp_id }
-            );
+            let result = conn.query_map(query.to_string(), |(first_name, middle_name, last_name)| {
+                Name {
+                    first_name,
+                    middle_name,
+                    last_name
+                }
+            })?;
 
             println!("{:#?}", result);
             Ok(())
