@@ -12,6 +12,7 @@ pub mod user {
         pub username: String,
         password: String,
         pub role: String,
+        pub employee_id: i32,
         // created_at: DateTime<Utc>,
         // modified_at: Option<DateTime<Utc>>
     }

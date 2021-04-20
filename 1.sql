@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS employee(
+    id                  INT             NOT NULL            PRIMARY KEY         AUTO_INCREMENT,
+    employee_id         INT             NOT NULL            UNIQUE,
+    first_name          VARCHAR(100)    NOT NULL,
+    middle_name         VARCHAR(100),
+    last_name           VARCHAR(100)    NOT NULL,
+    gender              VARCHAR(100)    NOT NULL,
+    father_name         VARCHAR(100)    NOT NULL,
+    mother_name         VARCHAR(100)    NOT NULL,
+    spouse_name         VARCHAR(100),
+    bank_name           VARCHAR(100),
+    bank_ifsc           VARCHAR(100),
+    bank_acc_no         BIGINT,
+    pan                 VARCHAR(10),
+    uidai               BIGINT,
+    uan                 BIGINT,
+    dept                VARCHAR(20),
+    designation         VARCHAR(30),
+    reporting_to        INT,
+    current_status      VARCHAR(10),
+    CONSTRAINT sr_fk_emp_man FOREIGN KEY (reporting_to) REFERENCES employee(employee_id)
+) ENGINE = InnoDB;
