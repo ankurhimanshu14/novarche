@@ -8,13 +8,12 @@ pub mod user {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct User {
+        employee_id: String,
         pub email: String,
         pub username: String,
         password: String,
         pub role: String,
-        pub employee_id: i32,
-        // created_at: DateTime<Utc>,
-        // modified_at: Option<DateTime<Utc>>
+        pub employee_id: i32
     }
 
     fn verify_user(username: String, password: String) -> Result<bool> {
@@ -62,11 +61,7 @@ pub mod user {
 
                 role: role.to_string()
                         .trim_end_matches("\r\n")
-                        .to_string(),
-
-                // created_at: Utc::now(),
-
-                // modified_at: None
+                        .to_string()
             }
         }
 
@@ -76,7 +71,9 @@ pub mod user {
                 email       VARCHAR(50)     NOT NULL,
                 username    VARCHAR(20)     NOT NULL            UNIQUE,
                 password    VARCHAR(100)    NOT NULL,
-                role        VARCHAR(20)     NOT NULL
+                role        VARCHAR(20)     NOT NULL,
+                created_at  DATETIME        NOT NULL        DEFAULT     CURRENT_TIMESTAMP,
+                modified_at DATETIME                        ON UPDATE   CURRENT_TIMESTAMP
             ) ENGINE = InnoDB;";
 
             let insert = "INSERT INTO user(email, username, password, role) VALUES (?, ?, ?, ?);";

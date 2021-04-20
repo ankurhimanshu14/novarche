@@ -366,5 +366,23 @@ pub mod employee {
 
             Ok(())
         }
+
+        pub fn get(emp_id: String) -> Result<()> {
+            let query = format!("SELECT first_name, middle_name, last_name FROM employee WHERE employee_id = :employee_id;");
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+
+            let mut conn = pool.get_conn()?;
+
+            let result = conn.exec_drop(
+                query,
+                params! { "employee_id" => emp_id }
+            );
+
+            println!("{:#?}", result);
+            Ok(())
+        }
     }
 }

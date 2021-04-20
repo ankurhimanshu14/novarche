@@ -5,10 +5,11 @@ use crate::apis::human_resources::employee::employee::Employee;
 
 fn main() -> Result<(), mysql::Error> {
 
-    let new_emp = Employee::new();
+    // let new_emp = Employee::new();
 
-    println!("{:#?}", &new_emp);
-    Employee::post(new_emp)?;
+    // Employee::post(new_emp)?;
+
+    Employee::get("MWS1004".to_string())?;
 
     // let new_user = User::new();
     // User::post(new_user)?;
