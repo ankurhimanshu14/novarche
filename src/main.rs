@@ -2,8 +2,13 @@ mod apis;
 
 use crate::apis::admin::user::user::User;
 use crate::apis::human_resources::employee::employee::Employee;
+use crate::apis::admin::department::department::Department;
 
 fn main() -> Result<(), mysql::Error> {
+
+    // let new_dept = Department::new();
+
+    // Department::post(new_dept)?;
 
     // let new_emp = Employee::new();
 

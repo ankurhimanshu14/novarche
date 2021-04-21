@@ -84,7 +84,8 @@ pub mod user {
                 role        VARCHAR(20)     NOT NULL,
                 created_at  DATETIME        NOT NULL        DEFAULT     CURRENT_TIMESTAMP,
                 modified_at DATETIME                        ON UPDATE   CURRENT_TIMESTAMP,
-                CONSTRAINT sr_fk_usr_man FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+                CONSTRAINT sr_fk_usr_man FOREIGN KEY (employee_id)  REFERENCES  employee(employee_id),
+                CONSTRAINT sr_fk_usr_eml FOREIGN KEY (email)        REFERENCES  department(email)
             ) ENGINE = InnoDB;";
 
             let insert = "INSERT INTO user(

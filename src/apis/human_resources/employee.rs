@@ -21,7 +21,7 @@ pub mod employee {
         pan: Option<String>,
         uidai: Option<usize>,
         uan: Option<usize>,
-        pub dept: String,
+        pub dept_code: String,
         pub designation: String,
         pub reporting_to: String,
         pub current_status: String,
@@ -127,10 +127,10 @@ pub mod employee {
                             .read_line(&mut uan)
                             .expect("Failed to read input");
             
-            let mut dept = String::new();
+            let mut dept_code = String::new();
             println!("Enter Department:");
             std::io::stdin()
-                            .read_line(&mut dept)
+                            .read_line(&mut dept_code)
                             .expect("Failed to read input");
             
             let mut designation = String::new();
@@ -232,7 +232,7 @@ pub mod employee {
                     _ => Some(uan.parse().unwrap_or(0))
                 },
 
-                dept: dept.to_string()
+                dept_code: dept_code.to_string()
                                 .trim_end_matches("\r\n")
                                 .to_string(),
 
@@ -272,10 +272,11 @@ pub mod employee {
                 bank_name           VARCHAR(100),
                 bank_ifsc           VARCHAR(100),
                 bank_acc_no         INT,
+                basic_salary        INT,
                 pan                 VARCHAR(10),
                 uidai               INT,
                 uan                 INT,
-                dept                VARCHAR(20)     NOT NULL,
+                dept_code           VARCHAR(4)      NOT NULL,
                 designation         VARCHAR(50)     NOT NULL,
                 reporting_to        VARCHAR(10)     NOT NULL,
                 current_status      VARCHAR(10)     NOT NULL,
@@ -283,7 +284,8 @@ pub mod employee {
                 date_of_leaving     DATETIME,
                 created_at          DATETIME        NOT NULL        DEFAULT     CURRENT_TIMESTAMP,
                 modified_at         DATETIME                        ON UPDATE   CURRENT_TIMESTAMP,
-                CONSTRAINT sr_fk_emp_man FOREIGN KEY (reporting_to) REFERENCES employee(employee_id)           
+                CONSTRAINT sr_fk_emp_man    FOREIGN KEY (reporting_to) REFERENCES   employee(employee_id),
+                CONSTRAINT sr_fk_emp_dept   FOREIGN KEY (dept_code)     REFERENCES  department(department_code)         
             ) ENGINE = InnoDB;";
 
             let insert = r"INSERT INTO employee(
@@ -299,10 +301,11 @@ pub mod employee {
                 bank_name,
                 bank_ifsc,
                 bank_acc_no,
+                basic_salary,
                 pan,
                 uidai,
                 uan,
-                dept,
+                dept_code,
                 designation,
                 reporting_to,
                 current_status,
@@ -321,10 +324,11 @@ pub mod employee {
                 :bank_name,
                 :bank_ifsc,
                 :bank_acc_no,
+                :basic_salary,
                 :pan,
                 :uidai,
                 :uan,
-                :dept,
+                :dept_code,
                 :designation,
                 :reporting_to,
                 :current_status,
@@ -353,10 +357,11 @@ pub mod employee {
                 "bank_name" => e.bank_name.unwrap(),
                 "bank_ifsc" => e.bank_ifsc.unwrap(),
                 "bank_acc_no" => e.bank_acc_no.unwrap(),
+                "basic_salary" => e.basic_salary,
                 "pan" => e.pan.unwrap(),
                 "uidai" => e.uidai.unwrap(),
                 "uan" => e.uan.unwrap(),
-                "dept" => e.dept,
+                "dept_code" => e.dept_code,
                 "designation" => e.designation,
                 "reporting_to" => e.reporting_to,
                 "current_status" => e.current_status,
