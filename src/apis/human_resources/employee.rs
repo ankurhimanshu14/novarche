@@ -3,6 +3,7 @@ pub mod employee {
     use mysql::*;
     use mysql::prelude::*;
     use crate::apis::human_resources::person::person::Person;
+    // use crate::utils::parse::parse::parse_from_row;
 
     #[derive(Debug, Clone)]
     pub struct Employee {
@@ -155,9 +156,9 @@ pub mod employee {
             Ok(())
         }
 
-        pub fn get() -> Result<Vec<Row>> {
+        pub fn get() -> Result<Vec<Vec<String>>> {
             let query = format!(
-                "SELECT *
+                "SELECT e.employee_id, p.first_name, p.middle_name, p.last_name, e.dept_code, p.uan, e. designation, e.reporting_to
                 FROM employee e
                 LEFT JOIN person p
                 ON p.uidai = e.person_id;");
@@ -168,9 +169,24 @@ pub mod employee {
 
             let conn = pool.get_conn()?;
 
-            let result = query.fetch(conn)?;
+            let result: Vec<Row> = query.fetch(conn)?;
 
-            Ok(result)
+            let mut v1: Vec<Vec<String>> = Vec::new();
+            
+            for entries in result.iter() {
+                let length: &usize = &entries.len();
+                let mut v2: Vec<String> = Vec::new();
+                for index in 0..*length {
+                    let val = &entries.get_opt::<String, usize>(index).unwrap();
+    
+                    match val {
+                        Ok(_) => v2.push(val.as_ref().unwrap().to_string()),
+                        Err(_) => v2.push("".to_string())
+                    }
+                }
+                v1.push(v2);
+            }
+            Ok(v1)
         }
     }
 }

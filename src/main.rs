@@ -1,9 +1,9 @@
 mod apis;
 
-use crate::apis::admin::user::user::User;
-use crate::apis::accounts::bank::bank::Bank;
+// use crate::apis::admin::user::user::User;
+// use crate::apis::accounts::bank::bank::Bank;
 use crate::apis::human_resources::employee::employee::Employee;
-use crate::apis::admin::department::department::Department;
+// use crate::apis::admin::department::department::Department;
 
 fn main() -> Result<(), mysql::Error> {
 
@@ -11,7 +11,7 @@ fn main() -> Result<(), mysql::Error> {
 
     // Employee::post(new_emp)?;
 
-    println!("{:#?}", Employee::get()?);
+    println!("{:?}", Employee::get()?);
 
     Ok(())
 }
