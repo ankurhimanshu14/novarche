@@ -108,9 +108,9 @@ pub mod employee {
                 date_of_leaving     DATETIME,
                 created_at          DATETIME        NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
                 modified_at         DATETIME                            ON UPDATE           CURRENT_TIMESTAMP,
-                CONSTRAINT sr_fk_emp_per    FOREIGN KEY(person_id)      REFERENCES          person(uidai),
-                CONSTRAINT sr_fk_emp_rep    FOREIGN KEY(reporting_to)   REFERENCES          employee(employee_id),
-                CONSTRAINT sr_fk_emp_dept   FOREIGN KEY (dept_code)     REFERENCES          department(department_code)        
+                CONSTRAINT sr_fk_emp_per    FOREIGN KEY(person_id)      REFERENCES          person(uidai) ON DELETE CASCADE ON UPDATE CASCADE,
+                CONSTRAINT sr_fk_emp_rep    FOREIGN KEY(reporting_to)   REFERENCES          employee(employee_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                CONSTRAINT sr_fk_emp_dept   FOREIGN KEY (dept_code)     REFERENCES          department(department_code) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE = InnoDB;";
 
             let insert = r"INSERT INTO employee(
@@ -153,6 +153,24 @@ pub mod employee {
             })?;
 
             Ok(())
+        }
+
+        pub fn get() -> Result<Vec<Row>> {
+            let query = format!(
+                "SELECT *
+                FROM employee e
+                LEFT JOIN person p
+                ON p.uidai = e.person_id;");
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+
+            let conn = pool.get_conn()?;
+
+            let result = query.fetch(conn)?;
+
+            Ok(result)
         }
     }
 }

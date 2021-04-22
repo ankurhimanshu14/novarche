@@ -7,9 +7,11 @@ use crate::apis::admin::department::department::Department;
 
 fn main() -> Result<(), mysql::Error> {
 
-    let new_emp = Employee::new();
+    // let new_emp = Employee::new();
 
-    Employee::post(new_emp)?;
+    // Employee::post(new_emp)?;
+
+    println!("{:#?}", Employee::get("e.dept_code = 'QA'".to_string())?);
 
     Ok(())
 }
