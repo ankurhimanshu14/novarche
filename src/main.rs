@@ -11,7 +11,7 @@ fn main() -> Result<(), mysql::Error> {
 
     // Employee::post(new_emp)?;
 
-    println!("{:#?}", Employee::get("e.dept_code = 'QA'".to_string())?);
+    println!("{:#?}", Employee::get()?);
 
     Ok(())
 }
