@@ -4,18 +4,19 @@ pub mod read_buffer {
     use crossterm::{
         cursor::{ MoveLeft },
         event::{ read, Event, KeyEvent, KeyCode, EnableMouseCapture, DisableMouseCapture },
-        execute,
+        execute, queue,
         style::{ Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor },
-        ExecutableCommand, Result,
+        ExecutableCommand, QueueableCommand, Result,
         terminal,
     };
 
     pub fn read_buffer() -> Result<()> {
+        let mut stdout = stdout();
         let mut buffer = String::new();
-        stdout()
-                .execute(SetForegroundColor(Color::Blue))?
-                .execute(Print("> "))?
-                .execute(ResetColor)?;
+        stdout
+            .execute(SetForegroundColor(Color::Blue))?
+            .execute(Print("> "))?
+            .execute(ResetColor)?;
     
         terminal::enable_raw_mode()?;
         
@@ -24,19 +25,18 @@ pub mod read_buffer {
                 Event::Key(KeyEvent { code, modifiers: _}) => {
                     match code {
                         KeyCode::Char(c) => {
-                            let mut char_buffer = [0; 4];
-                            let bytes = c.encode_utf8(&mut char_buffer).as_bytes();
-                            stdout().write_all(&bytes)?;
-                            stdout().flush()?;
+                            stdout.queue(Print(c))?;
+                            stdout.flush()?;
                             buffer.push(c)
                         },
                         KeyCode::Backspace => {
                             if !buffer.is_empty() {
                                 buffer.pop();
-                                stdout().execute(MoveLeft(1))?;
-                                stdout().write_all(&[b' '])?;
-                                stdout().execute(MoveLeft(1))?;
-                                stdout().flush()?;
+                                stdout
+                                    .queue(MoveLeft(1))?
+                                    .queue(Print(" "))?
+                                    .queue(MoveLeft(1))?;
+                                stdout.flush()?;
                             }
                         },
                         KeyCode::Enter => {
