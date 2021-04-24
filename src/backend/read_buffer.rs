@@ -9,7 +9,7 @@ pub mod read_buffer {
     };
     use std::io::{stdout, Write};
 
-    pub fn read_buffer() -> Result<(String)> {
+    pub fn read_buffer() -> Result<String> {
         let mut stdout = stdout();
         let mut buffer = String::new();
         stdout
