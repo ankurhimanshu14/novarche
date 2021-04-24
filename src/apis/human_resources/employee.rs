@@ -1,8 +1,8 @@
 pub mod employee {
-    use chrono::{ NaiveDate };
-    use mysql::*;
-    use mysql::prelude::*;
     use crate::apis::human_resources::person::person::Person;
+    use chrono::NaiveDate;
+    use mysql::prelude::*;
+    use mysql::*;
     // use crate::utils::parse::parse::parse_from_row;
 
     #[derive(Debug, Clone)]
@@ -13,7 +13,7 @@ pub mod employee {
         pub reporting_to: String,
         pub current_status: String,
         pub date_of_joining: NaiveDate,
-        pub date_of_leaving: Option<NaiveDate>
+        pub date_of_leaving: Option<NaiveDate>,
     }
 
     impl Employee {
@@ -21,78 +21,82 @@ pub mod employee {
             let mut employee_id = String::new();
             println!("Enter EmployeeId:");
             std::io::stdin()
-                            .read_line(&mut employee_id)
-                            .expect("Failed to read input");
-            
+                .read_line(&mut employee_id)
+                .expect("Failed to read input");
+
             let mut dept_code = String::new();
             println!("Enter Department:");
             std::io::stdin()
-                            .read_line(&mut dept_code)
-                            .expect("Failed to read input");
-            
+                .read_line(&mut dept_code)
+                .expect("Failed to read input");
+
             let mut designation = String::new();
             println!("Enter Designation:");
             std::io::stdin()
-                            .read_line(&mut designation)
-                            .expect("Failed to read input");
-            
+                .read_line(&mut designation)
+                .expect("Failed to read input");
+
             let mut reporting_to = String::new();
             println!("Enter Reporting to:");
             std::io::stdin()
-                            .read_line(&mut reporting_to)
-                            .expect("Failed to read input");
+                .read_line(&mut reporting_to)
+                .expect("Failed to read input");
 
             let mut current_status = String::new();
             println!("Enter Status:");
             std::io::stdin()
-                            .read_line(&mut current_status)
-                            .expect("Failed to read input");
+                .read_line(&mut current_status)
+                .expect("Failed to read input");
 
             let mut doj = String::new();
             println!("Enter date of joining (dd-mm--yyyy):");
             std::io::stdin()
-                            .read_line(&mut doj)
-                            .expect("Failed to read input");
+                .read_line(&mut doj)
+                .expect("Failed to read input");
 
             let mut dol = String::new();
             println!("Enter date of leaving (dd-mm--yyyy):");
             std::io::stdin()
-                            .read_line(&mut dol)
-                            .expect("Failed to read input");
+                .read_line(&mut dol)
+                .expect("Failed to read input");
 
-            
             Employee {
-                employee_id: employee_id.to_string()
-                                .trim_end_matches("\r\n")
-                                .to_string(),
+                employee_id: employee_id.to_string().trim_end_matches("\r\n").to_string(),
 
-                dept_code: dept_code.to_string()
-                                .trim_end_matches("\r\n")
-                                .to_string(),
+                dept_code: dept_code.to_string().trim_end_matches("\r\n").to_string(),
 
-                designation: designation.to_string()
-                                .trim_end_matches("\r\n")
-                                .to_string(),
+                designation: designation.to_string().trim_end_matches("\r\n").to_string(),
 
-                reporting_to: reporting_to.to_string()
-                                .trim_end_matches("\r\n")
-                                .to_string(),
+                reporting_to: reporting_to
+                    .to_string()
+                    .trim_end_matches("\r\n")
+                    .to_string(),
 
-                current_status: current_status.to_string()
-                        .trim_end_matches("\r\n")
-                        .to_string(),
+                current_status: current_status
+                    .to_string()
+                    .trim_end_matches("\r\n")
+                    .to_string(),
 
-                date_of_joining: NaiveDate::parse_from_str(&doj.to_string().trim_end_matches("\r\n").to_string(), "%d-%m-%Y").unwrap(),
-                
+                date_of_joining: NaiveDate::parse_from_str(
+                    &doj.to_string().trim_end_matches("\r\n").to_string(),
+                    "%d-%m-%Y",
+                )
+                .unwrap(),
+
                 date_of_leaving: match &dol.to_string().trim_end_matches("\r\n").to_string().len() {
                     0 => None,
-                    _ => Some(NaiveDate::parse_from_str(&dol.to_string().trim_end_matches("\r\n").to_string(), "%d-%m-%Y").unwrap())
-                }
+                    _ => Some(
+                        NaiveDate::parse_from_str(
+                            &dol.to_string().trim_end_matches("\r\n").to_string(),
+                            "%d-%m-%Y",
+                        )
+                        .unwrap(),
+                    ),
+                },
             }
         }
 
         pub fn post(e: Employee) -> Result<()> {
-
             let new_individual = Person::new();
 
             Person::post(&new_individual)?;
@@ -142,16 +146,19 @@ pub mod employee {
 
             conn.query_drop(table)?;
 
-            conn.exec_drop(insert, params! {
-                "employee_id" => e.employee_id,
-                "person_id" => new_individual.uidai,
-                "dept_code" => e.dept_code,
-                "designation" => e.designation,
-                "reporting_to" => e.reporting_to,
-                "current_status" => e.current_status,
-                "date_of_joining" => e.date_of_joining,
-                "date_of_leaving" => e.date_of_leaving
-            })?;
+            conn.exec_drop(
+                insert,
+                params! {
+                    "employee_id" => e.employee_id,
+                    "person_id" => new_individual.uidai,
+                    "dept_code" => e.dept_code,
+                    "designation" => e.designation,
+                    "reporting_to" => e.reporting_to,
+                    "current_status" => e.current_status,
+                    "date_of_joining" => e.date_of_joining,
+                    "date_of_leaving" => e.date_of_leaving
+                },
+            )?;
 
             Ok(())
         }
@@ -172,16 +179,16 @@ pub mod employee {
             let result: Vec<Row> = query.fetch(conn)?;
 
             let mut v1: Vec<Vec<String>> = Vec::new();
-            
+
             for entries in result.iter() {
                 let length: &usize = &entries.len();
                 let mut v2: Vec<String> = Vec::new();
                 for index in 0..*length {
                     let val = &entries.get_opt::<String, usize>(index).unwrap();
-    
+
                     match val {
                         Ok(_) => v2.push(val.as_ref().unwrap().to_string()),
-                        Err(_) => v2.push("".to_string())
+                        Err(_) => v2.push("".to_string()),
                     }
                 }
                 v1.push(v2);

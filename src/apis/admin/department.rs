@@ -1,14 +1,14 @@
 pub mod department {
 
-    use chrono::{ NaiveDate };
-    use mysql::*;
+    use chrono::NaiveDate;
     use mysql::prelude::*;
+    use mysql::*;
 
     #[derive(Debug)]
     pub struct Department {
         department_code: String,
         description: String,
-        email: String
+        email: String,
     }
 
     impl Department {
@@ -16,33 +16,30 @@ pub mod department {
             let mut department_code = String::new();
             println!("Enter Department Code");
             std::io::stdin()
-                            .read_line(&mut department_code)
-                            .expect("Failed to read input");
+                .read_line(&mut department_code)
+                .expect("Failed to read input");
 
             let mut description = String::new();
             println!("Enter Department Description");
             std::io::stdin()
-                            .read_line(&mut description)
-                            .expect("Failed to read input");
+                .read_line(&mut description)
+                .expect("Failed to read input");
 
             let mut email = String::new();
             println!("Enter Department Email ID");
             std::io::stdin()
-                            .read_line(&mut email)
-                            .expect("Failed to read input");
+                .read_line(&mut email)
+                .expect("Failed to read input");
 
             Department {
-                department_code: department_code.to_string()
-                                                .trim_end_matches("\r\n")
-                                                .to_string(),
+                department_code: department_code
+                    .to_string()
+                    .trim_end_matches("\r\n")
+                    .to_string(),
 
-                description: description.to_string()
-                                        .trim_end_matches("\r\n")
-                                        .to_string(),
+                description: description.to_string().trim_end_matches("\r\n").to_string(),
 
-                email: email.to_string()
-                            .trim_end_matches("\r\n")
-                            .to_string(),
+                email: email.to_string().trim_end_matches("\r\n").to_string(),
             }
         }
 
@@ -74,11 +71,14 @@ pub mod department {
 
             conn.query_drop(table)?;
 
-            conn.exec_drop(insert, params! {
-                "department_code" => d.department_code,
-                "description" => d.description,
-                "email" => d.email
-            })?;
+            conn.exec_drop(
+                insert,
+                params! {
+                    "department_code" => d.department_code,
+                    "description" => d.description,
+                    "email" => d.email
+                },
+            )?;
 
             Ok(())
         }

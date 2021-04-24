@@ -1,10 +1,10 @@
 pub mod user {
-    use serde::{ Serialize, Deserialize};
-    use std::str;
-    use chrono::{ DateTime, Utc };
-    use bcrypt::{ hash, DEFAULT_COST, verify };
-    use mysql::*;
+    use bcrypt::{hash, verify, DEFAULT_COST};
+    use chrono::{DateTime, Utc};
     use mysql::prelude::*;
+    use mysql::*;
+    use serde::{Deserialize, Serialize};
+    use std::str;
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct User {
@@ -12,7 +12,7 @@ pub mod user {
         pub email: String,
         pub username: String,
         password: String,
-        pub role: String
+        pub role: String,
     }
 
     // fn verify_user(username: String, password: String) -> Result<bool> {
@@ -26,51 +26,47 @@ pub mod user {
             let mut employee_id = String::new();
             println!("Enter Employee Id:");
             std::io::stdin()
-                            .read_line(&mut employee_id)
-                            .expect("Failed to read input");
+                .read_line(&mut employee_id)
+                .expect("Failed to read input");
 
             let mut email = String::new();
             println!("Enter Email:");
             std::io::stdin()
-                            .read_line(&mut email)
-                            .expect("Failed to read input");
-            
+                .read_line(&mut email)
+                .expect("Failed to read input");
+
             let mut username = String::new();
             println!("Enter username:");
             std::io::stdin()
-                            .read_line(&mut username)
-                            .expect("Failed to read input");
+                .read_line(&mut username)
+                .expect("Failed to read input");
 
             let mut password = String::new();
             println!("Enter password:");
             std::io::stdin()
-                            .read_line(&mut password)
-                            .expect("Failed to read input");
-            
+                .read_line(&mut password)
+                .expect("Failed to read input");
+
             let mut role = String::new();
             println!("Enter role:");
             std::io::stdin()
-                            .read_line(&mut role)
-                            .expect("Failed to read input");
-            
+                .read_line(&mut role)
+                .expect("Failed to read input");
+
             User {
-                employee_id: employee_id.to_string()
-                                .trim_end_matches("\r\n")
-                                .to_string(),
+                employee_id: employee_id.to_string().trim_end_matches("\r\n").to_string(),
 
-                email: email.to_string()
-                                .trim_end_matches("\r\n")
-                                .to_string(),
-                
-                username: username.to_string()
-                                .trim_end_matches("\r\n")
-                                .to_string(),
+                email: email.to_string().trim_end_matches("\r\n").to_string(),
 
-                password: hash(password.to_string().trim_end_matches("\r\n").to_string(), DEFAULT_COST).unwrap(),
+                username: username.to_string().trim_end_matches("\r\n").to_string(),
 
-                role: role.to_string()
-                        .trim_end_matches("\r\n")
-                        .to_string()
+                password: hash(
+                    password.to_string().trim_end_matches("\r\n").to_string(),
+                    DEFAULT_COST,
+                )
+                .unwrap(),
+
+                role: role.to_string().trim_end_matches("\r\n").to_string(),
             }
         }
 
@@ -103,13 +99,16 @@ pub mod user {
             let mut conn = pool.get_conn()?;
 
             conn.query_drop(table)?;
-            conn.exec_drop(insert, params! {
-                "employee_id" => u.employee_id,
-                "email" => u.email,
-                "username" => u.username,
-                "password" => u.password,
-                "role" => u.role
-            })?;
+            conn.exec_drop(
+                insert,
+                params! {
+                    "employee_id" => u.employee_id,
+                    "email" => u.email,
+                    "username" => u.username,
+                    "password" => u.password,
+                    "role" => u.role
+                },
+            )?;
             Ok(())
         }
 
@@ -166,11 +165,11 @@ pub mod user {
         //         let url = "mysql://root:@localhost:3306/mws_database";
 
         //         let pool = Pool::new(url)?;
-    
+
         //         let mut conn = pool.get_conn()?;
 
         //         conn.query_drop(query)?;
-                
+
         //     } else {
         //         println!("You are not authorized to change the password.");
         //     }
@@ -193,11 +192,11 @@ pub mod user {
         //         let url = "mysql://root:@localhost:3306/mws_database";
 
         //         let pool = Pool::new(url)?;
-    
+
         //         let mut conn = pool.get_conn()?;
 
         //         conn.query_drop(query)?;
-                
+
         //     } else {
         //         println!("You are not authorized to change the role.");
         //     }
