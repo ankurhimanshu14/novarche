@@ -16,13 +16,14 @@ pub mod read_buffer {
         stdout
             .execute(SetForegroundColor(Color::Blue))?
             .execute(Print("> "))?
-            .execute(ResetColor)?;
+            .execute(ResetColor)?
+            .execute(EnableMouseCapture)?;
     
         terminal::enable_raw_mode()?;
         
         loop{
             match read()? {
-                Event::Key(KeyEvent { code, modifiers: _}) => {
+                Event::Key(KeyEvent { code, modifiers: _ }) => {
                     match code {
                         KeyCode::Char(c) => {
                             stdout.queue(Print(c))?;

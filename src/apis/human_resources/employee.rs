@@ -17,7 +17,7 @@ pub mod employee {
     }
 
     impl Employee {
-        pub fn new() -> Self {       
+        pub fn new() -> Self {
             let mut employee_id = String::new();
             println!("Enter EmployeeId:");
             std::io::stdin()
