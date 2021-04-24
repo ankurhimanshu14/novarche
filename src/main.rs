@@ -2,7 +2,7 @@ mod backend;
 mod frontend;
 mod apis;
 
-use crate::backend::read_buffer::read_buffer::read_buffer;
+use crate::backend::read_inputs::read_inputs::read_inputs;
 use crate::frontend::home::home::home;
 
 fn main() -> Result<(), std::io::Error> {

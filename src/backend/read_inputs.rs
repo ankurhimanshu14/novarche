@@ -1,15 +1,15 @@
-pub mod read_buffer {
+pub mod read_inputs {
 
     use crossterm::{
         cursor::MoveLeft,
-        event::{read, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent},
+        event::{read, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, MouseButton, MouseEvent, KeyModifiers },
         execute, queue,
         style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
         terminal, ExecutableCommand, QueueableCommand, Result,
     };
     use std::io::{stdout, Write};
 
-    pub fn read_buffer() -> Result<String> {
+    pub fn read_inputs() -> Result<String> {
         let mut stdout = stdout();
         let mut buffer = String::new();
         stdout
@@ -44,7 +44,11 @@ pub mod read_buffer {
                     _ => {}
                 },
                 Event::Mouse(event) => {
-                    // println!("{:?}", event
+                    match event {
+                        MouseEvent::Down(MouseButton::Left, 15, 1, KeyModifiers::NONE) => println!("Administration"),
+                        _ => {}
+
+                    }
                 }
                 Event::Resize(width, height) => {
                     println!("Width: {}, Height: {}", width, height)

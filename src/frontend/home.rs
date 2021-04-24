@@ -7,7 +7,7 @@ pub mod home {
     use tui::text::{Span, Spans};
     use tui::widgets::{Block, Borders, Paragraph, Tabs, Wrap, Table, Row, Cell};
     use tui::Terminal;
-    use crate::backend::read_buffer::read_buffer::read_buffer;
+    use crate::backend::read_inputs::read_inputs::read_inputs;
     use crate::apis::human_resources::employee::employee::Employee;
 
     pub fn home() -> Result<(), io::Error> {
@@ -49,19 +49,19 @@ pub mod home {
                     .divider("|");
                 f.render_widget(tabs, chunks[0]);
     
-                // let read = vec![
-                //     Spans::from(vec![
-                //         Span::raw("Enter First Name: "),
-                //         Span::from(read_buffer().unwrap())
-                //     ])
-                // ];
+                let read = vec![
+                    Spans::from(vec![
+                        Span::raw("Enter First Name: "),
+                        Span::from(read_inputs().unwrap())
+                    ])
+                ];
     
-                // let inputs = Paragraph::new(read)
-                //     .block(Block::default().title("Data").borders(Borders::ALL))
-                //     .style(Style::default().fg(Color::White).bg(Color::Black))
-                //     .alignment(Alignment::Left)
-                //     .wrap(Wrap { trim: true });
-                // f.render_widget(inputs, chunks[1]);
+                let inputs = Paragraph::new(read)
+                    .block(Block::default().title("Data").borders(Borders::ALL))
+                    .style(Style::default().fg(Color::White).bg(Color::Black))
+                    .alignment(Alignment::Left)
+                    .wrap(Wrap { trim: true });
+                f.render_widget(inputs, chunks[1]);
 
 
 
