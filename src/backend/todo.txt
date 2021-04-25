@@ -1,0 +1,18 @@
+Terminal User Interface CrossTerm Backend.
+
+X Get crossterm working
+X Line Input
+X Printing a prompt
+X Raw input mode
+X Backspace
+* Exiting
+* Arrow key input
+* History
+* Up/down History
+* Left/right and inserting text
+* Home/end
+* Under status
+* Async/ parallel prompt
+* Validation
+* Autocompletion
+* Hinting

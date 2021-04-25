@@ -1,0 +1,8 @@
+Create the Home Page
+Layout
+Input field
+Output Fields
+Drop down menu
+Graphs
+Popups
+Buttons

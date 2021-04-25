@@ -19,13 +19,16 @@ pub mod home {
 
         let data = Employee::get().unwrap();
 
-        let mut v: Vec<Cell> = Vec::new();
+        let mut v_outer: Vec<Row> = Vec::new();
 
-        for a in data.clone() {
-            for b in a.clone() {
-                v.push(Cell::from(Span::from(b)))
+        for row in data {
+            let mut v_inner: Vec<Cell> = Vec::new();
+            for cell in row {
+                v_inner.push(Cell::from(cell));
             }
+            v_outer.push(Row::new(v_inner));
         }
+        println!("{:?}", v_outer);
 
         loop {
             terminal.draw( |f| {
@@ -66,9 +69,7 @@ pub mod home {
 
 
 
-                let table  = Table::new(vec![
-                    Row::new(v.clone()),
-                ])
+                let table  = Table::new(v_outer.clone())
                 .style(Style::default().fg(Color::White))
                 .header(
                     Row::new(vec!["employee_id", "first_name", "middle_name", "last_name", "dept_code", "uan", "designation", "reporting_to"])
