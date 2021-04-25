@@ -45,7 +45,9 @@ pub mod read_inputs {
                 },
                 Event::Mouse(event) => {
                     match event {
-                        MouseEvent::Down(MouseButton::Left, 15, 1, KeyModifiers::NONE) => println!("Administration"),
+                        MouseEvent::Down(MouseButton::Left, (1..=16), 1, KeyModifiers::NONE) => println!("Administration"),
+                        MouseEvent::Down(MouseButton::Left, (18..=34), 1, KeyModifiers::NONE) => println!("Human Resouces"),
+                        MouseEvent::Down(MouseButton::Left, (36..=45), 1, KeyModifiers::NONE) => println!("Accounts"),
                         _ => {}
 
                     }
