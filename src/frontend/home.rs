@@ -28,7 +28,6 @@ pub mod home {
             }
             v_outer.push(Row::new(v_inner));
         }
-        println!("{:?}", v_outer);
 
         loop {
             terminal.draw( |f| {
@@ -37,9 +36,9 @@ pub mod home {
                     .vertical_margin(0)
                     .constraints(
                         [
-                            Constraint::Percentage(5),
-                            Constraint::Percentage(90),
-                            Constraint::Percentage(5)
+                            Constraint::Percentage(10),
+                            Constraint::Percentage(80),
+                            Constraint::Percentage(10)
                         ].as_ref()
                     )
                     .split(f.size());
@@ -51,6 +50,23 @@ pub mod home {
                     .highlight_style(Style::default().fg(Color::White).bg(Color::Magenta).add_modifier(Modifier::UNDERLINED))
                     .divider("|");
                 f.render_widget(tabs, chunks[0]);
+
+                let blocks = Block::default()
+                    .title("Input Field")
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::White));
+                f.render_widget(blocks, chunks[2]);
+
+                let chunks = Layout::default()
+                .direction(Direction::Horizontal)
+                .vertical_margin(5)
+                .constraints(
+                    [
+                        Constraint::Percentage(20),
+                        Constraint::Percentage(70)
+                    ].as_ref()
+                )
+                .split(f.size());
     
                 let read = vec![
                     Spans::from(vec![
@@ -64,33 +80,24 @@ pub mod home {
                     .style(Style::default().fg(Color::White).bg(Color::Black))
                     .alignment(Alignment::Left)
                     .wrap(Wrap { trim: true });
-                f.render_widget(inputs, chunks[1]);
-
-
+                f.render_widget(inputs, chunks[0]);
 
 
                 let table  = Table::new(v_outer.clone())
                 .style(Style::default().fg(Color::White))
                 .header(
                     Row::new(vec!["employee_id", "first_name", "middle_name", "last_name", "dept_code", "uan", "designation", "reporting_to"])
-                        .style(Style::default().fg(Color::Yellow))
+                        .style(Style::default().fg(Color::Cyan))
                         .bottom_margin(1)
                 )
-                .block(Block::default().title("Table"))
-                .widths(&[Constraint::Length(20), Constraint::Length(20), Constraint::Length(20),Constraint::Length(20), Constraint::Length(20), Constraint::Length(20),Constraint::Length(20), Constraint::Length(20)])
-
+                .block(Block::default().title("Table").borders(Borders::ALL))
+                .widths(&[Constraint::Length(15), Constraint::Length(15), Constraint::Length(15),Constraint::Length(15), Constraint::Length(15), Constraint::Length(15),Constraint::Length(15), Constraint::Length(15)])
                 .column_spacing(1)
                 .highlight_style(Style::default().add_modifier(Modifier::BOLD))
                 .highlight_symbol(">>");
                 f.render_widget(table, chunks[1]);
-    
-                let blocks = Block::default()
-                    .title("Input Field")
-                    .borders(Borders::ALL)
-                    .style(Style::default().fg(Color::White));
-                f.render_widget(blocks, chunks[2]);
             })?;
-            terminal.set_cursor(2, 61)?
+            terminal.set_cursor(2, 41)?
         }
     }
 }

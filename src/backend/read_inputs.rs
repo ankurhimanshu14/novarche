@@ -14,7 +14,7 @@ pub mod read_inputs {
         let mut buffer = String::new();
         stdout
             .execute(SetForegroundColor(Color::Blue))?
-            .execute(Print(">>> "))?
+            .execute(Print("$ "))?
             .execute(ResetColor)?
             .execute(EnableMouseCapture)?;
 
