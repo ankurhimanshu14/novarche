@@ -11,7 +11,7 @@ pub mod read_inputs {
 
     pub fn read_inputs() -> Result<(Option<String>, Option<usize>)> {
         let mut stdout = stdout();
-        let mut select = 0;
+        let select = 0;
         let mut buffer = String::new();
         stdout
             .execute(SetForegroundColor(Color::Blue))?
@@ -25,7 +25,8 @@ pub mod read_inputs {
         
         'repl: loop {
 
-            loop {
+            'inner: loop {
+                
                 match read()? {
                     Event::Key(KeyEvent { code, modifiers: _ }) => match code {
                         KeyCode::Char(c) => {
@@ -57,20 +58,24 @@ pub mod read_inputs {
                             }
                             break 'repl;
                         },
-                        _ => break 'repl
+                        _ => {}
                     },
                     Event::Mouse(event) => {
                         match event {
                             MouseEvent::Down(MouseButton::Left, (1..=16), 1, KeyModifiers::NONE) => {
                                 data_set.1 = Some(0);
+                                break 'repl;
                             },
                             MouseEvent::Down(MouseButton::Left, (18..=34), 1, KeyModifiers::NONE) => {
                                 data_set.1 = Some(1);
+                                break 'repl;
                             },
                             MouseEvent::Down(MouseButton::Left, (36..=45), 1, KeyModifiers::NONE) => {
                                 data_set.1 = Some(2);
+                                break 'repl;
                             },
-                            _ => break 'repl
+                            MouseEvent::Down(MouseButton::Left, _, _, KeyModifiers::NONE) => break 'inner,
+                            _ => {}
                         }
                     }
                     Event::Resize(width, height) => {
