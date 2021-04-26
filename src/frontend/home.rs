@@ -9,7 +9,7 @@ pub mod home {
     use tui::layout::{Alignment, Constraint, Rect, Direction, Layout};
     use tui::style::{Color, Modifier, Style};
     use tui::text::{Span, Spans};
-    use tui::widgets::{Block, Borders, Paragraph, Tabs, Wrap, Table, Row, Cell};
+    use tui::widgets::{Block, Borders, Paragraph, Tabs, Wrap, Table, Row, Cell, List, ListItem};
     use tui::Terminal;
     use crate::backend::read_inputs::read_inputs::read_inputs;
     use crate::apis::human_resources::employee::employee::Employee;
@@ -50,46 +50,56 @@ pub mod home {
                     )
                     .split(f.size());
                 
-                let titles = ["Administration", "Human Resources", "Accounts"].iter().cloned().map(Spans::from).collect();
+                let titles = ["Administration", "Human Resources", "Accounts", "Raw Material Store", "Engineering", "Production", "Quality Assurance"].iter().cloned().map(Spans::from).collect();
                 let tabs = Tabs::new(titles)
                     .block(Block::default().title("Novarche Inc.").borders(Borders::ALL))
-                    .select(tab_cmd.unwrap())
+                    .select(tab_cmd.unwrap().clone())
                     .style(Style::default().fg(Color::White))
                     .highlight_style(Style::default().fg(Color::White).bg(Color::Magenta).add_modifier(Modifier::UNDERLINED))
                     .divider("|");
                 f.render_widget(tabs, chunks[0]);
-
-                let blocks = Block::default()
-                    .title("Input Field")
-                    .borders(Borders::ALL)
-                    .style(Style::default().fg(Color::White));
-                f.render_widget(blocks, chunks[2]);
 
                 let chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .vertical_margin(5)
                 .constraints(
                     [
-                        Constraint::Percentage(22),
+                        Constraint::Percentage(20),
                         Constraint::Percentage(70)
                     ].as_ref()
                 )
                 .split(f.size());
-    
-                let read = vec![
-                    Spans::from(vec![
-                        Span::raw("Enter First Name: "),
-                        Span::from(input_cmd.unwrap())
-                    ])
-                ];
-    
-                let inputs = Paragraph::new(read)
-                    .block(Block::default().title("Data").borders(Borders::ALL))
-                    .style(Style::default().fg(Color::White).bg(Color::Black))
-                    .alignment(Alignment::Left)
-                    .wrap(Wrap { trim: true });
-                f.render_widget(inputs, chunks[0]);
 
+                match tab_cmd.unwrap() {
+                    0 => {
+                        let items = [ListItem::new("> Create New User"), ListItem::new("  --------------------------------------"), ListItem::new("> Change Password"), ListItem::new("> User Profile"), ListItem::new("> Logout")];
+                        let list = List::new(items)
+                                .block(Block::default().title("Administration").borders(Borders::ALL))
+                                .style(Style::default().fg(Color::White))
+                                .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
+                                .highlight_symbol(">>");
+                        f.render_widget(list, chunks[0]);
+                    },
+                    1 => {
+                        let items = [ListItem::new("Add New Employee"), ListItem::new("View Employee Details")];
+                        let list = List::new(items)
+                                .block(Block::default().title("Human Resources").borders(Borders::ALL))
+                                .style(Style::default().fg(Color::White))
+                                .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
+                                .highlight_symbol(">>");
+                        f.render_widget(list, chunks[0]);
+                    },
+                    2 => {
+                        let items = [ListItem::new("Add Bank Details"), ListItem::new("Get Salary Details")];
+                        let list = List::new(items)
+                                .block(Block::default().title("Accounts").borders(Borders::ALL))
+                                .style(Style::default().fg(Color::White))
+                                .highlight_style(Style::default().add_modifier(Modifier::ITALIC))
+                                .highlight_symbol(">>");
+                        f.render_widget(list, chunks[0]);
+                    },
+                    _ => {}
+                }
 
                 let table  = Table::new(v_outer.clone())
                 .style(Style::default().fg(Color::White))
