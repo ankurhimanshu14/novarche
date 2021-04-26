@@ -9,8 +9,9 @@ pub mod read_inputs {
     };
     use std::io::{stdout, Write};
 
-    pub fn read_inputs() -> Result<String> {
+    pub fn read_inputs() -> Result<(Option<String>, Option<usize>)> {
         let mut stdout = stdout();
+        let mut select = 0;
         let mut buffer = String::new();
         stdout
             .execute(SetForegroundColor(Color::Blue))?
@@ -20,59 +21,65 @@ pub mod read_inputs {
 
         terminal::enable_raw_mode()?;
 
-        loop {
-            match read()? {
-                Event::Key(KeyEvent { code, modifiers: _ }) => match code {
-                    KeyCode::Char(c) => {
-                        stdout.queue(Print(c))?;
-                        stdout.flush()?;
-                        buffer.push(c)
-                    }
-                    KeyCode::Backspace => {
-                        if !buffer.is_empty() {
-                            buffer.pop();
-                            stdout
-                                .queue(MoveLeft(1))?
-                                .queue(Print(" "))?
-                                .queue(MoveLeft(1))?;
+        let mut data_set: (Option<String>, Option<usize>) = (Some(buffer.clone()), Some(select.clone()));
+        
+        'repl: loop {
+
+            loop {
+                match read()? {
+                    Event::Key(KeyEvent { code, modifiers: _ }) => match code {
+                        KeyCode::Char(c) => {
+                            stdout.queue(Print(c))?;
                             stdout.flush()?;
+                            buffer.push(c)
+                        },
+                        KeyCode::Backspace => {
+                            if !buffer.is_empty() {
+                                buffer.pop();
+                                stdout
+                                    .queue(MoveLeft(1))?
+                                    .queue(Print(" "))?
+                                    .queue(MoveLeft(1))?;
+                                stdout.flush()?;
+                            }
+                        },
+                        KeyCode::Enter => {
+                            data_set.0 = Some(buffer.clone());
+                            for _ in 0..buffer.len() {
+                                if !buffer.is_empty() {
+                                    buffer.pop();
+                                    stdout
+                                        .queue(MoveLeft(1))?
+                                        .queue(Print(" "))?
+                                        .queue(MoveLeft(1))?;
+                                    stdout.flush()?;
+                                }
+                            }
+                            break 'repl;
+                        },
+                        _ => break 'repl
+                    },
+                    Event::Mouse(event) => {
+                        match event {
+                            MouseEvent::Down(MouseButton::Left, (1..=16), 1, KeyModifiers::NONE) => {
+                                data_set.1 = Some(0);
+                            },
+                            MouseEvent::Down(MouseButton::Left, (18..=34), 1, KeyModifiers::NONE) => {
+                                data_set.1 = Some(1);
+                            },
+                            MouseEvent::Down(MouseButton::Left, (36..=45), 1, KeyModifiers::NONE) => {
+                                data_set.1 = Some(2);
+                            },
+                            _ => break 'repl
                         }
                     }
-                    KeyCode::Enter => {
-                        break;
-                    }
-                    _ => {}
-                },
-                Event::Mouse(event) => {
-                    match event {
-                        MouseEvent::Down(MouseButton::Left, (1..=16), 1, KeyModifiers::NONE) => println!("Administration"),
-                        MouseEvent::Down(MouseButton::Left, (18..=34), 1, KeyModifiers::NONE) => println!("Human Resouces"),
-                        MouseEvent::Down(MouseButton::Left, (36..=45), 1, KeyModifiers::NONE) => println!("Accounts"),
-                        _ => {}
-
+                    Event::Resize(width, height) => {
+                        println!("Width: {}, Height: {}", width, height)
                     }
                 }
-                Event::Resize(width, height) => {
-                    println!("Width: {}, Height: {}", width, height)
-                }
+                terminal::disable_raw_mode()?;
             }
         }
-
-        let s = format!("{}", buffer);
-
-        for _ in 0..buffer.len() {
-            if !buffer.is_empty() {
-                buffer.pop();
-                stdout
-                    .queue(MoveLeft(1))?
-                    .queue(Print(" "))?
-                    .queue(MoveLeft(1))?;
-                stdout.flush()?;
-            }
-        }
-
-        terminal::disable_raw_mode()?;
-
-        Ok(s)
+        Ok(data_set)
     }
 }

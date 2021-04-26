@@ -1,5 +1,9 @@
 pub mod home {
 
+    use crossterm::{
+        event::{read, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, MouseButton, MouseEvent, KeyModifiers },
+    };
+
     use std::io;
     use tui::backend::{ CrosstermBackend, Backend };
     use tui::layout::{Alignment, Constraint, Rect, Direction, Layout};
@@ -30,6 +34,9 @@ pub mod home {
         }
 
         loop {
+
+            let (input_cmd, tab_cmd) = read_inputs().unwrap();
+
             terminal.draw( |f| {
                 let chunks = Layout::default()
                     .direction(Direction::Vertical)
@@ -46,6 +53,7 @@ pub mod home {
                 let titles = ["Administration", "Human Resources", "Accounts"].iter().cloned().map(Spans::from).collect();
                 let tabs = Tabs::new(titles)
                     .block(Block::default().title("Novarche Inc.").borders(Borders::ALL))
+                    .select(tab_cmd.unwrap())
                     .style(Style::default().fg(Color::White))
                     .highlight_style(Style::default().fg(Color::White).bg(Color::Magenta).add_modifier(Modifier::UNDERLINED))
                     .divider("|");
@@ -62,7 +70,7 @@ pub mod home {
                 .vertical_margin(5)
                 .constraints(
                     [
-                        Constraint::Percentage(20),
+                        Constraint::Percentage(22),
                         Constraint::Percentage(70)
                     ].as_ref()
                 )
@@ -71,7 +79,7 @@ pub mod home {
                 let read = vec![
                     Spans::from(vec![
                         Span::raw("Enter First Name: "),
-                        Span::from(read_inputs().unwrap())
+                        Span::from(input_cmd.unwrap())
                     ])
                 ];
     
@@ -91,13 +99,13 @@ pub mod home {
                         .bottom_margin(1)
                 )
                 .block(Block::default().title("Table").borders(Borders::ALL))
-                .widths(&[Constraint::Length(15), Constraint::Length(15), Constraint::Length(15),Constraint::Length(15), Constraint::Length(15), Constraint::Length(15),Constraint::Length(15), Constraint::Length(15)])
+                .widths(&[Constraint::Length(22), Constraint::Length(22), Constraint::Length(22),Constraint::Length(22), Constraint::Length(22), Constraint::Length(22),Constraint::Length(22), Constraint::Length(22)])
                 .column_spacing(1)
                 .highlight_style(Style::default().add_modifier(Modifier::BOLD))
                 .highlight_symbol(">>");
                 f.render_widget(table, chunks[1]);
             })?;
-            terminal.set_cursor(2, 41)?
+            terminal.set_cursor(2, 61)?
         }
     }
 }
