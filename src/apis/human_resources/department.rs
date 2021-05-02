@@ -12,37 +12,11 @@ pub mod department {
     }
 
     impl Department {
-        pub fn new() -> Self {
-            let mut department_code = String::new();
-            println!("Enter Department Code");
-            std::io::stdin()
-                            .read_line(&mut department_code)
-                            .expect("Failed to read input");
-
-            let mut description = String::new();
-            println!("Enter Department Description");
-            std::io::stdin()
-                            .read_line(&mut description)
-                            .expect("Failed to read input");
-
-            let mut email = String::new();
-            println!("Enter Department Email ID");
-            std::io::stdin()
-                            .read_line(&mut email)
-                            .expect("Failed to read input");
-
+        pub fn new(department_code: String, description: String, email: String) -> Self {
             Department {
-                department_code: department_code.to_string()
-                                                .trim_end_matches("\r\n")
-                                                .to_string(),
-
-                description: description.to_string()
-                                        .trim_end_matches("\r\n")
-                                        .to_string(),
-
-                email: email.to_string()
-                            .trim_end_matches("\r\n")
-                            .to_string(),
+                department_code,
+                description,
+                email,
             }
         }
 
@@ -81,6 +55,35 @@ pub mod department {
             })?;
 
             Ok(())
+        }
+
+        pub fn find_by_dept_code(q: String) -> Result<Vec<Vec<String>>> {
+            let query = format!("SELECT * FROM department WHERE department_code = '{}';", q);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+
+            let conn = pool.get_conn()?;
+
+            let result: Vec<Row> = query.fetch(conn)?;
+
+            let mut v1: Vec<Vec<String>> = Vec::new();
+
+            for entries in result.iter() {
+                let length: &usize = &entries.len();
+                let mut v2: Vec<String> = Vec::new();
+                for index in 0..*length {
+                    let val = &entries.get_opt::<String, usize>(index).unwrap();
+
+                    match val {
+                        Ok(_) => v2.push(val.as_ref().unwrap().to_string()),
+                        Err(_) => v2.push("".to_string()),
+                    }
+                }
+                v1.push(v2);
+            }
+            Ok(v1)
         }
     }
 }
