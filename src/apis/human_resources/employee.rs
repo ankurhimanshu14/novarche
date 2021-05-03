@@ -17,88 +17,45 @@ pub mod employee {
     }
 
     impl Employee {
-        pub fn new() -> Self {
-            let mut employee_id = String::new();
-            println!("Enter EmployeeId:");
-            std::io::stdin()
-                .read_line(&mut employee_id)
-                .expect("Failed to read input");
-
-            let mut dept_code = String::new();
-            println!("Enter Department:");
-            std::io::stdin()
-                .read_line(&mut dept_code)
-                .expect("Failed to read input");
-
-            let mut designation = String::new();
-            println!("Enter Designation:");
-            std::io::stdin()
-                .read_line(&mut designation)
-                .expect("Failed to read input");
-
-            let mut reporting_to = String::new();
-            println!("Enter Reporting to:");
-            std::io::stdin()
-                .read_line(&mut reporting_to)
-                .expect("Failed to read input");
-
-            let mut current_status = String::new();
-            println!("Enter Status:");
-            std::io::stdin()
-                .read_line(&mut current_status)
-                .expect("Failed to read input");
-
-            let mut doj = String::new();
-            println!("Enter date of joining (dd-mm--yyyy):");
-            std::io::stdin()
-                .read_line(&mut doj)
-                .expect("Failed to read input");
-
-            let mut dol = String::new();
-            println!("Enter date of leaving (dd-mm--yyyy):");
-            std::io::stdin()
-                .read_line(&mut dol)
-                .expect("Failed to read input");
+        pub fn new(
+            employee_id: String,
+            dept_code: String,
+            designation: String,
+            reporting_to: String,
+            current_status: String,
+            date_of_joining: NaiveDate,
+            date_of_leaving: Option<NaiveDate>,
+        ) -> Self {
 
             Employee {
-                employee_id: employee_id.to_string().trim_end_matches("\r\n").to_string(),
-
-                dept_code: dept_code.to_string().trim_end_matches("\r\n").to_string(),
-
-                designation: designation.to_string().trim_end_matches("\r\n").to_string(),
-
-                reporting_to: reporting_to
-                    .to_string()
-                    .trim_end_matches("\r\n")
-                    .to_string(),
-
-                current_status: current_status
-                    .to_string()
-                    .trim_end_matches("\r\n")
-                    .to_string(),
-
-                date_of_joining: NaiveDate::parse_from_str(
-                    &doj.to_string().trim_end_matches("\r\n").to_string(),
-                    "%d-%m-%Y",
-                )
-                .unwrap(),
-
-                date_of_leaving: match &dol.to_string().trim_end_matches("\r\n").to_string().len() {
-                    0 => None,
-                    _ => Some(
-                        NaiveDate::parse_from_str(
-                            &dol.to_string().trim_end_matches("\r\n").to_string(),
-                            "%d-%m-%Y",
-                        )
-                        .unwrap(),
-                    ),
-                },
+                employee_id,
+                dept_code,
+                designation,
+                reporting_to,
+                current_status,
+                date_of_joining,
+                date_of_leaving
+                
+                // : NaiveDate::parse_from_str(
+                //     &doj.to_string().trim_end_matches("\r\n").to_string(),
+                //     "%d-%m-%Y",
+                // )
+                // .unwrap(),
+                // date_of_leaving: match &dol.to_string().trim_end_matches("\r\n").to_string().len() {
+                //     0 => None,
+                //     _ => Some(
+                //         NaiveDate::parse_from_str(
+                //             &dol.to_string().trim_end_matches("\r\n").to_string(),
+                //             "%d-%m-%Y",
+                //         )
+                //         .unwrap(),
+                //     ),
+                // },
             }
         }
 
         pub fn post(e: Employee) -> Result<()> {
             let new_individual = Person::new();
-
             Person::post(&new_individual)?;
 
             let table = r"CREATE TABLE IF NOT EXISTS employee(

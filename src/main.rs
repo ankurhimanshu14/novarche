@@ -6,10 +6,12 @@ use cursive::{
     CursiveExt,
     menu,
     view::{ Nameable },
+    align::{ HAlign },
     views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView },
 };
 
 use apis::human_resources::department::department::Department;
+use apis::raw_material::steel::steel::Steel;
 
 fn main() {
     let mut siv = Cursive::new();
@@ -108,10 +110,144 @@ fn main() {
                             .leaf(
                                 "New",
                                 |s| {
+                                    s.add_layer(
+                                        Dialog::new()
+                                            .title("Add new employee")
+                                            .padding_lrtb(1, 1, 1, 0)
+                                            .content(
+                                                ListView::new()
+                                                    .child("Department Code", EditView::new().with_name("department_code").fixed_width(30))
+                                                    .child("Department Description", EditView::new().with_name("description").fixed_width(30))
+                                                    .child("Department Email ID", EditView::new().with_name("email").fixed_width(30))
+                                            )
+                                            .button("Add", |s| {
 
+                                                let department_code = s.call_on_name("department_code", |view: &mut EditView| {
+                                                    view.get_content()
+                                                }).unwrap();
+                                                
+                                                let description = s.call_on_name("description", |view: &mut EditView| {
+                                                    view.get_content()
+                                                }).unwrap();
+                                                
+                                                let email = s.call_on_name("email", |view: &mut EditView| {
+                                                    view.get_content()
+                                                }).unwrap();
+
+                                                let new = Department::new(
+                                                    department_code.to_string(),
+                                                    description.to_string(),
+                                                    email.to_string()
+                                                );
+
+                                                Department::post(new);
+
+                                                s.quit();
+                                            })
+                                            .dismiss_button("Cancel")
+                                    )
                                 }
                             )
                     )
+        )
+        .add_subtree(
+            "Store",
+            menu::MenuTree::new()
+                .subtree(
+                    "Raw Material",
+                    menu::MenuTree::new()
+                        .leaf(
+                            "New",
+                            |s| {}
+                        )
+                )
+                .subtree(
+                    "General Store",
+                    menu::MenuTree::new()
+                        .leaf(
+                            "New",
+                            |s| {}
+                        )
+                )
+        )
+        .add_subtree(
+            "Item Master",
+            menu::MenuTree::new()
+                .subtree(
+                    "Steels",
+                    menu::MenuTree::new()
+                        .leaf(
+                            "New",
+                            |s| {
+                                s.add_layer(
+                                    Dialog::new()
+                                        .title("Add new steel")
+                                        .padding_lrtb(1, 1, 1, 0)
+                                        .content(                                            
+                                            ListView::new()
+                                                .child("Grade", EditView::new().with_name("grade").fixed_width(30))
+                                                .child("Item Code", EditView::new().with_name("item_code").fixed_width(30))
+                                                .child("Section Size", EditView::new().with_name("section_size").fixed_width(30))
+                                                .child(
+                                                    "Section Type",
+                                                    SelectView::new()
+                                                        .h_align(HAlign::Center)
+                                                        .autojump()
+                                                        .item("RCS", 1)
+                                                        .item("DIA", 2)
+                                                        .on_select(
+                                                            |s, item| {
+                                                                let content = match *item {
+                                                                    1 => "RCS",
+                                                                    2 => "DIA",
+                                                                    _ => unreachable!("No such section type"),
+                                                                };
+
+                                                                s.call_on_name("section_type", |v: &mut TextView| {
+                                                                    v.set_content(content);
+                                                                }).unwrap();
+                                                            }
+                                                        )
+                                                        .with_name("section_type")
+                                                        .fixed_width(10)
+                                                )
+                                        )
+                                        .button("Add", |s| {
+
+                                            let grade = s.call_on_name("grade", |view: &mut EditView| {
+                                                view.get_content()
+                                            }).unwrap();
+                                            
+                                            let item_code = s.call_on_name("item_code", |view: &mut EditView| {
+                                                view.get_content()
+                                            }).unwrap();
+                                            
+                                            let section_size = s.call_on_name("section_size", |view: &mut EditView| {
+                                                view.get_content()
+                                            }).unwrap();
+
+                                            let section_type = s.call_on_name("section_type", |view: &mut TextView| {
+                                                view.get_content();
+                                            });
+
+                                            println!("{:?}", &section_type);
+
+                                            // let new = Steel::new(
+                                            //     grade.to_string(),
+                                            //     item_code.to_string(),
+                                            //     section_size.parse::<usize>().unwrap(),
+                                            //     section_type.unwrap()
+                                            // );
+
+                                            // Steel::post(new);
+
+                                            s.quit();
+                                        })
+                                        .dismiss_button("Cancel")
+                                )
+                            }
+                        )
+                )
         );
 
     siv.select_menubar();
