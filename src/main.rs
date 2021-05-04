@@ -11,6 +11,7 @@ use cursive::{
 };
 
 use apis::human_resources::department::department::Department;
+use apis::admin::user_roles::user_roles::Roles;
 use apis::raw_material::steel::steel::Steel;
 
 fn main() {
@@ -19,6 +20,76 @@ fn main() {
     siv.add_layer(Menubar::new());
 
     siv.menubar()
+        .add_subtree(
+            "Administration",
+            menu::MenuTree::new()
+                .subtree(
+                    "Roles",
+                    menu::MenuTree::new()
+                        .leaf(
+                            "New",
+                            |s| {
+                                s.add_layer(
+                                    Dialog::new()
+                                        .title("Add a role")
+                                        .padding_lrtb(1,1,1,0)
+                                        .content(
+                                            ListView::new()
+                                                .child("Role Description", EditView::new().with_name("role_desc").fixed_width(30))
+                                        )
+                                        .button(
+                                            "Add",
+                                            |s| {
+                                                let role_desc = s.call_on_name("role_desc", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
+
+                                                let new = Roles::new(role_desc.to_string());
+
+                                                Roles::post(&new);
+
+                                                s.quit();
+                                            }
+                                        )
+                                        .dismiss_button("Cancel")
+                                )
+                            }
+                        )
+                )
+                .subtree(
+                    "User",
+                    menu::MenuTree::new()
+                        .leaf(
+                            "New",
+                            |s| {
+                                s.add_layer(
+                                    Dialog::new()
+                                        .title("Add a user")
+                                        .padding_lrtb(1,1,1,0)
+                                        .content(
+                                            ListView::new()
+                                                .child("Role Desciption", EditView::new().with_name("role_desc").fixed_width(30))
+                                        )
+                                        .button(
+                                            "Add",
+                                            |s| {
+                                                let role_desc = s.call_on_name("role_desc", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
+
+                                                let new = Roles::new(role_desc.to_string());
+
+                                                Roles::post(&new);
+
+                                                s.quit();
+                                            }
+                                        )
+                                        .dismiss_button("Cancel")
+                                )
+                            }
+                        )
+                )
+        )
         .add_subtree(
             "Human Resources",
                 menu::MenuTree::new()

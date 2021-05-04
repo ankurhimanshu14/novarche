@@ -1,3 +1,5 @@
+mod user_roles;
+
 pub mod user {
     use bcrypt::{hash, verify, DEFAULT_COST};
     use chrono::{DateTime, Utc};
@@ -5,6 +7,7 @@ pub mod user {
     use mysql::*;
     use serde::{Deserialize, Serialize};
     use std::str;
+    use crate::apis::admin::user_roles::user_roles::Roles;
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct User {
@@ -12,7 +15,7 @@ pub mod user {
         pub email: String,
         pub username: String,
         password: String,
-        pub role: String,
+        pub role: Roles,
     }
 
     // fn verify_user(username: String, password: String) -> Result<bool> {
@@ -22,55 +25,23 @@ pub mod user {
     // }
 
     impl User {
-        pub fn new() -> Self {
-            let mut employee_id = String::new();
-            println!("Enter Employee Id:");
-            std::io::stdin()
-                .read_line(&mut employee_id)
-                .expect("Failed to read input");
-
-            let mut email = String::new();
-            println!("Enter Email:");
-            std::io::stdin()
-                .read_line(&mut email)
-                .expect("Failed to read input");
-
-            let mut username = String::new();
-            println!("Enter username:");
-            std::io::stdin()
-                .read_line(&mut username)
-                .expect("Failed to read input");
-
-            let mut password = String::new();
-            println!("Enter password:");
-            std::io::stdin()
-                .read_line(&mut password)
-                .expect("Failed to read input");
-
-            let mut role = String::new();
-            println!("Enter role:");
-            std::io::stdin()
-                .read_line(&mut role)
-                .expect("Failed to read input");
-
+        pub fn new(
+            employee_id: String,
+            email: String,
+            username: String,
+            password: String,
+            role: String,
+        ) -> Self {
             User {
-                employee_id: employee_id.to_string().trim_end_matches("\r\n").to_string(),
-
-                email: email.to_string().trim_end_matches("\r\n").to_string(),
-
-                username: username.to_string().trim_end_matches("\r\n").to_string(),
-
-                password: hash(
-                    password.to_string().trim_end_matches("\r\n").to_string(),
-                    DEFAULT_COST,
-                )
-                .unwrap(),
-
-                role: role.to_string().trim_end_matches("\r\n").to_string(),
+                employee_id,
+                email,
+                username,
+                password: hash(password, DEFAULT_COST).unwrap(),
+                role,
             }
         }
 
-        pub fn post(u: User) -> Result<()> {
+        pub fn post(self) -> Result<()> {
             let table = "CREATE TABLE IF NOT EXISTS user(
                 id          INT             NOT NULL            PRIMARY KEY AUTO_INCREMENT,
                 employee_id VARCHAR(10)     NOT NULL            UNIQUE,
@@ -102,11 +73,11 @@ pub mod user {
             conn.exec_drop(
                 insert,
                 params! {
-                    "employee_id" => u.employee_id,
-                    "email" => u.email,
-                    "username" => u.username,
-                    "password" => u.password,
-                    "role" => u.role
+                    "employee_id" => self.employee_id,
+                    "email" => self.email,
+                    "username" => self.username,
+                    "password" => self.password,
+                    "role" => self.role
                 },
             )?;
             Ok(())
