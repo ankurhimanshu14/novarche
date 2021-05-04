@@ -192,24 +192,22 @@ fn main() {
                                                     "Section Type",
                                                     SelectView::new()
                                                         .h_align(HAlign::Center)
+                                                        .popup()
                                                         .autojump()
+                                                        .item("Select..", 0)
                                                         .item("RCS", 1)
                                                         .item("DIA", 2)
-                                                        .on_select(
-                                                            |s, item| {
-                                                                let content = match *item {
-                                                                    1 => "RCS",
-                                                                    2 => "DIA",
-                                                                    _ => unreachable!("No such section type"),
-                                                                };
+                                                        .on_select(|_, item| {
 
-                                                                s.call_on_name("section_type", |v: &mut TextView| {
-                                                                    v.set_content(content);
-                                                                }).unwrap();
-                                                            }
+                                                            TextView::new("").with_name("section_type");
+
+                                                            match *item {
+                                                                1 => "RCS",
+                                                                2 => "DIA",
+                                                                _ => unreachable!("no such item"),
+                                                            };
+                                                        }
                                                         )
-                                                        .with_name("section_type")
-                                                        .fixed_width(10)
                                                 )
                                         )
                                         .button("Add", |s| {
@@ -226,8 +224,8 @@ fn main() {
                                                 view.get_content()
                                             }).unwrap();
 
-                                            let section_type = s.call_on_name("section_type", |view: &mut TextView| {
-                                                view.get_content();
+                                            let section_type = s.call_on_name("section_type", |view: &mut SelectView| {
+                                                view.selection();
                                             });
 
                                             println!("{:?}", &section_type);
