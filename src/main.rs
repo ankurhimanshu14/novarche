@@ -16,7 +16,8 @@ use apis::{
         department::department::Department,
     },
     admin::{
-        user_roles::user_roles::{ Roles, UserRoles },
+        roles::roles::Roles,
+        authorities::authorities::Authorities,
         user::user::User,
     },
     raw_material::steel::steel::Steel,
@@ -39,88 +40,95 @@ fn main() {
                             |s| {
                                 s.add_layer(
                                     Dialog::new()
-                                        .title("Add a role")
-                                        .padding_lrtb(1,1,1,0)
+                                        .title("Create Roles")
+                                        .padding_lrtb(1, 1, 1, 0)
                                         .content(
                                             ListView::new()
-                                                .child("Role Name", EditView::new().with_name("role_name").fixed_width(30))
-                                                .child("Role Description", EditView::new().with_name("role_desc").fixed_width(30))
+                                                .child("Roles Name", EditView::new().with_name("roles_name").fixed_width(30))
                                         )
                                         .button(
                                             "Add",
                                             |s| {
-                                                let role_name = s.call_on_name("role_name", |v: &mut EditView| {
+
+                                                let roles_name = s.call_on_name("roles_name", |v: &mut EditView| {
                                                     v.get_content()
                                                 }).unwrap();
 
-                                                let role_desc = s.call_on_name("role_desc", |v: &mut EditView| {
-                                                    v.get_content()
-                                                }).unwrap();
+                                                let new_role = Roles::new(roles_name.to_string());
 
-                                                let new = Roles::new(role_name.to_string(), role_desc.to_string());
-
-                                                match Roles::post(&new) {
-                                                    Ok(_) => s.add_layer(Dialog::text("Role added successfully").button("Ok", |s| {
-
-                                                        s.add_layer(
-                                                            Dialog::new()
-                                                                .title("Assign Roles")
-                                                                .padding_lrtb(1,1,1,0)
-                                                                .content(
-                                                                    ListView::new()
-                                                                        .child("Username", TextView::new(""))
-                                                                        .child("Role ID", TextView::new(""))
-                                                                        .child("Role Name", EditView::new().with_name("role_name").fixed_width(30))
-                                                                )
-                                                                .button(
-                                                                    "Assign",
-                                                                    |s| {
-                                                                        let role_name = s.call_on_name("role_name", |v: &mut EditView| {
-                                                                            v.get_content()
-                                                                        }).unwrap();
-
-                                                                        let new_user_roles = UserRoles::new("ankur123".to_string(), role_name.to_string());
-
-                                                                        match UserRoles::post(new_user_roles, "Admin".to_string()) {
-                                                                            Ok(_) => s.add_layer(Dialog::text("User Role added successfully").button("Ok", |s| { s.quit() })),
-                                                                            Err(_) => s.add_layer(Dialog::text("Error encountered in adding user role").button("Ok", |s| { s.quit() }))
-                                                                        };
-                                                                    }
-                                                                )
-                                                                .button("Cancel", |s| { s.quit()})
-                                                            )})),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered in adding role").button("Ok", |s| { s.quit() }))
-                                                }
+                                                match Roles::post(new_role) {
+                                                    Ok(_) => s.add_layer(Dialog::text("Role added successfully").button("Ok", |s| { s.quit()})),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                                };
                                             }
                                         )
                                         .dismiss_button("Cancel")
                                 )
                             }
                         )
-                ).subtree(
-                    "User",
+                )
+                .subtree(
+                    "Authorities",
                     menu::MenuTree::new()
                         .leaf(
-                            "Sign In",
-                            |s| {}
-                        )
-                        .leaf(
-                            "Sign Up",
+                            "New",
                             |s| {
                                 s.add_layer(
                                     Dialog::new()
-                                        .title("Create Account Here")
-                                        .padding_lrtb(1,1,1,0)
+                                        .title("Create Authorities")
+                                        .padding_lrtb(1, 1, 1, 0)
+                                        .content(
+                                            ListView::new()
+                                                .child("Activity Name", EditView::new().with_name("activity").fixed_width(30))
+                                        )
+                                        .button(
+                                            "Add",
+                                            |s| {
+
+                                                let activity = s.call_on_name("activity", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
+
+                                                let new_authority = Authorities::new(activity.to_string());
+
+                                                match Authorities::post(new_authority) {
+                                                    Ok(_) => s.add_layer(Dialog::text("Authority added successfully").button("Ok", |s| { s.quit()})),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                                };
+                                            }
+                                        )
+                                        .dismiss_button("Cancel")
+                                )
+                            }
+                        )
+                )
+                .subtree(
+                    "User",
+                    menu::MenuTree::new()
+                        .leaf(
+                            "New",
+                            |s| {
+                                s.add_layer(
+                                    Dialog::new()
+                                        .title("Create New User")
+                                        .padding_lrtb(1, 1, 1, 1)
                                         .content(
                                             ListView::new()
                                                 .child("Employee ID", EditView::new().with_name("employee_id").fixed_width(30))
+                                                .child("Email ID", EditView::new().with_name("email").fixed_width(30))
                                                 .child("Username", EditView::new().with_name("username").fixed_width(30))
-                                                .child("Password", EditView::new().with_name("password").fixed_width(30))
+                                                .child("Password", EditView::new().secret().with_name("password").fixed_width(30))
+                                                .child("Role", EditView::new().with_name("role").fixed_width(30))
+                                                .child("Authority", EditView::new().with_name("authority").fixed_width(30))
                                         )
                                         .button(
                                             "Register",
                                             |s| {
                                                 let employee_id = s.call_on_name("employee_id", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
+
+                                                let email = s.call_on_name("email", |v: &mut EditView| {
                                                     v.get_content()
                                                 }).unwrap();
 
@@ -132,48 +140,32 @@ fn main() {
                                                     v.get_content()
                                                 }).unwrap();
 
-                                                let new = User {
-                                                    employee_id.to_string(),
-                                                    username.to_string(),
-                                                    password.to_string()
-                                                }
+                                                let role = s.call_on_name("role", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
 
-                                                match User::post(&new) {
-                                                    Ok(_) => s.add_layer(Dialog::text("New user added successfully").button("Ok", |s| {
+                                                let authority = s.call_on_name("authority", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
 
-                                                        s.add_layer(
-                                                            Dialog::new()
-                                                                .title("Assign Roles")
-                                                                .padding_lrtb(1,1,1,0)
-                                                                .content(
-                                                                    ListView::new()
-                                                                        .child("Username", TextView::new(username.to_string()))
-                                                                        .child("Role ID", TextView::new(1.to_string()))
-                                                                )
-                                                                .button(
-                                                                    "Assign",
-                                                                    |s| {
-                                                                            let role_name = s.call_on_name("role_name", |v: &mut EditView| {
-                                                                                v.get_content()
-                                                                            }).unwrap();
+                                                let new_user = User::new(employee_id.to_string(), email.to_string(), username.to_string(), password.to_string(), role.to_string(), authority.to_string());
 
-                                                                            let new_user_roles = UserRoles::new("ankur123".to_string(), role_name.to_string());
-
-                                                                        match UserRoles::post(new_user_roles, role_name.to_string()) {
-                                                                            Ok(_) => s.add_layer(Dialog::text("User Role added successfully").button("Ok", |s| { s.quit() })),
-                                                                            Err(_) => s.add_layer(Dialog::text("Error encountered in adding user role").button("Ok", |s| { s.quit() }))
-                                                                        };
-                                                                    }
-                                                                )
-                                                                 .button("Cancel", |s| { s.quit()})
-                                                            )})),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered in adding role").button("Ok", |s| { s.quit() }))
-                                                }
+                                                match User::post(new_user) {
+                                                    Ok(_) => s.add_layer(Dialog::text("Authority added successfully").button("Ok", |s| { s.quit()})),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                                };
                                             }
                                         )
+                                        .dismiss_button("Cancel")
                                 )
                             }
                         )
+                )
+                .leaf(
+                    "Quit",
+                    |s| {
+                        s.quit()
+                    }
                 )
         )
         .add_subtree(
