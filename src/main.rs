@@ -7,7 +7,7 @@ use cursive::{
     menu,
     view::{ Nameable, Resizable },
     align::{ HAlign },
-    views::{ Menubar, Dialog, EditView, ListView, SelectView },
+    views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView },
 };
 
 use apis::{
@@ -16,7 +16,7 @@ use apis::{
         department::department::Department,
     },
     admin::{
-        user_roles::user_roles::Roles,
+        user_roles::user_roles::{ Roles, UserRoles },
         user::user::User,
     },
     raw_material::steel::steel::Steel,
@@ -60,9 +60,37 @@ fn main() {
                                                 let new = Roles::new(role_name.to_string(), role_desc.to_string());
 
                                                 match Roles::post(&new) {
-                                                    Ok(_) => s.add_layer(Dialog::text("Role added successfully").button("Ok", |s| { s.quit() })),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| { s.quit() }))
-                                                };
+                                                    Ok(_) => s.add_layer(Dialog::text("Role added successfully").button("Ok", |s| {
+
+                                                        s.add_layer(
+                                                            Dialog::new()
+                                                                .title("Assign Roles")
+                                                                .padding_lrtb(1,1,1,0)
+                                                                .content(
+                                                                    ListView::new()
+                                                                        .child("Username", TextView::new(""))
+                                                                        .child("Role ID", TextView::new(""))
+                                                                        .child("Role Name", EditView::new().with_name("role_name").fixed_width(30))
+                                                                )
+                                                                .button(
+                                                                    "Assign",
+                                                                    |s| {
+                                                                        let role_name = s.call_on_name("role_name", |v: &mut EditView| {
+                                                                            v.get_content()
+                                                                        }).unwrap();
+
+                                                                        let new_user_roles = UserRoles::new("ankur123".to_string(), role_name.to_string());
+
+                                                                        match UserRoles::post(new_user_roles, "Admin".to_string()) {
+                                                                            Ok(_) => s.add_layer(Dialog::text("User Role added successfully").button("Ok", |s| { s.quit() })),
+                                                                            Err(_) => s.add_layer(Dialog::text("Error encountered in adding user role").button("Ok", |s| { s.quit() }))
+                                                                        };
+                                                                    }
+                                                                )
+                                                                .button("Cancel", |s| { s.quit()})
+                                                            )})),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered in adding role").button("Ok", |s| { s.quit() }))
+                                                }
                                             }
                                         )
                                         .dismiss_button("Cancel")
@@ -105,9 +133,41 @@ fn main() {
                                                 }).unwrap();
 
                                                 let new = User {
-                                                    employee_id,
-                                                    username,
-                                                    password
+                                                    employee_id.to_string(),
+                                                    username.to_string(),
+                                                    password.to_string()
+                                                }
+
+                                                match User::post(&new) {
+                                                    Ok(_) => s.add_layer(Dialog::text("New user added successfully").button("Ok", |s| {
+
+                                                        s.add_layer(
+                                                            Dialog::new()
+                                                                .title("Assign Roles")
+                                                                .padding_lrtb(1,1,1,0)
+                                                                .content(
+                                                                    ListView::new()
+                                                                        .child("Username", TextView::new(username.to_string()))
+                                                                        .child("Role ID", TextView::new(1.to_string()))
+                                                                )
+                                                                .button(
+                                                                    "Assign",
+                                                                    |s| {
+                                                                            let role_name = s.call_on_name("role_name", |v: &mut EditView| {
+                                                                                v.get_content()
+                                                                            }).unwrap();
+
+                                                                            let new_user_roles = UserRoles::new("ankur123".to_string(), role_name.to_string());
+
+                                                                        match UserRoles::post(new_user_roles, role_name.to_string()) {
+                                                                            Ok(_) => s.add_layer(Dialog::text("User Role added successfully").button("Ok", |s| { s.quit() })),
+                                                                            Err(_) => s.add_layer(Dialog::text("Error encountered in adding user role").button("Ok", |s| { s.quit() }))
+                                                                        };
+                                                                    }
+                                                                )
+                                                                 .button("Cancel", |s| { s.quit()})
+                                                            )})),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered in adding role").button("Ok", |s| { s.quit() }))
                                                 }
                                             }
                                         )

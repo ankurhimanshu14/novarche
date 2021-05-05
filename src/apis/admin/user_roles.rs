@@ -12,7 +12,7 @@ pub mod user_roles {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct UserRoles {
         pub user_account_id: String,
-        pub roles: Roles
+        pub roles: String
     }
 
     impl Roles {
@@ -28,11 +28,11 @@ pub mod user_roles {
 
         pub fn post(&self) -> Result<()> {
             let table = r"CREATE TABLE IF NOT EXISTS roles(
-                role_id          INT         NOT NULL            PRIMARY KEY         AUTO_INCREMENT,
-                role_name        VARCHAR(10) NOT NULL,
-                role_desc        TEXT        NOT NULL,
-                created_at              DATETIME        NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
-                modified_at             DATETIME                            ON UPDATE           CURRENT_TIMESTAMP
+                role_id          INT            NOT NULL            PRIMARY KEY         AUTO_INCREMENT,
+                role_name        VARCHAR(10)    NOT NULL,
+                role_desc        TEXT           NOT NULL,
+                created_at       DATETIME       NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
+                modified_at      DATETIME                           ON UPDATE           CURRENT_TIMESTAMP
             )ENGINE= InnoDB;";
 
             let insert = r"INSERT INTO roles(
@@ -63,7 +63,7 @@ pub mod user_roles {
     impl UserRoles {
         pub fn new(
             user_account_id: String,
-            roles: Roles
+            roles: String
         ) -> Self {
             UserRoles {
                 user_account_id,
@@ -71,21 +71,13 @@ pub mod user_roles {
             }
         }
 
-        pub fn post(self) -> Result<()> {
-            let table = r"CREATE TABLE IF NOT EXISTS user_roles (
-                id                      INT             NOT NULL            PRIMARY KEY         AUTO_INCREMENT,
-                user_account_id         VARCHAR(20)     NOT NULL,
-                roles                   INT             NOT NULL,
-                created_at              DATETIME        NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
-                modified_at             DATETIME                            ON UPDATE           CURRENT_TIMESTAMP,
-                CONSTRAINT sr_fk_rl_id  FOREIGN KEY(user_account_id)        REFERENCES          user(username),
-                CONSTRAINT sr_fk_rl_usr FOREIGN KEY(roles)                  REFERENCES          roles(role_id)
-            ) ENGINE = InnoDB;";
+        pub fn post(self, role_name: String) -> Result<()> {
 
-            let query = "SELECT u.username, r.role_id
-            INTO user_roles
-            FROM user u
-            LEFT JOIN roles r;";
+            let table = format!("CREATE TABLE IF NOT EXISTS user_roles AS
+            SELECT u.username, r.role_id
+            FROM user u, roles r
+            WHERE r.role_name = '{}';", role_name);
+
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -94,8 +86,6 @@ pub mod user_roles {
             let mut conn = pool.get_conn()?;
 
             conn.query_drop(table)?;
-
-            let result: Vec<Row> = query.fetch(conn)?;
 
             Ok(())
         }
