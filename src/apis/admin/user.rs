@@ -1,5 +1,3 @@
-mod user_roles;
-
 pub mod user {
     use bcrypt::{hash, verify, DEFAULT_COST};
     use chrono::{DateTime, Utc};
@@ -30,7 +28,7 @@ pub mod user {
             email: String,
             username: String,
             password: String,
-            role: String,
+            role: Roles,
         ) -> Self {
             User {
                 employee_id,

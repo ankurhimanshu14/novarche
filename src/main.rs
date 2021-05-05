@@ -5,14 +5,22 @@ use cursive::{
     traits::*,
     CursiveExt,
     menu,
-    view::{ Nameable },
+    view::{ Nameable, Resizable },
     align::{ HAlign },
-    views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView },
+    views::{ Menubar, Dialog, EditView, ListView, SelectView },
 };
 
-use apis::human_resources::department::department::Department;
-use apis::admin::user_roles::user_roles::Roles;
-use apis::raw_material::steel::steel::Steel;
+use apis::{
+    human_resources::{
+        employee::employee::Employee,
+        department::department::Department,
+    },
+    admin::{
+        user_roles::user_roles::Roles,
+        user::user::User,
+    },
+    raw_material::steel::steel::Steel,
+};
 
 fn main() {
     let mut siv = Cursive::new();
@@ -35,56 +43,74 @@ fn main() {
                                         .padding_lrtb(1,1,1,0)
                                         .content(
                                             ListView::new()
+                                                .child("Role Name", EditView::new().with_name("role_name").fixed_width(30))
                                                 .child("Role Description", EditView::new().with_name("role_desc").fixed_width(30))
                                         )
                                         .button(
                                             "Add",
                                             |s| {
+                                                let role_name = s.call_on_name("role_name", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
+
                                                 let role_desc = s.call_on_name("role_desc", |v: &mut EditView| {
                                                     v.get_content()
                                                 }).unwrap();
 
-                                                let new = Roles::new(role_desc.to_string());
+                                                let new = Roles::new(role_name.to_string(), role_desc.to_string());
 
-                                                Roles::post(&new);
-
-                                                s.quit();
+                                                match Roles::post(&new) {
+                                                    Ok(_) => s.add_layer(Dialog::text("Role added successfully").button("Ok", |s| { s.quit() })),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| { s.quit() }))
+                                                };
                                             }
                                         )
                                         .dismiss_button("Cancel")
                                 )
                             }
                         )
-                )
-                .subtree(
+                ).subtree(
                     "User",
                     menu::MenuTree::new()
                         .leaf(
-                            "New",
+                            "Sign In",
+                            |s| {}
+                        )
+                        .leaf(
+                            "Sign Up",
                             |s| {
                                 s.add_layer(
                                     Dialog::new()
-                                        .title("Add a user")
+                                        .title("Create Account Here")
                                         .padding_lrtb(1,1,1,0)
                                         .content(
                                             ListView::new()
-                                                .child("Role Desciption", EditView::new().with_name("role_desc").fixed_width(30))
+                                                .child("Employee ID", EditView::new().with_name("employee_id").fixed_width(30))
+                                                .child("Username", EditView::new().with_name("username").fixed_width(30))
+                                                .child("Password", EditView::new().with_name("password").fixed_width(30))
                                         )
                                         .button(
-                                            "Add",
+                                            "Register",
                                             |s| {
-                                                let role_desc = s.call_on_name("role_desc", |v: &mut EditView| {
+                                                let employee_id = s.call_on_name("employee_id", |v: &mut EditView| {
                                                     v.get_content()
                                                 }).unwrap();
 
-                                                let new = Roles::new(role_desc.to_string());
+                                                let username = s.call_on_name("username", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
 
-                                                Roles::post(&new);
+                                                let password = s.call_on_name("password", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
 
-                                                s.quit();
+                                                let new = User {
+                                                    employee_id,
+                                                    username,
+                                                    password
+                                                }
                                             }
                                         )
-                                        .dismiss_button("Cancel")
                                 )
                             }
                         )
@@ -129,9 +155,10 @@ fn main() {
                                                     email.to_string()
                                                 );
 
-                                                Department::post(new);
-
-                                                s.quit();
+                                                match Department::post(new) {
+                                                    Ok(_) => s.add_layer(Dialog::text("Department added successfully").button("Ok", |s| { s.quit() })),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| { s.quit() }))
+                                                };
                                             })
                                             .dismiss_button("Cancel")
                                     )
@@ -205,15 +232,17 @@ fn main() {
                                                     view.get_content()
                                                 }).unwrap();
 
-                                                let new = Department::new(
-                                                    department_code.to_string(),
-                                                    description.to_string(),
-                                                    email.to_string()
-                                                );
+                                                // let new = Employee::new(
+                                                //     department_code.to_string(),
+                                                //     description.to_string(),
+                                                //     email.to_string()
+                                                // );
 
-                                                Department::post(new);
+                                                // match Employee::post(new) {
+                                                //     Ok(_) => s.add_layer(Dialog::text("New Employee added successfully").button("Ok", |s| { s.quit() })),
+                                                //     Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| { s.quit() }))
+                                                // };
 
-                                                s.quit();
                                             })
                                             .dismiss_button("Cancel")
                                     )
@@ -259,27 +288,7 @@ fn main() {
                                                 .child("Grade", EditView::new().with_name("grade").fixed_width(30))
                                                 .child("Item Code", EditView::new().with_name("item_code").fixed_width(30))
                                                 .child("Section Size", EditView::new().with_name("section_size").fixed_width(30))
-                                                .child(
-                                                    "Section Type",
-                                                    SelectView::new()
-                                                        .h_align(HAlign::Center)
-                                                        .popup()
-                                                        .autojump()
-                                                        .item("Select..", 0)
-                                                        .item("RCS", 1)
-                                                        .item("DIA", 2)
-                                                        .on_select(|_, item| {
-
-                                                            TextView::new("").with_name("section_type");
-
-                                                            match *item {
-                                                                1 => "RCS",
-                                                                2 => "DIA",
-                                                                _ => unreachable!("no such item"),
-                                                            };
-                                                        }
-                                                        )
-                                                )
+                                                .child("Section Type",EditView::new().with_name("section_type").fixed_width(30))
                                         )
                                         .button("Add", |s| {
 
@@ -296,8 +305,15 @@ fn main() {
                                             }).unwrap();
 
                                             let section_type = s.call_on_name("section_type", |view: &mut SelectView| {
+                                                SelectView::new()
+                                                    .h_align(HAlign::Center)
+                                                    .popup()
+                                                    .autojump()
+                                                    .item_str("Select..")
+                                                    .item_str("RCS")
+                                                    .item_str("DIA");
                                                 view.selection();
-                                            });
+                                            }).unwrap();
 
                                             println!("{:?}", &section_type);
 
@@ -305,19 +321,20 @@ fn main() {
                                             //     grade.to_string(),
                                             //     item_code.to_string(),
                                             //     section_size.parse::<usize>().unwrap(),
-                                            //     section_type.unwrap()
+                                            //     section_type
                                             // );
 
-                                            // Steel::post(new);
-
-                                            s.quit();
+                                            // match Steel::post(new) {
+                                            //     Ok(_) => s.add_layer(Dialog::text("New Steel added successfully").button("Ok", |s| { s.quit() })),
+                                            //     Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| { s.quit() }))
+                                            // };
                                         })
                                         .dismiss_button("Cancel")
-                                )
+                                    )
                             }
                         )
-                )
-        );
+                        )
+                );
 
     siv.select_menubar();
 
