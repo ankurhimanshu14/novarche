@@ -16,10 +16,10 @@ pub mod roles {
 
         pub fn post(self) -> Result<()> {
             let table = r"CREATE TABLE IF NOT EXISTS roles(
-                roles_id        INT          NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
-                roles_name       TEXT        NOT NULL,
-                created_at          DATETIME        NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
-                modified_at         DATETIME                            ON UPDATE           CURRENT_TIMESTAMP
+                roles_id            INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
+                roles_name          TEXT            NOT NULL        UNIQUE,
+                created_at          DATETIME        NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
+                modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP
             ) ENGINE = InnoDB;";
 
             let insert = r"INSERT INTO roles(

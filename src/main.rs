@@ -7,6 +7,7 @@ use cursive::{
     Cursive,
     traits::*,
     CursiveExt,
+    event::Key,
     menu,
     view::{ Nameable, Resizable },
     align::{ HAlign },
@@ -32,6 +33,16 @@ fn main() {
     siv.add_layer(Menubar::new());
 
     siv.menubar()
+        .add_subtree(
+            "File",
+            menu::MenuTree::new()
+                .leaf(
+                    "Exit",
+                    |s| {
+                        s.quit()
+                    }
+                )
+        )
         .add_subtree(
             "Administration",
             menu::MenuTree::new()
@@ -73,34 +84,41 @@ fn main() {
                             "Assign Activities",
                             |s| {
                                 let v = Authorities::get().unwrap();
-                                
-                                s.add_layer(
-                                    Dialog::new()
-                                        .title("Assign Activities")
-                                        .padding_lrtb(1, 1, 1, 1)
-                                        .content(
-                                            ListView::new()
-                                                .child(
-                                                    "Activity",
-                                                    SelectView::<String>::new()
-                                                    .popup()
-                                                    .h_align(HAlign::Center)
-                                                    .autojump()
-                                                    .with_all_str(v)
-                                                    .on_select(|s, item| {
-                                                        Authorities::assign(item.clone().to_string()).unwrap();
+
+                                match &v.is_empty() {
+                                    true => {
+                                        s.add_layer(Dialog::info("No activity created!"))
+                                    },
+                                    false => {
+                                        s.add_layer(
+                                            Dialog::new()
+                                                .title("Assign Activities")
+                                                .padding_lrtb(1, 1, 1, 1)
+                                                .content(
+                                                    ListView::new()
+                                                        .child(
+                                                            "Activity",
+                                                            SelectView::<String>::new()
+                                                            .popup()
+                                                            .h_align(HAlign::Center)
+                                                            .autojump()
+                                                            .with_all_str(v)
+                                                            .on_select(|s, item| {
+                                                                println!("{}", &item);
+                                                                Authorities::assign(item.clone().to_string()).unwrap();
+                                                            }
+                                                            )
+                                                        )
+                                                )
+                                                .button(
+                                                    "Add",
+                                                    |s| {
                                                         s.quit();
                                                     }
-                                                    )
                                                 )
                                         )
-                                        .button(
-                                            "Add",
-                                            |s| {
-                                                s.quit();
-                                            }
-                                        )
-                                )
+                                    }
+                                }
                             }
                         )
                 )
@@ -129,7 +147,7 @@ fn main() {
                                                 let new_authority = Authorities::new(activity.to_string());
 
                                                 match Authorities::post(new_authority) {
-                                                    Ok(_) => s.add_layer(Dialog::text("Authority added successfully").button("Ok", |s| { s.quit()})),
+                                                    Ok(_) => s.add_layer(Dialog::text("Authority added successfully").dismiss_button("Ok")),
                                                     Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
                                                 };
                                             }
@@ -431,8 +449,9 @@ fn main() {
                         )
                         )
                 );
+    siv.add_global_callback(Key::Esc, |s| s.select_menubar());
 
-    siv.select_menubar();
+    siv.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
 
     siv.run();
 }

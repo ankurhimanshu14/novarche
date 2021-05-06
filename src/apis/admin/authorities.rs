@@ -54,25 +54,42 @@ pub mod authorities {
             let query = "SELECT activity FROM authorities;";
     
             let mut v: Vec<String> = Vec::new();
-            
-            conn.query_map(
-                query,
-                |activity: String| {
-                    v.push(activity.to_string())
-                }
-            )?;
 
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'authorities';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |activity: String| {
+                            v.push(activity.to_string())
+                        }
+                    ).unwrap()
+                }
+            };
+            
             Ok(v)
         }
 
         pub fn assign(s: String) -> Result<()> {
             let query = format!("CREATE TABLE role_activity
-            AS (SELECT
+            AS SELECT
             r.roles_name,
             a.activity
             FROM authorities a
             INNER JOIN roles r
-            ON a.activity = '{}');", s);
+            ON a.activity = '{}';", s.to_string());
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
