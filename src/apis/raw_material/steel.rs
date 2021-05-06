@@ -4,6 +4,12 @@ pub mod steel {
     use mysql::*;
     use mysql::prelude::*;
 
+    #[derive(Debug, Clone)]
+    pub enum Section {
+        RCS,
+        DIA
+    }
+
     #[derive(Debug)]
     pub struct Steel {
         pub grade: String,

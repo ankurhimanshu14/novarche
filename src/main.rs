@@ -24,7 +24,7 @@ use apis::{
         authorities::authorities::Authorities,
         user::user::User,
     },
-    raw_material::steel::steel::Steel,
+    raw_material::steel::steel::{ Section::{ RCS, DIA }, Steel },
 };
 
 fn main() {
@@ -38,9 +38,7 @@ fn main() {
             menu::MenuTree::new()
                 .leaf(
                     "Exit",
-                    |s| {
-                        s.quit()
-                    }
+                    |s| { s.quit() }
                 )
         )
         .add_subtree(
@@ -71,7 +69,7 @@ fn main() {
                                                 let new_role = Roles::new(roles_name.to_string());
 
                                                 match Roles::post(new_role) {
-                                                    Ok(_) => s.add_layer(Dialog::text("Role added successfully").button("Ok", |s| { s.quit()})),
+                                                    Ok(_) => s.add_layer(Dialog::text("Role added successfully").button("Ok", |s| { })),
                                                     Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
                                                 };
                                             }
@@ -137,8 +135,6 @@ fn main() {
                                                         }).unwrap();
 
                                                         Authorities::assign(rol.unwrap().to_string(), sel.unwrap().to_string()).unwrap();
-                                                        
-                                                        s.quit();
                                                     }
                                                 )
                                         )
@@ -238,7 +234,7 @@ fn main() {
                                                 );
 
                                                 match User::post(new_user) {
-                                                    Ok(_) => s.add_layer(Dialog::text("Authority added successfully").button("Ok", |s| { s.quit()})),
+                                                    Ok(_) => s.add_layer(Dialog::text("Authority added successfully").button("Ok", |s| { })),
                                                     Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
                                                 };
                                             }
@@ -251,7 +247,7 @@ fn main() {
                 .leaf(
                     "Quit",
                     |s| {
-                        s.quit()
+                        
                     }
                 )
         )
@@ -295,8 +291,8 @@ fn main() {
                                                 );
 
                                                 match Department::post(new) {
-                                                    Ok(_) => s.add_layer(Dialog::text("Department added successfully").button("Ok", |s| { s.quit() })),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| { s.quit() }))
+                                                    Ok(_) => s.add_layer(Dialog::text("Department added successfully").button("Ok", |s| {  })),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| {  }))
                                                 };
                                             })
                                             .dismiss_button("Cancel")
@@ -378,8 +374,8 @@ fn main() {
                                                 // );
 
                                                 // match Employee::post(new) {
-                                                //     Ok(_) => s.add_layer(Dialog::text("New Employee added successfully").button("Ok", |s| { s.quit() })),
-                                                //     Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| { s.quit() }))
+                                                //     Ok(_) => s.add_layer(Dialog::text("New Employee added successfully").button("Ok", |s| {  })),
+                                                //     Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| {  }))
                                                 // };
 
                                             })
@@ -422,58 +418,67 @@ fn main() {
                                     Dialog::new()
                                         .title("Add new steel")
                                         .padding_lrtb(1, 1, 1, 0)
-                                        .content(                                            
+                                        .content(
                                             ListView::new()
                                                 .child("Grade", EditView::new().with_name("grade").fixed_width(30))
                                                 .child("Item Code", EditView::new().with_name("item_code").fixed_width(30))
                                                 .child("Section Size", EditView::new().with_name("section_size").fixed_width(30))
-                                                .child("Section Type",EditView::new().with_name("section_type").fixed_width(30))
+                                                .child(
+                                                    "Section Type",
+                                                    SelectView::new()
+                                                        .popup()
+                                                        .h_align(HAlign::Center)
+                                                        .autojump()
+                                                        .item("Select...", 0)
+                                                        .item("RCS", 1)
+                                                        .item("DIA", 2)
+                                                        .on_select(|s, item| {
+                                                            match *item {
+                                                                1 => RCS,
+                                                                _ => DIA,
+                                                            };
+                                                        })
+                                                        .with_name("section_type")
+                                                )
                                         )
-                                        .button("Add", |s| {
+                                        .button(
+                                            "Add",
+                                            |s| {
+                                                let grade = s.call_on_name("grade", |view: &mut EditView| {
+                                                    view.get_content()
+                                                }).unwrap();
+                                                
+                                                let item_code = s.call_on_name("item_code", |view: &mut EditView| {
+                                                    view.get_content()
+                                                }).unwrap();
+                                                
+                                                let section_size = s.call_on_name("section_size", |view: &mut EditView| {
+                                                    view.get_content()
+                                                }).unwrap();
 
-                                            let grade = s.call_on_name("grade", |view: &mut EditView| {
-                                                view.get_content()
-                                            }).unwrap();
-                                            
-                                            let item_code = s.call_on_name("item_code", |view: &mut EditView| {
-                                                view.get_content()
-                                            }).unwrap();
-                                            
-                                            let section_size = s.call_on_name("section_size", |view: &mut EditView| {
-                                                view.get_content()
-                                            }).unwrap();
+                                                let section_type = s.call_on_name("section_type", |v: &mut SelectView| {
+                                                    v.selection()
+                                                }).unwrap();
 
-                                            let section_type = s.call_on_name("section_type", |view: &mut SelectView| {
-                                                SelectView::new()
-                                                    .h_align(HAlign::Center)
-                                                    .popup()
-                                                    .autojump()
-                                                    .item_str("Select..")
-                                                    .item_str("RCS")
-                                                    .item_str("DIA");
-                                                view.selection();
-                                            }).unwrap();
+                                                let new = Steel::new(
+                                                    grade.to_string(),
+                                                    item_code.to_string(),
+                                                    section_size.parse::<usize>().unwrap(),
+                                                    section_type.unwrap().to_string()
+                                                );
 
-                                            println!("{:?}", &section_type);
-
-                                            // let new = Steel::new(
-                                            //     grade.to_string(),
-                                            //     item_code.to_string(),
-                                            //     section_size.parse::<usize>().unwrap(),
-                                            //     section_type
-                                            // );
-
-                                            // match Steel::post(new) {
-                                            //     Ok(_) => s.add_layer(Dialog::text("New Steel added successfully").button("Ok", |s| { s.quit() })),
-                                            //     Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| { s.quit() }))
-                                            // };
-                                        })
+                                                match Steel::post(new) {
+                                                    Ok(_) => s.add_layer(Dialog::text("New Steel added successfully").button("Ok", |s| {  })),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| {  }))
+                                                };                                                
+                                            }
+                                        )
                                         .dismiss_button("Cancel")
-                                    )
-                            }
+                                )
+                            })
+                            
                         )
-                        )
-                );
+        );
     siv.add_global_callback(Key::Esc, |s| s.select_menubar());
 
     siv.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
