@@ -82,20 +82,30 @@ pub mod authorities {
             Ok(v)
         }
 
-        pub fn assign(s: String) -> Result<()> {
-            let query = format!("CREATE TABLE role_activity
-            AS SELECT
+        pub fn assign(r: String, s: String) -> Result<()> {
+            let table = "CREATE TABLE IF NOT EXISTS role_activity(
+                role_act_id         INT             NOT NULL        PRIMARY KEY     AUTO_INCREMENT,
+                roles_name          VARCHAR(20)     NOT NULL,
+                activity            VARCHAR(50)     NOT NULL,
+                created_at          DATETIME     NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
+                modified_at         DATETIME                     ON UPDATE           CURRENT_TIMESTAMP
+            )ENGINE = InnoDB;";
+
+            let query = format!("INSERT INTO role_activity(roles_name, activity)
+            SELECT
             r.roles_name,
             a.activity
             FROM authorities a
             INNER JOIN roles r
-            ON a.activity = '{}';", s.to_string());
+            ON a.activity = '{}' AND r.roles_name = '{}';", s.to_string(), r.to_string());
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
             let pool = Pool::new(url)?;
 
             let mut conn = pool.get_conn()?;
+
+            conn.query_drop(table)?;
 
             conn.query_drop(query)?;
 

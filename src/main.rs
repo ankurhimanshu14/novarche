@@ -85,6 +85,8 @@ fn main() {
                             |s| {
                                 let v = Authorities::get().unwrap();
 
+                                let r = Roles::get().unwrap();
+
                                 match &v.is_empty() {
                                     true => {
                                         s.add_layer(Dialog::info("No activity created!"))
@@ -97,6 +99,19 @@ fn main() {
                                                 .content(
                                                     ListView::new()
                                                         .child(
+                                                            "Role",
+                                                            SelectView::<String>::new()
+                                                            .popup()
+                                                            .h_align(HAlign::Center)
+                                                            .autojump()
+                                                            .with_all_str(r)
+                                                            .on_select(|s, item| {
+                                                                println!("{}", &item);
+                                                            }
+                                                            )
+                                                            .with_name("role")
+                                                        )
+                                                        .child(
                                                             "Activity",
                                                             SelectView::<String>::new()
                                                             .popup()
@@ -105,14 +120,24 @@ fn main() {
                                                             .with_all_str(v)
                                                             .on_select(|s, item| {
                                                                 println!("{}", &item);
-                                                                Authorities::assign(item.clone().to_string()).unwrap();
                                                             }
                                                             )
+                                                            .with_name("activity")
                                                         )
                                                 )
                                                 .button(
                                                     "Add",
                                                     |s| {
+                                                        let rol = s.call_on_name("role", |v: &mut SelectView| {
+                                                            v.selection()
+                                                        }).unwrap();
+
+                                                        let sel = s.call_on_name("activity", |v: &mut SelectView| {
+                                                            v.selection()
+                                                        }).unwrap();
+
+                                                        Authorities::assign(rol.unwrap().to_string(), sel.unwrap().to_string()).unwrap();
+                                                        
                                                         s.quit();
                                                     }
                                                 )

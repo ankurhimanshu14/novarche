@@ -17,7 +17,7 @@ pub mod roles {
         pub fn post(self) -> Result<()> {
             let table = r"CREATE TABLE IF NOT EXISTS roles(
                 roles_id            INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
-                roles_name          TEXT            NOT NULL        UNIQUE,
+                roles_name          VARCHAR(20)     NOT NULL        UNIQUE,
                 created_at          DATETIME        NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
                 modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP
             ) ENGINE = InnoDB;";
@@ -41,6 +41,44 @@ pub mod roles {
             })?;
 
             Ok(())
+        }
+
+        pub fn get() -> Result<Vec<String>> {
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+    
+            let mut conn = pool.get_conn()?;
+            
+            let query = "SELECT roles_name FROM roles;";
+    
+            let mut v: Vec<String> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'roles';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |roles_name: String| {
+                            v.push(roles_name.to_string())
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            Ok(v)
         }
     }
 }
