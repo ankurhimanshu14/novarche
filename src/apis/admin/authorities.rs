@@ -43,5 +43,46 @@ pub mod authorities {
 
             Ok(())
         }
+
+        pub fn get() -> Result<Vec<String>> {
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+    
+            let mut conn = pool.get_conn()?;
+            
+            let query = "SELECT activity FROM authorities;";
+    
+            let mut v: Vec<String> = Vec::new();
+            
+            conn.query_map(
+                query,
+                |activity: String| {
+                    v.push(activity.to_string())
+                }
+            )?;
+
+            Ok(v)
+        }
+
+        pub fn assign(s: String) -> Result<()> {
+            let query = format!("CREATE TABLE role_activity
+            AS (SELECT
+            r.roles_name,
+            a.activity
+            FROM authorities a
+            INNER JOIN roles r
+            ON a.activity = '{}');", s);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+
+            let mut conn = pool.get_conn()?;
+
+            conn.query_drop(query)?;
+
+            Ok(())
+        }
     }
 }

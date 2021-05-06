@@ -1,4 +1,7 @@
 mod apis;
+mod frontend;
+
+use frontend::select::select::select_view;
 
 use cursive::{
     Cursive,
@@ -63,6 +66,40 @@ fn main() {
                                             }
                                         )
                                         .dismiss_button("Cancel")
+                                )
+                            }
+                        )
+                        .leaf(
+                            "Assign Activities",
+                            |s| {
+                                let v = Authorities::get().unwrap();
+                                
+                                s.add_layer(
+                                    Dialog::new()
+                                        .title("Assign Activities")
+                                        .padding_lrtb(1, 1, 1, 1)
+                                        .content(
+                                            ListView::new()
+                                                .child(
+                                                    "Activity",
+                                                    SelectView::<String>::new()
+                                                    .popup()
+                                                    .h_align(HAlign::Center)
+                                                    .autojump()
+                                                    .with_all_str(v)
+                                                    .on_select(|s, item| {
+                                                        Authorities::assign(item.clone().to_string()).unwrap();
+                                                        s.quit();
+                                                    }
+                                                    )
+                                                )
+                                        )
+                                        .button(
+                                            "Add",
+                                            |s| {
+                                                s.quit();
+                                            }
+                                        )
                                 )
                             }
                         )
@@ -148,7 +185,14 @@ fn main() {
                                                     v.get_content()
                                                 }).unwrap();
 
-                                                let new_user = User::new(employee_id.to_string(), email.to_string(), username.to_string(), password.to_string(), role.to_string(), authority.to_string());
+                                                let new_user = User::new(
+                                                    employee_id.to_string(),
+                                                    email.to_string(),
+                                                    username.to_string(),
+                                                    password.to_string(),
+                                                    role.to_string(),
+                                                    authority.to_string()
+                                                );
 
                                                 match User::post(new_user) {
                                                     Ok(_) => s.add_layer(Dialog::text("Authority added successfully").button("Ok", |s| { s.quit()})),
