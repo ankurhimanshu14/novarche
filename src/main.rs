@@ -24,7 +24,11 @@ use apis::{
         authorities::authorities::Authorities,
         user::user::User,
     },
-    raw_material::steel::steel::{ Section::{ RCS, DIA }, Steel },
+    raw_material::{
+        steel::steel::{ Section::{ RCS, DIA }, Steel },
+        grades::grades::Grades,
+        section::section::Section,
+    }
 };
 
 fn main() {
@@ -409,75 +413,146 @@ fn main() {
             "Item Master",
             menu::MenuTree::new()
                 .subtree(
-                    "Steels",
+                    "Steel",
                     menu::MenuTree::new()
                         .leaf(
-                            "New",
+                            "Add Grades",
                             |s| {
                                 s.add_layer(
                                     Dialog::new()
-                                        .title("Add new steel")
-                                        .padding_lrtb(1, 1, 1, 0)
+                                        .title("Add new grade")
+                                        .padding_lrtb(1,1,1,0)
                                         .content(
                                             ListView::new()
                                                 .child("Grade", EditView::new().with_name("grade").fixed_width(30))
-                                                .child("Item Code", EditView::new().with_name("item_code").fixed_width(30))
-                                                .child("Section Size", EditView::new().with_name("section_size").fixed_width(30))
-                                                .child(
-                                                    "Section Type",
-                                                    SelectView::new()
-                                                        .popup()
-                                                        .h_align(HAlign::Center)
-                                                        .autojump()
-                                                        .item("Select...", 0)
-                                                        .item("RCS", 1)
-                                                        .item("DIA", 2)
-                                                        .on_select(|s, item| {
-                                                            match *item {
-                                                                1 => RCS,
-                                                                _ => DIA,
-                                                            };
-                                                        })
-                                                        .with_name("section_type")
-                                                )
                                         )
                                         .button(
                                             "Add",
                                             |s| {
-                                                let grade = s.call_on_name("grade", |view: &mut EditView| {
-                                                    view.get_content()
-                                                }).unwrap();
-                                                
-                                                let item_code = s.call_on_name("item_code", |view: &mut EditView| {
-                                                    view.get_content()
-                                                }).unwrap();
-                                                
-                                                let section_size = s.call_on_name("section_size", |view: &mut EditView| {
-                                                    view.get_content()
+                                                let grade = s.call_on_name("grade", |v: &mut EditView| {
+                                                    v.get_content()
                                                 }).unwrap();
 
-                                                let section_type = s.call_on_name("section_type", |v: &mut SelectView| {
-                                                    v.selection()
-                                                }).unwrap();
+                                                let new_grade = Grades::new(grade.to_string());
 
-                                                let new = Steel::new(
-                                                    grade.to_string(),
-                                                    item_code.to_string(),
-                                                    section_size.parse::<usize>().unwrap(),
-                                                    section_type.unwrap().to_string()
-                                                );
-
-                                                match Steel::post(new) {
-                                                    Ok(_) => s.add_layer(Dialog::text("New Steel added successfully").button("Ok", |s| {  })),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| {  }))
-                                                };                                                
+                                                match Grades::post(new_grade) {
+                                                    Ok(_) => s.add_layer(Dialog::text("Grade added successfully").dismiss_button("Ok")),
+                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                                };
                                             }
                                         )
                                         .dismiss_button("Cancel")
                                 )
-                            })
-                            
+                            }
                         )
+                        .leaf(
+                            "Add Section",
+                            |s| {
+                                Dialog::new()
+                                    .title("Add Section")
+                                    .padding_lrtb(1,1,1,0)
+                                    .content(
+                                        ListView::new()
+                                            .child("Size", EditView::new().with_name("sec_size").fixed_width(30))
+                                            .child(
+                                                "Type",
+                                                SelectView::new()
+                                                    .popup()
+                                                    .h_align(HAlign::Center)
+                                                    .autojump()
+                                                    .with_all_str(&["RCS".to_string(), "DIA".to_string()])
+                                                    .on_select(|s, item| {
+                                                        println!("{}", item);
+                                                    })
+                                                    .with_name("sec_type")
+                                            )
+                                    )
+                                    .button(
+                                        "Add",
+                                        |s| {
+                                            let sec_size = s.call_on_name("sec_size", |v: &mut EditView| {
+                                                v.get_content()
+                                            }).unwrap();
+                                            let sec_type = s.call_on_name("sec_type", |v: &mut SelectView| {
+                                                v.selection()
+                                            }).unwrap();
+
+                                            let new_section = Section::new(sec_size.parse::<u16>().unwrap(), sec_type.unwrap());
+
+                                            match Section::post(new_section) {
+                                                Ok(_) => s.add_layer(Dialog::text("Section added successfully").dismiss_button("Ok")),
+                                                Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                            };
+                                        }
+                                    )
+                                    .dismiss_button("Cancel");
+                            }
+                        )
+                        .leaf(
+                            "Create Steel",
+                            |s| {
+                                let v = Authorities::get().unwrap();
+
+                                let r = Roles::get().unwrap();
+
+                                match &v.is_empty() {
+                                    true => {
+                                        s.add_layer(Dialog::info("No activity created!"))
+                                    },
+                                    false => {
+                                        s.add_layer(
+                                            Dialog::new()
+                                                .title("Assign Activities")
+                                                .padding_lrtb(1, 1, 1, 1)
+                                                .content(
+                                                    ListView::new()
+                                                        .child(
+                                                            "Role",
+                                                            SelectView::<String>::new()
+                                                            .popup()
+                                                            .h_align(HAlign::Center)
+                                                            .autojump()
+                                                            .with_all_str(r)
+                                                            .on_select(|s, item| {
+                                                                println!("{}", &item);
+                                                            }
+                                                            )
+                                                            .with_name("role")
+                                                        )
+                                                        .child(
+                                                            "Activity",
+                                                            SelectView::<String>::new()
+                                                            .popup()
+                                                            .h_align(HAlign::Center)
+                                                            .autojump()
+                                                            .with_all_str(v)
+                                                            .on_select(|s, item| {
+                                                                println!("{}", &item);
+                                                            }
+                                                            )
+                                                            .with_name("activity")
+                                                        )
+                                                )
+                                                .button(
+                                                    "Add",
+                                                    |s| {
+                                                        let rol = s.call_on_name("role", |v: &mut SelectView| {
+                                                            v.selection()
+                                                        }).unwrap();
+
+                                                        let sel = s.call_on_name("activity", |v: &mut SelectView| {
+                                                            v.selection()
+                                                        }).unwrap();
+
+                                                        Authorities::assign(rol.unwrap().to_string(), sel.unwrap().to_string()).unwrap();
+                                                    }
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                )
         );
     siv.add_global_callback(Key::Esc, |s| s.select_menubar());
 
