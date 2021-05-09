@@ -3,19 +3,13 @@ pub mod section {
     use mysql::prelude::*;
 
     #[derive(Debug, Clone)]
-    pub enum SectionType {
-        RCS,
-        DIA
-    }
-
-    #[derive(Debug, Clone)]
     pub struct Section {
         pub sec_size: u16,
-        pub sec_type: SectionType
+        pub sec_type: String
     }
 
     impl Section {
-        pub fn new(sec_size: u16, sec_type: SectionType) -> Self {
+        pub fn new(sec_size: u16, sec_type: String) -> Self {
             Section {
                 sec_size,
                 sec_type
@@ -27,8 +21,8 @@ pub mod section {
             sec_id        INT         NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
             sec_size      INT         NOT NULL,
             sec_type      VARCHAR(3)  NOT NULL,
-            created_at      DATETIME    NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
-            modified_at     DATETIME                    ON UPDATE           CURRENT_TIMESTAMP
+            created_at    DATETIME    NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
+            modified_at   DATETIME                    ON UPDATE           CURRENT_TIMESTAMP
             )ENGINE = InnoDB;";
 
             let insert = "INSERT INTO section(sec_size, sec_type) VALUES(:sec_size, :sec_type);";
@@ -43,7 +37,7 @@ pub mod section {
 
             conn.exec_drop(insert, params! {
                 "sec_size" => self.sec_size.clone(),
-                "sec_type" => format!("{:?}", self.sec_type.clone())
+                "sec_type" => self.sec_type.clone()
             })?;
 
             Ok(())

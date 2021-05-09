@@ -448,7 +448,8 @@ fn main() {
                         .leaf(
                             "Add Section",
                             |s| {
-                                Dialog::new()
+                                s.add_layer(
+                                    Dialog::new()
                                     .title("Add Section")
                                     .padding_lrtb(1,1,1,0)
                                     .content(
@@ -477,7 +478,7 @@ fn main() {
                                                 v.selection()
                                             }).unwrap();
 
-                                            let new_section = Section::new(sec_size.parse::<u16>().unwrap(), sec_type.unwrap());
+                                            let new_section = Section::new(sec_size.parse::<u16>().unwrap(), sec_type.unwrap().to_string());
 
                                             match Section::post(new_section) {
                                                 Ok(_) => s.add_layer(Dialog::text("Section added successfully").dismiss_button("Ok")),
@@ -485,66 +486,67 @@ fn main() {
                                             };
                                         }
                                     )
-                                    .dismiss_button("Cancel");
+                                    .dismiss_button("Cancel")
+                                )
                             }
                         )
                         .leaf(
                             "Create Steel",
                             |s| {
-                                let v = Authorities::get().unwrap();
+                                let g = Grades::get().unwrap();
 
-                                let r = Roles::get().unwrap();
+                                let s = Section::get().unwrap();
 
-                                match &v.is_empty() {
+                                match &g.is_empty() {
                                     true => {
-                                        s.add_layer(Dialog::info("No activity created!"))
+                                        s.add_layer(Dialog::info("No grades created!"))
                                     },
                                     false => {
                                         s.add_layer(
                                             Dialog::new()
-                                                .title("Assign Activities")
+                                                .title("Assign Steel")
                                                 .padding_lrtb(1, 1, 1, 1)
                                                 .content(
                                                     ListView::new()
                                                         .child(
-                                                            "Role",
+                                                            "Grades",
                                                             SelectView::<String>::new()
                                                             .popup()
                                                             .h_align(HAlign::Center)
                                                             .autojump()
-                                                            .with_all_str(r)
+                                                            .with_all_str(g)
                                                             .on_select(|s, item| {
                                                                 println!("{}", &item);
                                                             }
                                                             )
-                                                            .with_name("role")
+                                                            .with_name("grades")
                                                         )
                                                         .child(
-                                                            "Activity",
+                                                            "Section",
                                                             SelectView::<String>::new()
                                                             .popup()
                                                             .h_align(HAlign::Center)
                                                             .autojump()
-                                                            .with_all_str(v)
+                                                            .with_all_str(s)
                                                             .on_select(|s, item| {
                                                                 println!("{}", &item);
                                                             }
                                                             )
-                                                            .with_name("activity")
+                                                            .with_name("section")
                                                         )
                                                 )
                                                 .button(
                                                     "Add",
                                                     |s| {
-                                                        let rol = s.call_on_name("role", |v: &mut SelectView| {
+                                                        let grd = s.call_on_name("grades", |v: &mut SelectView| {
                                                             v.selection()
                                                         }).unwrap();
 
-                                                        let sel = s.call_on_name("activity", |v: &mut SelectView| {
+                                                        let sec = s.call_on_name("section", |v: &mut SelectView| {
                                                             v.selection()
                                                         }).unwrap();
 
-                                                        Authorities::assign(rol.unwrap().to_string(), sel.unwrap().to_string()).unwrap();
+                                                        Steel::assign(grd.unwrap().to_string(), sec.unwrap().to_string()).unwrap();
                                                     }
                                                 )
                                         )

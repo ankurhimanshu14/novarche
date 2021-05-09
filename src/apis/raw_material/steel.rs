@@ -4,57 +4,37 @@ pub mod steel {
     use mysql::*;
     use mysql::prelude::*;
 
-    #[derive(Debug, Clone)]
-    pub enum Section {
-        RCS,
-        DIA
-    }
-
     #[derive(Debug)]
     pub struct Steel {
-        pub grade: String,
         pub item_code: String,
-        pub section_size: usize,
-        pub section_type: String,
+        pub grade: Grades,
+        pub section: Section
     }
 
     impl Steel {
         pub fn new(
-            grade: String,
             item_code: String,
-            section_size: usize,
-            section_type: String
+            grade: String,
+            section: Section
         ) -> Self {
             Steel {
-                grade,
                 item_code,
-                section_size,
-                section_type
+                grade,
+                section
             }
         }
 
-        pub fn post(s: Steel) -> Result<()> {
-            let table = "CREATE TABLE IF NOT EXISTS steel (
-                id                      INT             NOT NULL            PRIMARY KEY         AUTO_INCREMENT,
-                grade                   VARCHAR(10)     NOT NULL            UNIQUE,
-                item_code               VARCHAR(20)     NOT NULL            UNIQUE,
-                section_size            INT             NOT NULL,
-                section_type            VARCHAR(3)      NOT NULL,
-                created_at              DATETIME        NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
-                modified_at             DATETIME                            ON UPDATE           CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB;";
-
-            let insert = "INSERT INTO steel (
-                grade,
-                item_code,
-                section_size,
-                section_type
-            ) VALUES (
-                :grade,
-                :item_code,
-                :section_size,
-                :section_type
-            );";
+        pub fn assign(self) -> Result<()> {
+            let query = "CREATE TABLE IF NOT EXISTS steel(
+                steel_id            INT         NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
+                item_code           VARCHAR(15) NOT NULL        UNIQUE,
+                created_at          DATETIME    NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
+                modified_at         DATETIME                    ON UPDATE           CURRENT_TIMESTAMP
+            )"
+                "SELECT g.employee_id, p.first_name, p.middle_name, p.last_name, e.dept_code, p.uan, e. designation, e.reporting_to
+                FROM employee e
+                LEFT JOIN person p
+                ON p.uidai = e.person_id;");
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -65,10 +45,10 @@ pub mod steel {
             conn.query_drop(table)?;
 
             conn.exec_drop(insert, params! {
-                "grade" => s.grade,
-                "item_code" => s.item_code,
-                "section_size" => s.section_size,
-                "section_type" => s.section_type
+                "grade" => self.grade.clone(),
+                "item_code" => self.item_code.clone(),
+                "section_size" => self.section_size.clone(),
+                "section_type" => self.section_type.clone()
             })?;
 
             Ok(())
