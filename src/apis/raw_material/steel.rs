@@ -4,6 +4,9 @@ pub mod steel {
     use mysql::*;
     use mysql::prelude::*;
 
+    use crate::apis::raw_material::grades::grades::Grades;
+    use crate::apis::raw_material::section::section::Section;
+
     #[derive(Debug)]
     pub struct Steel {
         pub item_code: String,
@@ -14,7 +17,7 @@ pub mod steel {
     impl Steel {
         pub fn new(
             item_code: String,
-            grade: String,
+            grade: Grades,
             section: Section
         ) -> Self {
             Steel {
@@ -24,17 +27,23 @@ pub mod steel {
             }
         }
 
-        pub fn assign(self) -> Result<()> {
-            let query = "CREATE TABLE IF NOT EXISTS steel(
-                steel_id            INT         NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
-                item_code           VARCHAR(15) NOT NULL        UNIQUE,
-                created_at          DATETIME    NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
-                modified_at         DATETIME                    ON UPDATE           CURRENT_TIMESTAMP
-            )"
-                "SELECT g.employee_id, p.first_name, p.middle_name, p.last_name, e.dept_code, p.uan, e. designation, e.reporting_to
-                FROM employee e
-                LEFT JOIN person p
-                ON p.uidai = e.person_id;");
+        pub fn assign(g: Grades, s: Section) -> Result<()> {
+            let steel_table = format!("CREATE TABLE steel
+            (   
+                steel_id            INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
+                item_code           VARCHAR(15)     NOT NULL        UNIQUE,
+                created_at          DATETIME        NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
+                modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP
+            )
+            INSERT INTO steel (item_code, grade, sec_size, sec_type)
+                SELECT
+                g.grade,
+                s.sec_size,
+                s.sec_type
+                FROM grades g
+                INNER JOIN section s ON g.grade = '{}', s.sec_size = '{}', s.sec_type = '{}'
+                ORDER BY item_code;", g.grade, s.sec_size, s.sec_type
+            );
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -42,14 +51,7 @@ pub mod steel {
 
             let mut conn = pool.get_conn()?;
 
-            conn.query_drop(table)?;
-
-            conn.exec_drop(insert, params! {
-                "grade" => self.grade.clone(),
-                "item_code" => self.item_code.clone(),
-                "section_size" => self.section_size.clone(),
-                "section_type" => self.section_type.clone()
-            })?;
+            conn.query_drop(steel_table)?;
 
             Ok(())
         }

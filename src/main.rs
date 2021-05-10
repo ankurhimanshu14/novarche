@@ -1,8 +1,6 @@
 mod apis;
 mod frontend;
 
-use frontend::select::select::select_view;
-
 use cursive::{
     Cursive,
     traits::*,
@@ -25,7 +23,7 @@ use apis::{
         user::user::User,
     },
     raw_material::{
-        steel::steel::{ Section::{ RCS, DIA }, Steel },
+        steel::steel::Steel,
         grades::grades::Grades,
         section::section::Section,
     }
@@ -495,7 +493,15 @@ fn main() {
                             |s| {
                                 let g = Grades::get().unwrap();
 
-                                let s = Section::get().unwrap();
+                                let sec = &Section::get().unwrap();
+
+                                let mut v: Vec<String> = Vec::new();
+
+                                for i in 0..sec.len() {
+                                    let section = format!("{} {}", sec[i].0, sec[i].1);
+
+                                    v.push(section);
+                                }
 
                                 match &g.is_empty() {
                                     true => {
@@ -527,7 +533,7 @@ fn main() {
                                                             .popup()
                                                             .h_align(HAlign::Center)
                                                             .autojump()
-                                                            .with_all_str(s)
+                                                            .with_all_str(v)
                                                             .on_select(|s, item| {
                                                                 println!("{}", &item);
                                                             }
@@ -546,7 +552,7 @@ fn main() {
                                                             v.selection()
                                                         }).unwrap();
 
-                                                        Steel::assign(grd.unwrap().to_string(), sec.unwrap().to_string()).unwrap();
+                                                        Steel::assign(grd, sec).unwrap();
                                                     }
                                                 )
                                         )
