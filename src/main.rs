@@ -26,10 +26,17 @@ use apis::{
         steel::steel::Steel,
         grades::grades::Grades,
         section::section::Section,
-    }
+    },
+    engineering::part::part::Part,
 };
 
 fn main() {
+
+    let new_part = Part::new(8001, "FD GEAR".to_string(), "SAE 8620H".to_string(), 7.8, 8.2, "ISOTHERMAL ANNEALED".to_string(), 'A'.to_string(), "23-10-2020".to_string())
+        .post().unwrap();
+
+    println!("{:?}", new_part);
+
     let mut siv = Cursive::new();
 
     siv.add_layer(Menubar::new());
@@ -497,6 +504,8 @@ fn main() {
 
                                 let mut v: Vec<String> = Vec::new();
 
+
+
                                 for i in 0..sec.len() {
                                     let section = format!("{} {}", sec[i].0, sec[i].1);
 
@@ -552,7 +561,9 @@ fn main() {
                                                             v.selection()
                                                         }).unwrap();
 
-                                                        Steel::assign(grd, sec).unwrap();
+                                                        
+
+                                                        // Steel::assign(grd, sec).unwrap();
                                                     }
                                                 )
                                         )

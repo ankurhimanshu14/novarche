@@ -71,7 +71,7 @@ pub mod user {
                 modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP
             )
             INSERT INTO user (employee_id, username, hash, email, roles_name, activity)
-                SELECT
+                AS SELECT
                 e.employee_id,
                 u.username,
                 u.hash,
