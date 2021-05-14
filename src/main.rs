@@ -8,7 +8,7 @@ use cursive::{
     event::Key,
     menu,
     view::{ Nameable, Resizable },
-    align::{ HAlign },
+    align::{ HAlign, VAlign },
     views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView },
 };
 
@@ -73,8 +73,8 @@ fn main() {
                                                 let new_role = Roles::new(roles_name.to_string());
 
                                                 match Roles::post(new_role) {
-                                                    Ok(_) => s.add_layer(Dialog::text("Role added successfully").button("Ok", |s| { })),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                                    Ok(_) => s.add_layer(Dialog::text("Role added successfully").dismiss_button("Ok")),
+                                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                                 };
                                             }
                                         )
@@ -104,7 +104,7 @@ fn main() {
                                                             "Role",
                                                             SelectView::<String>::new()
                                                             .popup()
-                                                            .h_align(HAlign::Center)
+                                                            .v_align(VAlign::Center)
                                                             .autojump()
                                                             .with_all_str(r)
                                                             .on_select(|s, item| {
@@ -112,6 +112,7 @@ fn main() {
                                                             }
                                                             )
                                                             .with_name("role")
+                                                            .fixed_width(30)
                                                         )
                                                         .child(
                                                             "Activity",
@@ -125,6 +126,7 @@ fn main() {
                                                             }
                                                             )
                                                             .with_name("activity")
+                                                            .fixed_width(30)
                                                         )
                                                 )
                                                 .button(
@@ -138,9 +140,12 @@ fn main() {
                                                             v.selection()
                                                         }).unwrap();
 
-                                                        Authorities::assign(rol.unwrap().to_string(), sel.unwrap().to_string()).unwrap();
+                                                        match Authorities::assign(rol.unwrap().to_string(), sel.unwrap().to_string()) {
+                                                            Ok(_) => s.add_layer(Dialog::text("Activity assigned successfully").dismiss_button("Ok")),
+                                                            Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                                        }
                                                     }
-                                                )
+                                                ).dismiss_button("Cancel")
                                         )
                                     }
                                 }
@@ -173,7 +178,7 @@ fn main() {
 
                                                 match Authorities::post(new_authority) {
                                                     Ok(_) => s.add_layer(Dialog::text("Authority added successfully").dismiss_button("Ok")),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                                 };
                                             }
                                         )
@@ -238,8 +243,8 @@ fn main() {
                                                 );
 
                                                 match User::post(new_user) {
-                                                    Ok(_) => s.add_layer(Dialog::text("Authority added successfully").button("Ok", |s| { })),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                                    Ok(_) => s.add_layer(Dialog::text("Authority added successfully").dismiss_button("Ok")),
+                                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                                 };
                                             }
                                         )
@@ -295,8 +300,8 @@ fn main() {
                                                 );
 
                                                 match Department::post(new) {
-                                                    Ok(_) => s.add_layer(Dialog::text("Department added successfully").button("Ok", |s| {  })),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").button("Ok", |s| {  }))
+                                                    Ok(_) => s.add_layer(Dialog::text("Department added successfully").dismiss_button("Ok")),
+                                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                                 };
                                             })
                                             .dismiss_button("Cancel")
@@ -432,7 +437,7 @@ fn main() {
                                                     "Material Grade",
                                                     SelectView::new()
                                                         .popup()
-                                                        .h_align(HAlign::Center)
+                                                        .v_align(VAlign::Center)
                                                         .autojump()
                                                         .with_all_str(grd)
                                                         .on_select(|s, item| {
@@ -484,8 +489,8 @@ fn main() {
                                                     drawing_rev_no.to_string(),
                                                     drawing_rev_date.to_string()
                                                 ).post() {
-                                                    Ok(_) => s.add_layer(Dialog::text("New Part added successfully").button("Ok", |s| {s.quit()})),
-                                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).button("Ok", |s| {s.quit()}))
+                                                    Ok(_) => s.add_layer(Dialog::text("New Part added successfully").dismiss_button("Ok")),
+                                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                                 }
 
                                             }
@@ -524,7 +529,7 @@ fn main() {
 
                                                 match Grades::post(new_grade) {
                                                     Ok(_) => s.add_layer(Dialog::text("Grade added successfully").dismiss_button("Ok")),
-                                                    Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                                 };
                                             }
                                         )
@@ -569,7 +574,7 @@ fn main() {
 
                                             match Section::post(new_section) {
                                                 Ok(_) => s.add_layer(Dialog::text("Section added successfully").dismiss_button("Ok")),
-                                                Err(_) => s.add_layer(Dialog::text("Error encountered").dismiss_button("Ok"))
+                                                Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                             };
                                         }
                                     )
@@ -594,9 +599,9 @@ fn main() {
                                     v.push(section);
                                 }
 
-                                match &g.is_empty() {
+                                match &g.is_empty() | &sec.is_empty() {
                                     true => {
-                                        s.add_layer(Dialog::info("No grades created!"))
+                                        s.add_layer(Dialog::info("No grade/ section created!"))
                                     },
                                     false => {
                                         s.add_layer(
@@ -605,6 +610,7 @@ fn main() {
                                                 .padding_lrtb(1, 1, 1, 1)
                                                 .content(
                                                     ListView::new()
+                                                        .child("Item Code", EditView::new().with_name("item_code").fixed_width(30))
                                                         .child(
                                                             "Grades",
                                                             SelectView::<String>::new()
@@ -612,7 +618,7 @@ fn main() {
                                                             .h_align(HAlign::Center)
                                                             .autojump()
                                                             .with_all_str(g)
-                                                            .on_select(|s, item| {
+                                                            .on_select(|_, item| {
                                                                 println!("{}", &item);
                                                             }
                                                             )
@@ -625,7 +631,7 @@ fn main() {
                                                             .h_align(HAlign::Center)
                                                             .autojump()
                                                             .with_all_str(v)
-                                                            .on_select(|s, item| {
+                                                            .on_select(|_, item| {
                                                                 println!("{}", &item);
                                                             }
                                                             )
@@ -635,6 +641,9 @@ fn main() {
                                                 .button(
                                                     "Add",
                                                     |s| {
+                                                        let itm_cd = s.call_on_name("item_code", |v: &mut EditView| {
+                                                            v.get_content()
+                                                        }).unwrap();
                                                         let grd = s.call_on_name("grades", |v: &mut SelectView| {
                                                             v.selection()
                                                         }).unwrap();
@@ -643,11 +652,11 @@ fn main() {
                                                             v.selection()
                                                         }).unwrap();
 
-                                                        
-
-                                                        // Steel::assign(grd, sec).unwrap();
+                                                        Steel::new(itm_cd.to_string(), grd.unwrap().to_string(), sec.unwrap().to_string())
+                                                            .assign(grd.unwrap().to_string(), sec.unwrap().to_string()).unwrap();
                                                     }
                                                 )
+                                                .dismiss_button("Cancel")
                                         )
                                     }
                                 }

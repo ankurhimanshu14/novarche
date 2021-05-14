@@ -10,15 +10,15 @@ pub mod steel {
     #[derive(Debug)]
     pub struct Steel {
         pub item_code: String,
-        pub grade: Grades,
-        pub section: Section
+        pub grade: String,
+        pub section: String
     }
 
     impl Steel {
         pub fn new(
             item_code: String,
-            grade: Grades,
-            section: Section
+            grade: String,
+            section: String
         ) -> Self {
             Steel {
                 item_code,
@@ -27,7 +27,10 @@ pub mod steel {
             }
         }
 
-        pub fn assign(g: Grades, s: Section) -> Result<()> {
+        pub fn assign(self, g: String, s: String) -> Result<()> {
+
+            let Section { sec_size, sec_type } = self.section;
+
             let steel_table = format!("CREATE TABLE steel
             (   
                 steel_id            INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
@@ -41,8 +44,8 @@ pub mod steel {
                 s.sec_size,
                 s.sec_type
                 FROM grades g
-                INNER JOIN section s ON g.grade = '{}', s.sec_size = '{}', s.sec_type = '{}'
-                ORDER BY item_code;", g.grade, s.sec_size, s.sec_type
+                INNER JOIN section s ON g.grade = '{:?}', s.sec_size = '{:?}', s.sec_type = '{:?}'
+                ORDER BY item_code;", self.grade, self.section.sec_size, self.section.sec_type
             );
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
