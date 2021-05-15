@@ -65,12 +65,21 @@ pub mod user {
                 "hash" => self.hash.clone()
             })?;
 
-            let user_table = format!("CREATE TABLE user
-            (
+            let user_table = "CREATE TABLE user
+            (   
+                user_id             INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
+                employee_id         VARCHAR(10)     NOT NULL        UNIQUE,
+                username            VARCHAR(20)     NOT NULL        UNIQUE,
+                hash                VARCHAR(200)    NOT NULL,
+                email               VARCHAR(50)     NOT NULL,
+                roles_name          VARCHAR(20)     NOT NULL,
+                activity            VARCHAR(50)     NOT NULL,
                 created_at          DATETIME        NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
-                modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP
-            )
-            INSERT INTO user (employee_id, username, hash, email, roles_name, activity)
+                modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP,
+                UNIQUE INDEX        username_emp_id     (username, employee_id)
+            )ENGINE = InnoDB;";
+
+            let insert = format!("INSERT INTO user (employee_id, username, hash, email, roles_name, activity)
                 AS SELECT
                 e.employee_id,
                 u.username,
@@ -79,7 +88,7 @@ pub mod user {
                 r.roles_name,
                 a.activity
                 FROM employee e
-                INNER JOIN user u ON u.username = '{}', u.hash = '{}'
+                INNER JOIN user_details u ON u.username = '{}', u.hash = '{}'
                 INNER JOIN department d ON d.email = '{}'
                 INNER JOIN authorities a ON a.activity = '{}'
                 INNER JOIN roles r ON r.roles_name = '{}'
@@ -87,6 +96,8 @@ pub mod user {
             );
 
             conn.query_drop(user_table)?;
+
+            conn,query_drop(insert)?;
 
             Ok(())
         }

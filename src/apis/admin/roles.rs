@@ -88,9 +88,11 @@ pub mod roles {
     
             let mut conn = pool.get_conn()?;
 
-            let query = format!("DELETE FROM roles WHERE roles_name = '{}';", role);
+            let query = format!("DELETE FROM roles WHERE roles_name = '{}';", &role);
 
             conn.query_drop(query)?;
+
+            conn.query_drop(format!("DELETE FROM role_activity WHERE roles_name = '{}';", &role))?;
 
             Ok(())
         }

@@ -7,6 +7,9 @@ pub mod authority {
         views::{ Dialog, EditView, ListView, SelectView },
     };
 
+    use crate::frontend::{
+        admin::roles::roles::create_roles
+    };
 
     use crate::apis::{
         admin::{
@@ -51,62 +54,79 @@ pub mod authority {
 
         match &v.is_empty() {
             true => {
-                s.add_layer(Dialog::info("No activity created!"))
+                s.add_layer(Dialog::text("No activity created!")
+                .button(
+                    "Create Activity",
+                    |s| { create_authority(s) }
+                )
+                .dismiss_button("Cancel"))
             },
             false => {
-                s.add_layer(
-                    Dialog::new()
-                        .title("Assign Activities")
-                        .padding_lrtb(1, 1, 1, 1)
-                        .content(
-                            ListView::new()
-                                .child(
-                                    "Role",
-                                    SelectView::<String>::new()
-                                    .popup()
-                                    .v_align(VAlign::Center)
-                                    .autojump()
-                                    .with_all_str(r)
-                                    .on_select(|s, item| {
-                                        println!("{}", &item);
-                                    }
-                                    )
-                                    .with_name("role")
-                                    .fixed_width(30)
-                                )
-                                .child(
-                                    "Activity",
-                                    SelectView::<String>::new()
-                                    .popup()
-                                    .h_align(HAlign::Center)
-                                    .autojump()
-                                    .with_all_str(v)
-                                    .on_select(|s, item| {
-                                        println!("{}", &item);
-                                    }
-                                    )
-                                    .with_name("activity")
-                                    .fixed_width(30)
-                                )
-                        )
+                match &r.is_empty() {
+                    true => {
+                        s.add_layer(Dialog::text("No roles created!")
                         .button(
-                            "Add",
-                            |s| {
-                                let rol = s.call_on_name("role", |v: &mut SelectView| {
-                                    v.selection()
-                                }).unwrap();
-
-                                let sel = s.call_on_name("activity", |v: &mut SelectView| {
-                                    v.selection()
-                                }).unwrap();
-
-                                match Authorities::assign(rol.unwrap().to_string(), sel.unwrap().to_string()) {
-                                    Ok(_) => s.add_layer(Dialog::text("Activity assigned successfully").dismiss_button("Ok")),
-                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
-                                }
-                            }
-                        ).dismiss_button("Cancel")
-                )
+                            "Create Roles",
+                            |s| { create_roles(s) }
+                        )
+                        .dismiss_button("Cancel"))
+                    },
+                    false => {
+                        s.add_layer(
+                            Dialog::new()
+                                .title("Assign Activities")
+                                .padding_lrtb(1, 1, 1, 1)
+                                .content(
+                                    ListView::new()
+                                        .child(
+                                            "Role",
+                                            SelectView::<String>::new()
+                                            .popup()
+                                            .v_align(VAlign::Center)
+                                            .autojump()
+                                            .with_all_str(r)
+                                            .on_select(|s, item| {
+                                                println!("{}", &item);
+                                            }
+                                            )
+                                            .with_name("role")
+                                            .fixed_width(30)
+                                        )
+                                        .child(
+                                            "Activity",
+                                            SelectView::<String>::new()
+                                            .popup()
+                                            .h_align(HAlign::Center)
+                                            .autojump()
+                                            .with_all_str(v)
+                                            .on_select(|s, item| {
+                                                println!("{}", &item);
+                                            }
+                                            )
+                                            .with_name("activity")
+                                            .fixed_width(30)
+                                        )
+                                )
+                                .button(
+                                    "Add",
+                                    |s| {
+                                        let rol = s.call_on_name("role", |v: &mut SelectView| {
+                                            v.selection()
+                                        }).unwrap();
+        
+                                        let sel = s.call_on_name("activity", |v: &mut SelectView| {
+                                            v.selection()
+                                        }).unwrap();
+        
+                                        match Authorities::assign(rol.unwrap().to_string(), sel.unwrap().to_string()) {
+                                            Ok(_) => s.add_layer(Dialog::text("Activity assigned successfully").dismiss_button("Ok")),
+                                            Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                        }
+                                    }
+                                ).dismiss_button("Cancel")
+                        )
+                    }
+                }
             }
         }
     }
