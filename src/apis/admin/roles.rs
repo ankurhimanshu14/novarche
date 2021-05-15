@@ -80,5 +80,19 @@ pub mod roles {
             
             Ok(v)
         }
+
+        pub fn delete(role: String) -> Result<()> {
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+    
+            let mut conn = pool.get_conn()?;
+
+            let query = format!("DELETE FROM roles WHERE roles_name = '{}';", role);
+
+            conn.query_drop(query)?;
+
+            Ok(())
+        }
     }
 }

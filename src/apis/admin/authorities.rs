@@ -91,6 +91,9 @@ pub mod authorities {
                 modified_at         DATETIME                     ON UPDATE           CURRENT_TIMESTAMP
             )ENGINE = InnoDB;";
 
+            let constraint = "ALTER TABLE role_activity
+                ADD UNIQUE rolename_activity_unique (roles_name, activity)";
+
             let query = format!("INSERT INTO role_activity(roles_name, activity)
             SELECT
             r.roles_name,
@@ -106,6 +109,8 @@ pub mod authorities {
             let mut conn = pool.get_conn()?;
 
             conn.query_drop(table)?;
+
+            conn.query_drop(constraint)?;
 
             conn.query_drop(query)?;
 
