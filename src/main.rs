@@ -12,14 +12,19 @@ use cursive::{
     views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView },
 };
 
-use frontend::admin::{
-    roles::roles::{
-        create_roles,
-        delete_roles
+use frontend::{
+    admin::{
+        roles::roles::{
+            create_roles,
+            delete_roles
+        },
+        authority::authority::{
+            create_authority,
+            assign_authority
+        }
     },
-    authority::authority::{
-        create_authority,
-        assign_authority
+    human_resources::{
+        employee::employee::create_employee
     }
 };
 
@@ -63,6 +68,18 @@ fn main() {
                         .leaf(
                             "Assign Activities",
                             |s| { assign_authority(s) }
+                        )
+                )
+        )
+        .add_subtree(
+            "Human Resources",
+            menu::MenuTree::new()
+                .subtree(
+                    "Employees",
+                    menu::MenuTree::new()
+                        .leaf(
+                            "New Joining",
+                            |s| { create_employee(s) }
                         )
                 )
         );

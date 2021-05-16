@@ -97,7 +97,7 @@ pub mod user {
 
             conn.query_drop(user_table)?;
 
-            conn,query_drop(insert)?;
+            conn.query_drop(insert)?;
 
             Ok(())
         }
