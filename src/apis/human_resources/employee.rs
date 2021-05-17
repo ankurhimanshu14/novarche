@@ -103,7 +103,7 @@ pub mod employee {
         }
 
         pub fn get() -> Result<Vec<Employee>> {
-            let query = "SELECT employee_id, person_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving FROM employee;";
+            let query = "SELECT employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving FROM employee;";
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -131,7 +131,8 @@ pub mod employee {
                     conn.query_map(
                         query,
                         |(employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving)| {
-                            v.push(Employee::new(employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving));
+                            let emp = Employee::new(employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving);
+                            v.push(emp);
                         }
                     ).unwrap()
                 }

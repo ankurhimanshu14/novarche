@@ -225,7 +225,7 @@ pub mod employee {
                                         uan
                                     ).post();
 
-                                    Employee::new(
+                                    let new_emp = Employee::new(
                                         employee_id.to_string(),
                                         department_code.clone().unwrap().to_string(),
                                         designation.to_string(),
@@ -233,9 +233,12 @@ pub mod employee {
                                         current_status.clone().unwrap().to_string(),
                                         date_of_joining,
                                         date_of_leaving
-                                    ).post(uidai.clone().parse::<usize>().unwrap());
-    
-                                    s.add_layer(Dialog::info("Employee data saved!"));
+                                    );
+                                    
+                                    match Employee::post(new_emp, uidai.clone().parse::<usize>().unwrap()) {
+                                        Ok(_) => s.add_layer(Dialog::text("Employee added successfully").dismiss_button("Ok")),
+                                        Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                    };
                                 }
                             }
                         }
