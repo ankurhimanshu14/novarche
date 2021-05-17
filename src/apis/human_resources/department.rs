@@ -57,7 +57,7 @@ pub mod department {
             Ok(())
         }
 
-        pub fn get_dept_code() -> Result<Vec<String>> {
+        pub fn get_list() -> Result<Vec<Department>> {
             let query = "SELECT department_code, description, email FROM department;";
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
@@ -66,7 +66,7 @@ pub mod department {
 
             let mut conn = pool.get_conn()?;
             
-            let mut v: Vec<String> = Vec::new();
+            let mut v: Vec<Department> = Vec::new();
 
             let if_exist = "SELECT COUNT(*)
                 FROM information_schema.tables 
@@ -92,7 +92,7 @@ pub mod department {
                                 email
                             };
 
-                            v.push(dep.department_code.to_string())
+                            v.push(dep)
                         }
                     ).unwrap()
                 }
@@ -101,33 +101,69 @@ pub mod department {
             Ok(v)
         }
 
-        pub fn find_by_dept_code(q: String) -> Result<Vec<Vec<String>>> {
-            let query = format!("SELECT * FROM department WHERE department_code = '{}';", q);
+        pub fn get_dept_code_list() -> Result<Vec<String>> {
+            let mut v: Vec<String> = Vec::new();
 
-            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+            let dep_vec: Vec<Department> = Department::get_list().unwrap();
 
-            let pool = Pool::new(url)?;
-
-            let conn = pool.get_conn()?;
-
-            let result: Vec<Row> = query.fetch(conn)?;
-
-            let mut v1: Vec<Vec<String>> = Vec::new();
-
-            for entries in result.iter() {
-                let length: &usize = &entries.len();
-                let mut v2: Vec<String> = Vec::new();
-                for index in 0..*length {
-                    let val = &entries.get_opt::<String, usize>(index).unwrap();
-
-                    match val {
-                        Ok(_) => v2.push(val.as_ref().unwrap().to_string()),
-                        Err(_) => v2.push("".to_string()),
-                    }
-                }
-                v1.push(v2);
+            for d in dep_vec {
+                v.push(d.department_code)
             }
-            Ok(v1)
+
+            Ok(v)
         }
+
+        pub fn get_dept_description_list() -> Result<Vec<String>> {
+            let mut v: Vec<String> = Vec::new();
+
+            let dep_vec: Vec<Department> = Department::get_list().unwrap();
+
+            for d in dep_vec {
+                v.push(d.description)
+            }
+
+            Ok(v)
+        }
+
+        pub fn get_email_list() -> Result<Vec<String>> {
+            let mut v: Vec<String> = Vec::new();
+
+            let dep_vec: Vec<Department> = Department::get_list().unwrap();
+
+            for d in dep_vec {
+                v.push(d.email)
+            }
+
+            Ok(v)
+        }
+
+        // pub fn find_by_dept_code(q: String) -> Result<Vec<Vec<String>>> {
+        //     let query = format!("SELECT * FROM department WHERE department_code = '{}';", q);
+
+        //     let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+        //     let pool = Pool::new(url)?;
+
+        //     let conn = pool.get_conn()?;
+
+        //     let result: Vec<Row> = query.fetch(conn)?;
+
+        //     let mut v1: Vec<Vec<String>> = Vec::new();
+
+        //     for entries in result.iter() {
+        //         let length: &usize = &entries.len();
+        //         let mut v2: Vec<String> = Vec::new();
+        //         for index in 0..*length {
+        //             let val = &entries.get_opt::<String, usize>(index).unwrap();
+
+        //             match val {
+        //                 Ok(_) => v2.push(val.as_ref().unwrap().to_string()),
+        //                 Err(_) => v2.push("".to_string()),
+        //             }
+        //         }
+        //         v1.push(v2);
+        //     }
+        //     Ok(v1)
+        // }
     }
 }

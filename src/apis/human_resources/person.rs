@@ -148,5 +148,34 @@ pub mod person {
 
             Ok(())
         }
+
+        // pub fn get_person_list() -> Result<Vec<Person>> {
+        //     let query = "SELECT * FROM person;";
+
+        //     let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+        //     let pool = Pool::new(url)?;
+
+        //     let conn = pool.get_conn()?;
+
+        //     let result: Vec<Row> = query.fetch(conn)?;
+
+        //     let mut v1: Vec<Person> = Vec::new();
+
+        //     for entries in result.iter() {
+        //         let length: &usize = &entries.len();
+        //         let mut v2: Vec<String> = Vec::new();
+        //         for index in 0..*length {
+        //             let val = &entries.get_opt::<String, usize>(index).unwrap();
+
+        //             match val {
+        //                 Ok(_) => v2.push(val.as_ref().unwrap().to_string()),
+        //                 Err(_) => v2.push("".to_string()),
+        //             }
+        //         }
+        //         v1.push(v2);
+        //     }
+        //     Ok(v1)
+        // }
     }
 }

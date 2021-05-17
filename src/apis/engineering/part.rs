@@ -1,8 +1,4 @@
 pub mod part {
-    use crate::apis::custom_types::{
-        delivery_condition::delivery_condition::DeliveryCondition,
-        grades::grades::Grades,
-    };
 
     use chrono::NaiveDate;
     use mysql::prelude::*;

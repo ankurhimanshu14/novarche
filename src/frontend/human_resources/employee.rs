@@ -23,7 +23,7 @@ pub mod employee {
 
     pub fn create_employee(s: &mut Cursive) {
 
-        let dept = Department::get_dept_code().unwrap();
+        let dept = Department::get_dept_code_list().unwrap();
 
         let rep_to = Employee::get_employee_id().unwrap();
 
@@ -209,7 +209,7 @@ pub mod employee {
                             match first_name.clone().is_empty() || last_name.clone().is_empty() || gender.clone().unwrap().is_empty() || dob.clone().is_empty() || per_address.clone().is_empty() || pan.clone().to_string().is_empty() || uidai.clone().to_string().is_empty() {
                                 true => { s.add_layer(Dialog::info("* marked are required fields")) },
                                 false => {
-                                    Person::new(
+                                    match Person::new(
                                         first_name.to_string(),
                                         Some(middle_name.to_string()),
                                         last_name.to_string(),
@@ -223,7 +223,10 @@ pub mod employee {
                                         pan.to_string(),
                                         uidai.parse::<usize>().unwrap(),
                                         uan
-                                    ).post();
+                                    ).post() {
+                                        Ok(_) => {},
+                                        Err(e) => s.add_layer(Dialog::info(format!("Error encountered: {}", e)))
+                                    };
 
                                     let new_emp = Employee::new(
                                         employee_id.to_string(),
