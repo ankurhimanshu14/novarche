@@ -20,7 +20,7 @@ pub mod department {
             }
         }
 
-        pub fn post(d: Department) -> Result<()> {
+        pub fn post(self) -> Result<()> {
             let table = "CREATE TABLE IF NOT EXISTS department (
                 id                      INT             NOT NULL            PRIMARY KEY         AUTO_INCREMENT,
                 department_code         VARCHAR(4)      NOT NULL            UNIQUE,
@@ -49,12 +49,56 @@ pub mod department {
             conn.query_drop(table)?;
 
             conn.exec_drop(insert, params! {
-                "department_code" => d.department_code,
-                "description" => d.description,
-                "email" => d.email
+                "department_code" =>self.department_code,
+                "description" =>self.description,
+                "email" =>self.email
             })?;
 
             Ok(())
+        }
+
+        pub fn get_dept_code() -> Result<Vec<String>> {
+            let query = "SELECT department_code, description, email FROM department;";
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+
+            let mut conn = pool.get_conn()?;
+            
+            let mut v: Vec<String> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'department';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |(department_code, description, email)| {
+                            let dep = Department{
+                                department_code,
+                                description,
+                                email
+                            };
+
+                            v.push(dep.department_code.to_string())
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            Ok(v)
         }
 
         pub fn find_by_dept_code(q: String) -> Result<Vec<Vec<String>>> {

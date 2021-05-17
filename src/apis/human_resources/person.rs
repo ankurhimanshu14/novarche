@@ -39,24 +39,33 @@ pub mod person {
         ) -> Self {
             Person {
                 first_name,
-                middle_name: match &middle_name.unwrap().len() {
+                middle_name: match &middle_name.clone().unwrap().len() {
                     0 => None,
-                    _ => Some(middle_name.unwrap())
+                    _ => Some(middle_name.clone().unwrap())
                 },
                 last_name,
                 gender,
-                date_of_birth: NaiveDate::parse_from_str(
-                    &date_of_birth.to_string(),
-                    "%d-%m-%Y",
-                ).unwrap(),
-                pri_contact_no,
-                sec_contact_no,
-                personal_email,
+                date_of_birth,
+                pri_contact_no: match &pri_contact_no.clone().unwrap().len() {
+                    0 => None,
+                    _ => Some(pri_contact_no.clone().unwrap())
+                },
+                sec_contact_no: match &sec_contact_no.clone().unwrap().len() {
+                    0 => None,
+                    _ => Some(sec_contact_no.clone().unwrap())
+                },
+                personal_email: match &personal_email.clone().unwrap().len() {
+                    0 => None,
+                    _ => Some(personal_email.clone().unwrap())
+                },
                 per_address,
-                com_address,
+                com_address: match &com_address.clone().unwrap().len() {
+                    0 => None,
+                    _ => Some(com_address.clone().unwrap())
+                },
                 pan,
                 uidai,
-                uan,
+                uan
             }
         }
 
@@ -134,7 +143,7 @@ pub mod person {
                     "pan" => self.pan.clone(),
                     "uidai" => self.uidai.clone(),
                     "uan" => self.uan.clone(),
-                },
+                }
             )?;
 
             Ok(())
