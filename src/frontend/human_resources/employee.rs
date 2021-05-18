@@ -25,7 +25,7 @@ pub mod employee {
 
         let dept = Department::get_dept_code_list().unwrap();
 
-        let rep_to = Employee::get_employee_id().unwrap();
+        let rep_to = Employee::get_employee_id_list().unwrap();
 
         match dept.is_empty() {
             true => {

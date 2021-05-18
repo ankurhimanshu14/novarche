@@ -3,7 +3,6 @@ pub mod employee {
     use chrono::NaiveDate;
     use mysql::prelude::*;
     use mysql::*;
-    // use crate::utils::parse::parse::parse_from_row;
 
     #[derive(Debug, Clone)]
     pub struct Employee {
@@ -102,7 +101,7 @@ pub mod employee {
             Ok(())
         }
 
-        pub fn get() -> Result<Vec<Employee>> {
+        pub fn get_employee_list() -> Result<Vec<Employee>> {
             let query = "SELECT employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving FROM employee;";
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
@@ -141,15 +140,49 @@ pub mod employee {
             Ok(v)
         }
 
-        pub fn get_employee_id() -> Result<Vec<String>> {
+        pub fn get_employee_id_list() -> Result<Vec<String>> {
             let mut v: Vec<String> = Vec::new();
 
-            let emp_vec: Vec<Employee> = Employee::get().unwrap();
+            let emp_vec: Vec<Employee> = Employee::get_employee_list().unwrap();
 
             for e in emp_vec {
                 v.push(e.employee_id)
             }
 
+            Ok(v)
+        }
+
+        pub fn get_employee_dept_list() -> Result<Vec<(String, String)>> {
+            let mut v: Vec<(String, String)> = Vec::new();
+
+            let emp_vec: Vec<Employee> = Employee::get_employee_list().unwrap();
+
+            for e in emp_vec {
+                v.push((e.employee_id, e.dept_code))
+            }
+
+            Ok(v)
+        }
+
+        pub fn get_employee_joining_date_list() -> Result<Vec<(String, NaiveDate)>> {
+            let mut v: Vec<(String, NaiveDate)> = Vec::new();
+
+            let emp_vec: Vec<Employee> = Employee::get_employee_list().unwrap();
+
+            for e in emp_vec {
+                v.push((e.employee_id, e.date_of_joining))
+            }
+            Ok(v)
+        }
+
+        pub fn get_employee_reporting_to_list() -> Result<Vec<(String, String)>> {
+            let mut v: Vec<(String, String)> = Vec::new();
+
+            let emp_vec: Vec<Employee> = Employee::get_employee_list().unwrap();
+
+            for e in emp_vec {
+                v.push((e.employee_id, e.reporting_to))
+            }
             Ok(v)
         }
     }
