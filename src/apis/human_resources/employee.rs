@@ -185,5 +185,12 @@ pub mod employee {
             }
             Ok(v)
         }
+
+        pub fn update_dept_code(emp_id: String, d_code: String) -> Result<()> {
+            let query = format!("UPDATE employee SET dept_code= '{}' WHERE employee_id = '{}'; ", d_code, emp_id);
+
+            
+            Ok(())
+        }
     }
 }

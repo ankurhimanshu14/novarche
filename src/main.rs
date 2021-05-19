@@ -21,6 +21,9 @@ use frontend::{
         authority::authority::{
             create_authority,
             assign_authority
+        },
+        user_signup::user_signup::{
+            create_user,
         }
     },
     human_resources::{
@@ -68,6 +71,14 @@ fn main() {
                         .leaf(
                             "Assign Activities",
                             |s| { assign_authority(s) }
+                        )
+                )
+                .subtree(
+                    "User",
+                    menu::MenuTree::new()
+                        .leaf(
+                            "Sign Up",
+                            |s| { create_user(s) }
                         )
                 )
         )

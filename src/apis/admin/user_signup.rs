@@ -1,4 +1,4 @@
-pub mod user {
+pub mod user_signup {
 
     use mysql::*;
     use mysql::prelude::*;
@@ -9,36 +9,30 @@ pub mod user {
     #[derive(Debug, Clone)]
     pub struct User {
         pub employee_id: String,
-        pub email: String,
         pub username: String,
         pub hash: String,
-        pub role: String,
-        pub authority: String
+        pub role: String
     }
 
     impl User {
         pub fn new(
             employee_id: String,
-            email: String,
             username: String,
             password: String,
-            role: String,
-            authority: String
+            role: String
         ) -> Self {
             User {
                 employee_id,
-                email,
                 username,
                 hash: hash(password, DEFAULT_COST).unwrap(),
-                role: format!("{}", role),
-                authority:format!("{}", authority)
+                role
             }
         }
 
-        pub fn post(self) -> Result<()> {
+        pub fn sign_up(self) -> Result<()> {
             let table = "CREATE TABLE IF NOT EXISTS user_details(
                 user_id             INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
-                username            VARCHAR(20)     NOT NULL,
+                username            VARCHAR(20)     NOT NULL        UNIQUE,
                 hash                VARCHAR(200)    NOT NULL,
                 created_at          DATETIME        NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
                 modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP
@@ -65,34 +59,30 @@ pub mod user {
                 "hash" => self.hash.clone()
             })?;
 
-            let user_table = "CREATE TABLE user
+            let user_table = "CREATE TABLE IF NOT EXISTS user
             (   
                 user_id             INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
                 employee_id         VARCHAR(10)     NOT NULL        UNIQUE,
                 username            VARCHAR(20)     NOT NULL        UNIQUE,
                 hash                VARCHAR(200)    NOT NULL,
-                email               VARCHAR(50)     NOT NULL,
                 roles_name          VARCHAR(20)     NOT NULL,
-                activity            VARCHAR(50)     NOT NULL,
                 created_at          DATETIME        NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
                 modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP,
                 UNIQUE INDEX        username_emp_id     (username, employee_id)
             )ENGINE = InnoDB;";
 
-            let insert = format!("INSERT INTO user (employee_id, username, hash, email, roles_name, activity)
-                AS SELECT
+            let insert = format!("INSERT INTO user (employee_id, username, hash, roles_name)
+                SELECT
                 e.employee_id,
                 u.username,
                 u.hash,
-                d.email,
-                r.roles_name,
-                a.activity
+                r.roles_name
                 FROM employee e
-                INNER JOIN user_details u ON u.username = '{}', u.hash = '{}'
-                INNER JOIN department d ON d.email = '{}'
-                INNER JOIN authorities a ON a.activity = '{}'
-                INNER JOIN roles r ON r.roles_name = '{}'
-                ORDER BY user_id;", self.username, self.hash, self.email, self.authority, self.role
+                INNER JOIN user_details u
+                ON u.username = '{}' AND u.hash = '{}'
+                INNER JOIN roles r
+                ON r.roles_name = '{}'
+                ORDER BY user_id;", self.username, self.hash, self.role
             );
 
             conn.query_drop(user_table)?;
