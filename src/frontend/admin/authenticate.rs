@@ -20,13 +20,13 @@ pub mod authenticate {
             .padding_lrtb(5, 5, 5, 5)
             .content(
                 ListView::new()
-                .child("Username", EditView::new().with_name("username").fixed_width(30))
+                .child("Username", EditView::new().with_name("login_id").fixed_width(30))
                 .child("Password", EditView::new().secret().with_name("client_password").fixed_width(30))
             )
             .button(
                 "Sign In",
                 |s| {
-                    let username = s.call_on_name("username", |v:&mut EditView| {
+                    let login_id = s.call_on_name("login_id", |v:&mut EditView| {
                         v.get_content()
                     }).unwrap();
     
@@ -34,18 +34,18 @@ pub mod authenticate {
                         v.get_content()
                     }).unwrap();
     
-                    match username.is_empty() || client_password.is_empty() {
+                    match login_id.is_empty() || client_password.is_empty() {
                         true => s.add_layer(Dialog::info("All fields must be entered")),
                         false => {
     
-                            let verified_user = get_user(username.to_string());
+                            let verified_user = get_user(login_id.to_string()).unwrap();
 
-                            match get_user(username.to_string()).unwrap().clone().len() {
-                                0 => {
-                                    s.add_layer(Dialog::info(format!("{} does not exist", username)));
+                            match verified_user.clone().is_empty() {
+                                true => {
+                                    s.add_layer(Dialog::info(format!("{} does not exist", login_id)));
                                 },
-                                _ => {
-                                    let verify_password = verify_user(verified_user.unwrap()[0].clone(), client_password.to_string());
+                                false => {
+                                    let verify_password = verify_user(verified_user[0].clone(), client_password.to_string());
 
                                     match verify_password.unwrap() {
                                         true => {

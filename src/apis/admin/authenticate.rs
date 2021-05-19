@@ -18,10 +18,12 @@ pub mod authenticate {
 
         let mut conn = pool.get_conn()?;
 
+        let mut v: Vec<User> = Vec::new();
+
         let if_exist = "SELECT COUNT(*)
             FROM information_schema.tables 
             WHERE table_schema = DATABASE()
-            AND table_name = 'roles';";
+            AND table_name = 'user';";
 
         let exists = conn.query_map(
             if_exist,
@@ -30,23 +32,19 @@ pub mod authenticate {
             }
         ).unwrap();
 
-        let mut v: Vec<User> = Vec::new();
-
-        let result = match &exists[0] {
-            0 => None,
-            _ => Some(conn.query_map(
-                query,
-                |(employee_id, username, hash, role)| {
-                    User {
-                        employee_id,
-                        username,
-                        hash,
-                        role
+        let res = match &exists[0] {
+            0 => vec![()],
+            _ => {
+                conn.query_map(
+                    query,
+                    |(employee_id, username, hash, role)| {
+                        v.push(User{employee_id, username, hash, role})
                     }
-                })?)
+                ).unwrap()
+            }
         };
 
-        Ok(result.unwrap())
+        Ok(v)
     }
 
     pub fn verify_user(u: User, p: String) -> Result<bool> {

@@ -75,7 +75,7 @@ pub mod user_signup {
                                 s.pop_layer();
                                 s.add_layer(Dialog::text("User added successfully").dismiss_button("Ok"))
                             },
-                            Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                            Err(e) => s.add_layer(Dialog::text(format!("Sign Up Error encountered: {}", e)).dismiss_button("Ok"))
                         };
                     }
                 )
