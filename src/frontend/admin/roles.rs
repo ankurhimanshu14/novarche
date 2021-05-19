@@ -26,15 +26,17 @@ pub mod roles {
                 .button(
                     "Add",
                     |s| {
-    
                         let roles_name = s.call_on_name("roles_name", |v: &mut EditView| {
                             v.get_content()
                         }).unwrap();
     
                         let new_role = Roles::new(roles_name.to_string());
-    
+                        
                         match Roles::post(new_role) {
-                            Ok(_) => s.add_layer(Dialog::text("Role added successfully").dismiss_button("Ok")),
+                            Ok(_) =>{
+                                s.pop_layer();
+                                s.add_layer(Dialog::text("Role added successfully").dismiss_button("Ok"))
+                            },
                             Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                         };
                     }
@@ -48,7 +50,14 @@ pub mod roles {
         let r = Roles::get().unwrap();
 
         match r.len() {
-            0 => { s.add_layer(Dialog::info("No roles defined")) },
+            0 => {
+                s.add_layer(Dialog::text("No roles defined")
+                .button(
+                    "Add Roles",
+                    |s| { create_roles(s) }
+                )
+                .dismiss_button("Cancel"))
+            },
             _ => {
                 s.add_layer(
                     Dialog::new()
@@ -74,12 +83,16 @@ pub mod roles {
                             .button(
                                 "Confirm",
                                 |s| {
+                                    s.pop_layer();
                                     let role_name = s.call_on_name("role_name", |v: &mut SelectView| {
                                         v.selection()
                                     }).unwrap();
         
                                     match Roles::delete(role_name.unwrap().to_string()) {
-                                        Ok(_) => s.add_layer(Dialog::text("Role name deleted successfully").dismiss_button("Ok")),
+                                        Ok(_) => {
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::text("Role name deleted successfully").dismiss_button("Ok"))
+                                        },
                                         Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                     }
                                 }

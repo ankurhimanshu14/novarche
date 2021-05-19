@@ -38,7 +38,10 @@ pub mod authority {
                         let new_authority = Authorities::new(activity.to_string());
 
                         match Authorities::post(new_authority) {
-                            Ok(_) => s.add_layer(Dialog::text("Authority added successfully").dismiss_button("Ok")),
+                            Ok(_) => {
+                                s.pop_layer();
+                                s.add_layer(Dialog::text("Authority added successfully").dismiss_button("Ok"))
+                            },
                             Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                         };
                     }
@@ -54,6 +57,7 @@ pub mod authority {
 
         match &v.is_empty() {
             true => {
+
                 s.add_layer(Dialog::text("No activity created!")
                 .button(
                     "Create Activity",
@@ -64,6 +68,7 @@ pub mod authority {
             false => {
                 match &r.is_empty() {
                     true => {
+
                         s.add_layer(Dialog::text("No roles created!")
                         .button(
                             "Create Roles",
@@ -110,6 +115,7 @@ pub mod authority {
                                 .button(
                                     "Add",
                                     |s| {
+
                                         let rol = s.call_on_name("role", |v: &mut SelectView| {
                                             v.selection()
                                         }).unwrap();
@@ -119,7 +125,10 @@ pub mod authority {
                                         }).unwrap();
         
                                         match Authorities::assign(rol.unwrap().to_string(), sel.unwrap().to_string()) {
-                                            Ok(_) => s.add_layer(Dialog::text("Activity assigned successfully").dismiss_button("Ok")),
+                                            Ok(_) => {
+                                                s.pop_layer();
+                                                s.add_layer(Dialog::text("Activity assigned successfully").dismiss_button("Ok"))
+                                            },
                                             Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                         }
                                     }

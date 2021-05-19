@@ -24,7 +24,8 @@ use frontend::{
         },
         user_signup::user_signup::{
             create_user,
-        }
+        },
+        authenticate::authenticate::sign_in
     },
     human_resources::{
         employee::employee::create_employee
@@ -203,27 +204,7 @@ fn main() {
         //         )
         // );
 
-    siv.add_layer(
-        Dialog::new()
-        .title("Sign In")
-        .padding_lrtb(5, 5, 5, 5)
-        .content(
-            ListView::new()
-            .child("Username", EditView::new().with_name("username").fixed_width(30))
-            .child("Password", EditView::new().secret().with_name("client_password").fixed_width(30))
-        )
-        .button(
-            "Sign In",
-            |s| {
-                s.pop_layer();
-
-                s.add_global_callback(Key::Esc, |s| s.select_menubar());
-
-                s.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
-            }
-        )
-        .dismiss_button("Cancel")
-    );
+    sign_in(&mut siv);
 
     siv.run();
 }

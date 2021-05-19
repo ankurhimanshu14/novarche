@@ -46,6 +46,7 @@ pub mod user_signup {
                 .button(
                     "Register",
                     |s| {
+
                         let employee_id = s.call_on_name("employee_id", |v: &mut EditView| {
                             v.get_content()
                         }).unwrap();

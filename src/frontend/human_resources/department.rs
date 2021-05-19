@@ -28,7 +28,6 @@ pub mod department {
             .button(
                 "Add",
                 |s| {
-
                     let department_code = s.call_on_name("department_code", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
@@ -42,7 +41,10 @@ pub mod department {
                     let new_department = Department::new(department_code.to_string(), description.to_string(), email.to_string());
 
                     match Department::post(new_department) {
-                        Ok(_) => s.add_layer(Dialog::text("Department added successfully").dismiss_button("Ok")),
+                        Ok(_) => {
+                            s.pop_layer();
+                            s.add_layer(Dialog::text("Department added successfully").dismiss_button("Ok"))
+                        },
                         Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                     };
                 }

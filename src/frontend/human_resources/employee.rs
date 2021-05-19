@@ -224,7 +224,9 @@ pub mod employee {
                                         uidai.parse::<usize>().unwrap(),
                                         uan
                                     ).post() {
-                                        Ok(_) => {},
+                                        Ok(_) => {
+                                            s.add_layer(Dialog::text("Person added successfully").dismiss_button("Ok"))
+                                        },
                                         Err(e) => s.add_layer(Dialog::info(format!("Error encountered: {}", e)))
                                     };
 
@@ -239,7 +241,10 @@ pub mod employee {
                                     );
                                     
                                     match Employee::post(new_emp, uidai.clone().parse::<usize>().unwrap()) {
-                                        Ok(_) => s.add_layer(Dialog::text("Employee added successfully").dismiss_button("Ok")),
+                                        Ok(_) => {
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::text("Employee added successfully").dismiss_button("Ok"))
+                                        },
                                         Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                                     };
                                 }
