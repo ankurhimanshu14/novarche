@@ -203,10 +203,6 @@ fn main() {
         //         )
         // );
 
-    siv.add_global_callback(Key::Esc, |s| s.select_menubar());
-
-    siv.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
-
     siv.add_layer(
         Dialog::new()
         .title("Sign In")
@@ -218,7 +214,13 @@ fn main() {
         )
         .button(
             "Sign In",
-            |s| {}
+            |s| {
+                s.pop_layer();
+
+                s.add_global_callback(Key::Esc, |s| s.select_menubar());
+
+                s.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
+            }
         )
         .dismiss_button("Cancel")
     );

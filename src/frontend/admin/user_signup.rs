@@ -70,7 +70,10 @@ pub mod user_signup {
                         );
 
                         match User::sign_up(new_user) {
-                            Ok(_) => s.add_layer(Dialog::text("User added successfully").dismiss_button("Ok")),
+                            Ok(_) => {
+                                s.pop_layer();
+                                s.add_layer(Dialog::text("User added successfully").dismiss_button("Ok"))
+                            },
                             Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                         };
                     }
