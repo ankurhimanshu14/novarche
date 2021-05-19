@@ -7,7 +7,7 @@ pub mod authenticate {
 
     use bcrypt::{ hash, verify, DEFAULT_COST };
 
-    pub fn verify_user(u: String, p: String) -> Result<bool> {
+    pub fn get_user(u: String) -> Result<Vec<User>> {
         let query = format!("SELECT employee_id, username, hash, roles_name
         FROM user
         WHERE username = '{}';", u);
@@ -18,23 +18,43 @@ pub mod authenticate {
 
         let mut conn = pool.get_conn()?;
 
-        let result = conn.query_map(
-            query,
-            |(employee_id, username, hash, role)| {
-                let user = User {
-                    employee_id,
-                    username,
-                    hash,
-                    role
-                };
+        let if_exist = "SELECT COUNT(*)
+            FROM information_schema.tables 
+            WHERE table_schema = DATABASE()
+            AND table_name = 'roles';";
 
-                match verify(user.hash, &p) {
-                    Ok(_) => true,
-                    Err(_) => false
-                }
+        let exists = conn.query_map(
+            if_exist,
+            |count: usize| {
+                count
             }
-        )?;
+        ).unwrap();
 
-        Ok(result[0])
+        let mut v: Vec<User> = Vec::new();
+
+        let result = match &exists[0] {
+            0 => None,
+            _ => Some(conn.query_map(
+                query,
+                |(employee_id, username, hash, role)| {
+                    User {
+                        employee_id,
+                        username,
+                        hash,
+                        role
+                    }
+                })?)
+        };
+
+        Ok(result.unwrap())
+    }
+
+    pub fn verify_user(u: User, p: String) -> Result<bool> {
+        let res = match verify(u.hash, &p) {
+            Ok(_) => true,
+            Err(_) => false
+        };
+
+        Ok(res)
     }
 }

@@ -8,7 +8,10 @@ pub mod authenticate {
         views::{ Dialog, EditView, ListView, SelectView },
     };
 
-    use crate::apis::admin::authenticate::authenticate::verify_user;
+    use crate::apis::admin::authenticate::authenticate::{
+        get_user,
+        verify_user
+    };
 
     pub fn sign_in(s: &mut Cursive) {
         s.add_layer(
@@ -35,20 +38,42 @@ pub mod authenticate {
                         true => s.add_layer(Dialog::info("All fields must be entered")),
                         false => {
     
-                            let ver_user = verify_user(username.to_string(), client_password.to_string()).unwrap();
+                            let verified_user = get_user(username.to_string());
 
-                            match ver_user {
-                                true => {
+                            match get_user(username.to_string()).unwrap().clone().len() {
+                                0 => {
+                                    s.add_layer(Dialog::info(format!("{} does not exist", username)));
+                                },
+                                _ => {
+                                    let verify_password = verify_user(verified_user.unwrap()[0].clone(), client_password.to_string());
+
+                                    match verify_password.unwrap() {
+                                        true => {
+                                            s.pop_layer();
+    
+                                            s.add_global_callback(Key::Esc, |s| s.select_menubar());
+                            
+                                            s.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
+                                        },
+                                        false => {
+                                            s.add_layer(Dialog::info("Wrong Credentials"));
+                                        }
+                                    }
+                                }
+                            }
+
+                            // match ver_user {
+                            //     true => {
                                     s.pop_layer();
     
                                     s.add_global_callback(Key::Esc, |s| s.select_menubar());
                     
                                     s.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
-                                },
-                                false => {
-                                    s.add_layer(Dialog::info("Wrong username or password!"));
-                                }
-                            }
+                                // },
+                                // false => {
+                                //     s.add_layer(Dialog::info("Wrong username or password!"));
+                                // }
+                            // }
 
                         }
                     }
