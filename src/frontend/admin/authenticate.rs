@@ -62,20 +62,6 @@ pub mod authenticate {
                                     }
                                 }
                             }
-
-                            // match ver_user {
-                            //     true => {
-                                    // s.pop_layer();
-    
-                                    // s.add_global_callback(Key::Esc, |s| s.select_menubar());
-                    
-                                    // s.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
-                                // },
-                                // false => {
-                                //     s.add_layer(Dialog::info("Wrong username or password!"));
-                                // }
-                            // }
-
                         }
                     }
                 }
