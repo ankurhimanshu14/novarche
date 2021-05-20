@@ -45,10 +45,8 @@ pub mod authenticate {
                                     s.add_layer(Dialog::info(format!("{} does not exist. Login as ROOT or use correct Credentials", login_id)));
                                 },
                                 false => {
-                                    
-                                    let verify_password = verify_user(verified_user[0].clone(), client_password.to_string());
 
-                                    match verify_password.unwrap() {
+                                    match verify_user(verified_user[0].clone(), client_password.to_string()) {
                                         true => {
                                             s.pop_layer();
     

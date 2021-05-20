@@ -112,7 +112,7 @@ pub mod user_signup {
 
                         let user = get_user(usrnm.to_string()).unwrap();
 
-                        match verify_user(user[0].clone(), old_pwd.to_string()).unwrap() {
+                        match verify_user(user[0].clone(), old_pwd.to_string()) {
                             true => {
                                 match User::change_password(new_pwd.to_string(), usrnm.to_string()) {
                                     Ok(_) => {

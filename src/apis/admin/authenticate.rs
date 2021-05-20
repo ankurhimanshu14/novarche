@@ -55,13 +55,7 @@ pub mod authenticate {
         Ok(v)
     }
 
-    pub fn verify_user(u: User, p: String) -> Result<bool> {
-
-        let res = match verify(p, &u.hash) {
-            Ok(_) => true,
-            Err(_) => false
-        };
-
-        Ok(res)
+    pub fn verify_user(u: User, p: String) -> bool {
+        verify(p, &u.hash).unwrap()
     }
 }
