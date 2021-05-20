@@ -12,6 +12,7 @@ pub mod user_signup {
         admin::{
             roles::roles::Roles,
             user_signup::user_signup::User,
+            authenticate::authenticate::{ get_user, verify_user }
         },
     };
 
@@ -77,6 +78,55 @@ pub mod user_signup {
                             },
                             Err(e) => s.add_layer(Dialog::text(format!("Sign Up Error encountered: {}", e)).dismiss_button("Ok"))
                         };
+                    }
+                )
+                .dismiss_button("Cancel")
+        )
+    }
+
+    pub fn change_password(s: &mut Cursive) {
+        s.add_layer(
+            Dialog::new()
+                .title("Change Password")
+                .padding_lrtb(10, 10, 10, 10)
+                .content(
+                    ListView::new()
+                    .child("Username", EditView::new().with_name("usrnm").fixed_width(30))
+                    .child("Old Password", EditView::new().secret().with_name("old_pwd").fixed_width(30))
+                    .child("New Password", EditView::new().secret().with_name("new_pwd").fixed_width(30))
+                )
+                .button(
+                    "Update",
+                    |s| {
+                        let usrnm = s.call_on_name("usrnm", |v: &mut EditView| {
+                            v.get_content()
+                        }).unwrap();
+
+                        let old_pwd = s.call_on_name("old_pwd", |v: &mut EditView| {
+                            v.get_content()
+                        }).unwrap();
+
+                        let new_pwd = s.call_on_name("new_pwd", |v: &mut EditView| {
+                            v.get_content()
+                        }).unwrap();
+
+                        let user = get_user(usrnm.to_string()).unwrap();
+
+                        match verify_user(user[0].clone(), old_pwd.to_string()).unwrap() {
+                            true => {
+                                match User::change_password(new_pwd.to_string(), usrnm.to_string()) {
+                                    Ok(_) => {
+                                        s.pop_layer();
+                                        s.add_layer(Dialog::text("Password changed successfully").dismiss_button("Ok"))
+                                    },
+                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                }
+                            },
+                            false => {
+                                s.pop_layer();
+                                s.add_layer(Dialog::text("Wrong Credentials").dismiss_button("Ok"))
+                            }
+                        }
                     }
                 )
                 .dismiss_button("Cancel")

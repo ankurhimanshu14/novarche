@@ -24,6 +24,7 @@ use frontend::{
         },
         user_signup::user_signup::{
             create_user,
+            change_password
         },
         authenticate::authenticate::sign_in
     },
@@ -80,6 +81,10 @@ fn main() {
                         .leaf(
                             "Sign Up",
                             |s| { create_user(s) }
+                        )
+                        .leaf(
+                            "Change Password",
+                            |s| { change_password(s) }
                         )
                 )
         )

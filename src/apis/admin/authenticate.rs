@@ -25,14 +25,14 @@ pub mod authenticate {
             WHERE table_schema = DATABASE()
             AND table_name = 'user';";
 
-        let exists = conn.query_map(
+        let table_exists = conn.query_map(
             if_exist,
             |count: usize| {
                 count
             }
         ).unwrap();
 
-        match &exists[0] {
+        match &table_exists[0] {
             0 => {
                 User::default().unwrap();
                 conn.query_map(

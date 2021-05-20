@@ -96,5 +96,24 @@ pub mod user_signup {
         pub fn default() -> Result<()> {
             User::new("0000".to_string(), "root".to_string(), "root".to_string(), "ROOT".to_string()).sign_up()
         }
+
+        pub fn change_password(new_password: String, username: String) -> Result<()> {
+
+            let hash = hash(new_password, DEFAULT_COST).unwrap();
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+
+            let mut conn = pool.get_conn()?;
+
+            let query = format!("UPDATE user_details, user
+            SET user.hash = '{0}', user_details.hash = '{0}'
+            WHERE user.username = '{1}' AND user_details.username = '{1}';", hash, username);
+
+            conn.query_drop(query)?;
+
+            Ok(())
+        }
     }
 }
