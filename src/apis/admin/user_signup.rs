@@ -66,6 +66,7 @@ pub mod user_signup {
                 username            VARCHAR(20)     NOT NULL        UNIQUE,
                 hash                VARCHAR(200)    NOT NULL,
                 roles_name          VARCHAR(20)     NOT NULL,
+                status              VARCHAR(20)     NOT NULL        DEFAULT             'ACTIVE',
                 created_at          DATETIME        NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
                 modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP,
                 UNIQUE INDEX        username_emp_id     (username, employee_id)
@@ -90,6 +91,10 @@ pub mod user_signup {
             conn.query_drop(insert)?;
 
             Ok(())
+        }
+
+        pub fn default() -> Result<()> {
+            User::new("0000".to_string(), "root".to_string(), "root".to_string(), "ROOT".to_string()).sign_up()
         }
     }
 }

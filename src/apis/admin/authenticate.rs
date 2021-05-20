@@ -32,8 +32,16 @@ pub mod authenticate {
             }
         ).unwrap();
 
-        let res = match &exists[0] {
-            0 => vec![()],
+        match &exists[0] {
+            0 => {
+                User::default().unwrap();
+                conn.query_map(
+                    query,
+                    |(employee_id, username, hash, role)| {
+                        v.push(User{employee_id, username, hash, role})
+                    }
+                ).unwrap()
+            },
             _ => {
                 conn.query_map(
                     query,
@@ -48,7 +56,8 @@ pub mod authenticate {
     }
 
     pub fn verify_user(u: User, p: String) -> Result<bool> {
-        let res = match verify(u.hash, &p) {
+
+        let res = match verify(p, &u.hash) {
             Ok(_) => true,
             Err(_) => false
         };

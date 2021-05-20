@@ -42,9 +42,10 @@ pub mod authenticate {
 
                             match verified_user.clone().is_empty() {
                                 true => {
-                                    s.add_layer(Dialog::info(format!("{} does not exist", login_id)));
+                                    s.add_layer(Dialog::info(format!("{} does not exist. Login as ROOT or use correct Credentials", login_id)));
                                 },
                                 false => {
+                                    
                                     let verify_password = verify_user(verified_user[0].clone(), client_password.to_string());
 
                                     match verify_password.unwrap() {
@@ -64,11 +65,11 @@ pub mod authenticate {
 
                             // match ver_user {
                             //     true => {
-                                    s.pop_layer();
+                                    // s.pop_layer();
     
-                                    s.add_global_callback(Key::Esc, |s| s.select_menubar());
+                                    // s.add_global_callback(Key::Esc, |s| s.select_menubar());
                     
-                                    s.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
+                                    // s.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
                                 // },
                                 // false => {
                                 //     s.add_layer(Dialog::info("Wrong username or password!"));
