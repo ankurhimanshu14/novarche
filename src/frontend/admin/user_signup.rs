@@ -73,7 +73,7 @@ pub mod user_signup {
                         );
 
                         match Employee::get_employee(&new_user.employee_id) {
-                            true => { s.add_layer(Dialog::info("Employee not registed in the system. Contact HR.")) },
+                            true => { s.add_layer(Dialog::info("Employee not registered in the system. Contact HR.")) },
                             false => {
                                 match User::sign_up(new_user) {
                                     Ok(_) => {
