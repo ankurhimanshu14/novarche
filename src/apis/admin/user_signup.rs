@@ -108,9 +108,9 @@ pub mod user_signup {
 
             let mut conn = pool.get_conn()?;
 
-            let query = format!("UPDATE user_details, user
-            SET user.hash = '{0}', user_details.hash = '{0}'
-            WHERE user.username = '{1}' AND user_details.username = '{1}';", hash, username);
+            let query = format!("UPDATE user
+            SET user.hash = '{0}'
+            WHERE user.username = '{1}';", hash, username);
 
             conn.query_drop(query)?;
 
