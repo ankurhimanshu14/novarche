@@ -186,8 +186,10 @@ pub mod employee {
             Ok(v)
         }
 
+        ///get_employee() method searches the local database and return the employee details as per 
+
         pub fn get_employee(emp_id: &str) -> bool {
-            let query = format!("SELECT employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving FROM employee WHERE employee_id = '{}';", emp_id);
+            let query = format!("SELECT employee_id, person_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving FROM employee WHERE employee_id = '{}';", emp_id);
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -227,6 +229,15 @@ pub mod employee {
 
         pub fn update_dept_code(emp_id: String, d_code: String) -> Result<()> {
             let query = format!("UPDATE employee SET dept_code= '{}' WHERE employee_id = '{}'; ", d_code, emp_id);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+
+            let mut conn = pool.get_conn().unwrap();
+
+            conn.query_drop(query)?;
+
             Ok(())
         }
 

@@ -255,4 +255,63 @@ pub mod employee {
             )
         }
     }
+
+    pub fn update_dept_code(s: &mut Cursive) {
+
+        let e = Employee::get_employee_id_list().unwrap();
+        let d = Department::get_dept_code_list().unwrap();
+
+        s.add_layer(
+            Dialog::new()
+            .title("Change Department")
+            .padding_lrtb(1, 1, 1, 0)
+            .content(
+                ListView::new()
+                .child(
+                    "Employee ID",
+                    SelectView::new()
+                    .popup()
+                    .h_align(HAlign::Center)
+                    .autojump()
+                    .with_all_str(e)
+                    .on_select(|_, item| {
+                        println!("{}", item);
+                    })
+                    .with_name("e_id")
+                    .fixed_width(30)
+                )
+                .child(
+                    "Department",
+                    SelectView::new()
+                    .popup()
+                    .h_align(HAlign::Center)
+                    .autojump()
+                    .with_all_str(d)
+                    .on_select(|_, item| {
+                        println!("{}", item);
+                    })
+                    .with_name("d_code")
+                    .fixed_width(30)
+                )
+            )
+            .button(
+                "Update",
+                |s| {
+                    let e_id = s.call_on_name("e_id", |v: &mut SelectView| {
+                        v.selection()
+                    }).unwrap();
+
+                    let d_code = s.call_on_name("d_code", |v: &mut SelectView| {
+                        v.selection()
+                    }).unwrap();
+
+                    match Employee::update_dept_code(e_id.unwrap().to_string(), d_code.unwrap().to_string()) {
+                        Ok(_) => s.add_layer(Dialog::info("Department Updated")),
+                        Err(e) => s.add_layer(Dialog::info(format!("Error: {:?}", e)))
+                    }
+                }
+            )
+            .dismiss_button("Cancel")
+        )
+    }
 }

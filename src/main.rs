@@ -29,7 +29,10 @@ use frontend::{
         authenticate::authenticate::sign_in
     },
     human_resources::{
-        employee::employee::create_employee
+        employee::employee::{
+            create_employee,
+            update_dept_code
+        }
     }
 };
 
@@ -97,6 +100,10 @@ fn main() {
                         .leaf(
                             "New Joining",
                             |s| { create_employee(s) }
+                        )
+                        .leaf(
+                            "Change Department",
+                            |s|{ update_dept_code(s) }
                         )
                 )
         );
