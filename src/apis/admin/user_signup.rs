@@ -4,6 +4,7 @@ pub mod user_signup {
     use mysql::prelude::*;
     use crate::apis::admin::roles::roles::Roles;
     use crate::apis::admin::authorities::authorities::Authorities;
+    use crate::apis::human_resources::employee::employee::Employee;
     use bcrypt::{ hash, verify, DEFAULT_COST };
 
     #[derive(Debug, Clone)]
@@ -30,7 +31,7 @@ pub mod user_signup {
         }
 
         pub fn sign_up(self) -> Result<()> {
-            let table = "CREATE TABLE IF NOT EXISTS user_details(
+            let table = "CREATE TEMPORARY TABLE IF NOT EXISTS user_details(
                 user_id             INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
                 username            VARCHAR(20)     NOT NULL        UNIQUE,
                 hash                VARCHAR(200)    NOT NULL,
@@ -80,10 +81,10 @@ pub mod user_signup {
                 r.roles_name
                 FROM employee e
                 INNER JOIN user_details u
-                ON u.username = '{}' AND u.hash = '{}'
+                ON e.employee_id = '{0}' AND u.username = '{1}' AND u.hash = '{2}'
                 INNER JOIN roles r
-                ON r.roles_name = '{}'
-                ORDER BY user_id;", self.username, self.hash, self.role
+                ON r.roles_name = '{3}'
+                ORDER BY user_id;", self.employee_id, self.username, self.hash, self.role
             );
 
             conn.query_drop(user_table)?;

@@ -14,6 +14,7 @@ pub mod user_signup {
             user_signup::user_signup::User,
             authenticate::authenticate::{ get_user, verify_user }
         },
+        human_resources::employee::employee::Employee,
     };
 
     pub fn create_user(s: &mut Cursive) {
@@ -71,13 +72,18 @@ pub mod user_signup {
                             role.unwrap().to_string()
                         );
 
-                        match User::sign_up(new_user) {
-                            Ok(_) => {
-                                s.pop_layer();
-                                s.add_layer(Dialog::text("User added successfully").dismiss_button("Ok"))
-                            },
-                            Err(e) => s.add_layer(Dialog::text(format!("Sign Up Error encountered: {}", e)).dismiss_button("Ok"))
-                        };
+                        match Employee::get_employee(&new_user.employee_id) {
+                            true => { s.add_layer(Dialog::info("Employee not registed in the system. Contact HR.")) },
+                            false => {
+                                match User::sign_up(new_user) {
+                                    Ok(_) => {
+                                        s.pop_layer();
+                                        s.add_layer(Dialog::info("User added successfully"))
+                                    },
+                                    Err(e) => s.add_layer(Dialog::info(format!("Sign Up Error encountered: {}", e)))
+                                };
+                            }
+                        }
                     }
                 )
                 .dismiss_button("Cancel")

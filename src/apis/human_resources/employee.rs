@@ -186,11 +186,50 @@ pub mod employee {
             Ok(v)
         }
 
+        pub fn get_employee(emp_id: &str) -> bool {
+            let query = format!("SELECT employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving FROM employee WHERE employee_id = '{}';", emp_id);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+
+            let mut conn = pool.get_conn().unwrap();
+
+            let mut v: Vec<Employee> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'employee';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |(employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving)| {
+                            let emp = Employee::new(employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving);
+                            v.push(emp);
+                        }
+                    ).unwrap()
+                }
+            };
+
+            v.is_empty()
+        }
+
         pub fn update_dept_code(emp_id: String, d_code: String) -> Result<()> {
             let query = format!("UPDATE employee SET dept_code= '{}' WHERE employee_id = '{}'; ", d_code, emp_id);
-
-            
             Ok(())
         }
+
+
     }
 }
