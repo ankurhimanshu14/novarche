@@ -37,22 +37,22 @@ pub mod grades {
             let insert = "INSERT INTO grades(grade_name) VALUES(:grade_name);";
 
             let result = conn.exec_drop(insert, params!{
-                "grade_name" => self.grade_name
+                "grade_name" => self.grade_name.clone()
             })?;
 
             Ok(())
         }
 
-        pub fn get_list() -> Result<Vec<String>> {
+        pub fn get_list() -> Vec<String> {
             let query = "SELECT grade_name FROM grades;";
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
-            let pool = Pool::new(url)?;
+            let pool = Pool::new(url).unwrap();
 
-            let mut conn = pool.get_conn()?;
+            let mut conn = pool.get_conn().unwrap();
 
-            let mut v: Vec<Grades> = Vec::new();
+            let mut v: Vec<String> = Vec::new();
 
             let if_exist = "SELECT COUNT(*)
                 FROM information_schema.tables 
@@ -71,15 +71,14 @@ pub mod grades {
                 _ => {
                     conn.query_map(
                         query,
-                        |(grade_name)| {
-                            let grd = Grades::new(grade_name);
-                            v.push(grd);
+                        |grade_name| {
+                            v.push(grade_name);
                         }
                     ).unwrap()
                 }
             };
             
-            Ok(v)
+            v
         }
     }
 }

@@ -188,7 +188,7 @@ pub mod employee {
 
         ///get_employee() method searches the local database and return the employee details as per 
 
-        pub fn get_employee(emp_id: &str) -> bool {
+        pub fn get_employee(emp_id: &str) -> Vec<Employee> {
             let query = format!("SELECT employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving FROM employee WHERE employee_id = '{}';", emp_id);
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
@@ -224,7 +224,7 @@ pub mod employee {
                 }
             };
 
-            v.is_empty()
+            v
         }
 
         pub fn update_dept_code(emp_id: String, d_code: String) -> Result<()> {
