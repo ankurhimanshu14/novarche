@@ -38,7 +38,8 @@ use frontend::{
         parts::parts::create_parts
     },
     raw_material::{
-        grades::grades::create_grades
+        grades::grades::create_grades,
+        steel::steel::create_steels
     }
 };
 
@@ -134,6 +135,14 @@ fn main() {
                 .leaf(
                     "New Grade",
                     |s|{ create_grades(s) }
+                )
+            )
+            .subtree(
+                "Steels",
+                menu::MenuTree::new()
+                .leaf(
+                    "New steel",
+                    |s|{ create_steels(s) }
                 )
             )
         );
