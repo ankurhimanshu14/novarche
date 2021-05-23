@@ -6,39 +6,41 @@ pub mod gate_entry {
 
     #[derive(Debug, Clone)]
     pub struct GateEntry {
-        pub grn: usize,
         pub challan_no: usize,
         pub challan_date: NaiveDate,
         pub item_code: String,
+        pub item_description: String,
         pub party_code: String,
         pub received_qty: f64,
         pub uom: String,
         pub unit_cost: Option<f64>,
-        pub total_cost: Option<f64>
+        pub total_cost: f64
     }
 
     impl GateEntry {
         pub fn new(
-            grn: usize,
             challan_no: usize,
             challan_date: NaiveDate,
             item_code: String,
+            item_description: String,
             party_code: String,
             received_qty: f64,
             uom: String,
-            unit_cost: Option<f64>,
-            total_cost: Option<f64>
+            unit_cost: Option<f64>
         ) -> Self {
             GateEntry {
-                grn,
                 challan_no,
                 challan_date,
                 item_code,
+                item_description,
                 party_code,
                 received_qty,
                 uom,
                 unit_cost,
-                total_cost
+                total_cost: match unit_cost {
+                    None => 0.0,
+                    Some(_) => unit_cost.unwrap() * received_qty
+                }
             }
         }
 
@@ -54,17 +56,55 @@ pub mod gate_entry {
                 challan_no      BIGINT          NOT NULL,
                 challan_date    DATETIME        NOT NULL,
                 item_code       VARCHAR(20)     NOT NULL,
+                item_description TEXT,
                 party_code      VARCHAR(10)     NOT NULL,
                 received_qty    FLOAT(20, 3)    NOT NULL,
                 uom             VARCHAR(5)      NOT NULL,
                 unit_cost       FLOAT(20, 3),
                 total_cost      FLOAT(20, 3)    DEFAULT         (received_qty * unit_cost),
+                created_at          DATETIME        NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
+                modified_at         DATETIME                            ON UPDATE           CURRENT_TIMESTAMP,
+                UNIQUE INDEX    ch_itmcd                        (challan_no, item_code),
                 CONSTRAINT      sr_fk_grn_itm   FOREIGN KEY(item_code)      REFERENCES        steels(item_code)         ON UPDATE CASCADE ON DELETE CASCADE
             )ENGINE = InnoDB;";
 
             conn.query_drop(table)?;
 
-            let insert = "INSERT INTO "
+            let insert = "INSERT INTO gate_entry(
+                challan_no,
+                challan_date,
+                item_code,
+                item_description,
+                party_code,
+                received_qty,
+                uom,
+                unit_cost
+            ) VALUES (
+                :challan_no,
+                :challan_date,
+                :item_code,
+                :item_description,
+                :party_code,
+                :received_qty,
+                :uom,
+                :unit_cost
+            )";
+
+            conn.exec_drop(
+                insert,
+                params! {
+                    "challan_no" => self.challan_no.clone(),
+                    "challan_date" => self.challan_date.clone(),
+                    "item_code" => self.item_code.clone(),
+                    "item_description" => self.item_description.clone(),
+                    "party_code" => self.party_code.clone(),
+                    "received_qty" => self.received_qty.clone(),
+                    "uom" => self.uom.clone(),
+                    "unit_cost" => self.unit_cost.clone()
+                }
+            )?;
+
+            Ok(())
         }
     }
 }

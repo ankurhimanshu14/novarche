@@ -40,6 +40,9 @@ use frontend::{
     raw_material::{
         grades::grades::create_grades,
         steel::steel::create_steels
+    },
+    rm_store::{
+        gate_entry::gate_entry::create_grn
     }
 };
 
@@ -143,6 +146,18 @@ fn main() {
                 .leaf(
                     "New steel",
                     |s|{ create_steels(s) }
+                )
+            )
+        )
+        .add_subtree(
+            "RM Store",
+            menu::MenuTree::new()
+            .subtree(
+                "Gate Entry",
+                menu::MenuTree::new()
+                .leaf(
+                    "New GRN",
+                    |s|{ create_grn(s) }
                 )
             )
         );
