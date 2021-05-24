@@ -3,13 +3,9 @@ mod frontend;
 
 use cursive::{
     Cursive,
-    traits::*,
     CursiveExt,
-    event::Key,
     menu,
-    view::{ Nameable, Resizable },
-    align::{ HAlign, VAlign },
-    views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView },
+    views::{ Menubar },
 };
 
 use frontend::{
@@ -42,7 +38,8 @@ use frontend::{
         steel::steel::create_steels
     },
     rm_store::{
-        gate_entry::gate_entry::create_grn
+        gate_entry::gate_entry::create_grn,
+        party::party::create_party
     }
 };
 
@@ -149,9 +146,18 @@ fn main() {
                 )
             )
         )
+        
         .add_subtree(
             "RM Store",
             menu::MenuTree::new()
+            .subtree(
+                "Party Details",
+                menu::MenuTree::new()
+                .leaf(
+                    "New Party",
+                    |s|{ create_party(s) }
+                )
+            )
             .subtree(
                 "Gate Entry",
                 menu::MenuTree::new()

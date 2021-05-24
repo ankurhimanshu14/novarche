@@ -13,9 +13,14 @@ pub mod gate_entry {
         views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, TextArea },
     };
 
-    use crate::apis::rm_store::gate_entry::gate_entry::GateEntry;
+    use crate::apis::rm_store:: {
+        gate_entry::gate_entry::GateEntry,
+        party::party::Party
+    };
 
     pub fn create_grn(s: &mut Cursive) {
+
+        let p = Party::get().unwrap();
 
         s.add_layer(
             Dialog::new()
@@ -23,14 +28,28 @@ pub mod gate_entry {
             .padding_lrtb(1, 1, 1, 0)
             .content(
                 ListView::new()
-                .child("Challan No", EditView::new().with_name("challan_no").fixed_width(30))
-                .child("Challan Date", EditView::new().with_name("challan_date").fixed_width(30))
-                .child("Item Code", EditView::new().with_name("item_code").fixed_width(30))
+                .child("Challan No", EditView::new().with_name("challan_no").fixed_width(30).min_height(2))
+                .child("Challan Date", EditView::new().with_name("challan_date").fixed_width(30).min_height(2))
+                .child("Item Code", EditView::new().with_name("item_code").fixed_width(30).min_height(2))
                 .child("Item Description", TextArea::new().content("Write description here...").with_name("item_description").fixed_width(30).min_height(5))
-                .child("Party Code", EditView::new().with_name("party_code").fixed_width(30))
-                .child("Received Quantity", EditView::new().with_name("received_qty").fixed_width(30))
-                .child("U. O. M.", EditView::new().with_name("uom").fixed_width(30))
-                .child("Unit Cost", EditView::new().with_name("unit_cost").fixed_width(30))
+                .child(
+                    "Party Name",
+                    SelectView::new()
+                    .popup()
+                    .autojump()
+                    .with_all_str(p)
+                    .on_select(|s, item| {
+                        println!("{}", &item);
+                    }
+                    )
+                    .with_name("party_name")
+                    .fixed_width(30)
+                    .min_height(2)
+                )
+                .child("Heat No", EditView::new().with_name("heat_no").fixed_width(30).min_height(2))
+                .child("Received Quantity", EditView::new().with_name("received_qty").fixed_width(30).min_height(2))
+                .child("U. O. M.", EditView::new().with_name("uom").fixed_width(30).min_height(2))
+                .child("Unit Cost", EditView::new().with_name("unit_cost").fixed_width(30).min_height(2))
             )
             .button(
                 "Add",
@@ -53,7 +72,13 @@ pub mod gate_entry {
                         v.get_content().to_string()
                     }).unwrap();
 
-                    let party_code = s.call_on_name("party_code", |v: &mut EditView| {
+                    let party_name = s.call_on_name("party_name", |v: &mut SelectView| {
+                        v.selection()
+                    }).unwrap();
+
+                    let party_code = Party::get_party_code(&party_name.unwrap().to_string());
+
+                    let heat_no = s.call_on_name("heat_no", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
 
@@ -74,7 +99,8 @@ pub mod gate_entry {
                         challan_date,
                         item_code.to_string(),
                         item_description.to_string(),
-                        party_code.to_string(),
+                        party_code[0].clone(),
+                        heat_no.to_string(),
                         received_qty.parse::<f64>().unwrap(),
                         uom.to_string(),
                         Some(unit_cost.parse::<f64>().unwrap())

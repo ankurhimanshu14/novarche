@@ -11,6 +11,7 @@ pub mod gate_entry {
         pub item_code: String,
         pub item_description: String,
         pub party_code: String,
+        pub heat_no: String,
         pub received_qty: f64,
         pub uom: String,
         pub unit_cost: Option<f64>,
@@ -24,6 +25,7 @@ pub mod gate_entry {
             item_code: String,
             item_description: String,
             party_code: String,
+            heat_no: String,
             received_qty: f64,
             uom: String,
             unit_cost: Option<f64>
@@ -34,6 +36,7 @@ pub mod gate_entry {
                 item_code,
                 item_description,
                 party_code,
+                heat_no,
                 received_qty,
                 uom,
                 unit_cost,
@@ -58,13 +61,15 @@ pub mod gate_entry {
                 item_code       VARCHAR(20)     NOT NULL,
                 item_description TEXT,
                 party_code      VARCHAR(10)     NOT NULL,
+                heat_no         VARCHAR(20)     NOT NULL,
                 received_qty    FLOAT(20, 3)    NOT NULL,
                 uom             VARCHAR(5)      NOT NULL,
                 unit_cost       FLOAT(20, 3),
                 total_cost      FLOAT(20, 3)    DEFAULT         (received_qty * unit_cost),
-                created_at          DATETIME        NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
-                modified_at         DATETIME                            ON UPDATE           CURRENT_TIMESTAMP,
-                UNIQUE INDEX    ch_itmcd                        (challan_no, item_code),
+                created_at          DATETIME    NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
+                modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP,
+                UNIQUE INDEX    ch_heatno_itmcd                 (challan_no, heat_no, item_code),
+                CONSTRAINT      sr_fk_grn_prty  FOREIGN KEY(party_code)     REFERENCES        party(party_code)         ON UPDATE CASCADE ON DELETE CASCADE,
                 CONSTRAINT      sr_fk_grn_itm   FOREIGN KEY(item_code)      REFERENCES        steels(item_code)         ON UPDATE CASCADE ON DELETE CASCADE
             )ENGINE = InnoDB;";
 
@@ -76,6 +81,7 @@ pub mod gate_entry {
                 item_code,
                 item_description,
                 party_code,
+                heat_no,
                 received_qty,
                 uom,
                 unit_cost
@@ -85,6 +91,7 @@ pub mod gate_entry {
                 :item_code,
                 :item_description,
                 :party_code,
+                :heat_no,
                 :received_qty,
                 :uom,
                 :unit_cost
@@ -98,6 +105,7 @@ pub mod gate_entry {
                     "item_code" => self.item_code.clone(),
                     "item_description" => self.item_description.clone(),
                     "party_code" => self.party_code.clone(),
+                    "heat_no" => self.heat_no.clone(),
                     "received_qty" => self.received_qty.clone(),
                     "uom" => self.uom.clone(),
                     "unit_cost" => self.unit_cost.clone()

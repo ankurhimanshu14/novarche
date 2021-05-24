@@ -17,11 +17,11 @@ pub mod authenticate {
         s.add_layer(
             Dialog::new()
             .title("Sign In")
-            .padding_lrtb(5, 5, 5, 5)
+            .padding_lrtb(1, 1, 1, 1)
             .content(
                 ListView::new()
-                .child("Username", EditView::new().with_name("login_id").fixed_width(30))
-                .child("Password", EditView::new().secret().with_name("client_password").fixed_width(30))
+                .child("Username", EditView::new().with_name("login_id").fixed_width(30).min_height(2))
+                .child("Password", EditView::new().secret().with_name("client_password").fixed_width(30).min_height(2))
             )
             .button(
                 "Sign In",
@@ -42,7 +42,7 @@ pub mod authenticate {
 
                             match verified_user.clone().is_empty() {
                                 true => {
-                                    s.add_layer(Dialog::info(format!("{} does not exist. Login as ROOT or use correct Credentials", login_id)));
+                                    s.add_layer(Dialog::info(format!("{} does not exist. Use correct Credentials", login_id)));
                                 },
                                 false => {
 
