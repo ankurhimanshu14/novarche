@@ -38,7 +38,7 @@ use frontend::{
         steel::steel::create_steels
     },
     rm_store::{
-        gate_entry::gate_entry::create_grn,
+        gate_entry::gate_entry::{ create_grn, assign_parts },
         party::party::create_party
     }
 };
@@ -164,6 +164,10 @@ fn main() {
                 .leaf(
                     "New GRN",
                     |s|{ create_grn(s) }
+                )
+                .leaf(
+                    "Assign Approved Parts",
+                    |s| { assign_parts(s) }
                 )
             )
         );

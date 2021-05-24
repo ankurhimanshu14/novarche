@@ -116,4 +116,71 @@ pub mod gate_entry {
             .dismiss_button("Cancel")
         )
     }
+
+    pub fn assign_parts(s: &mut Cursive) {
+
+        let h = GateEntry::get_heat_no_list().unwrap();
+
+        s.add_layer(
+            Dialog::new()
+            .title("Assign approved parts")
+            .padding_lrtb(1, 1, 1, 0)
+            .content(
+                ListView::new()
+                .child(
+                    "Heat No",
+                    SelectView::new()
+                    .popup()
+                    .autojump()
+                    .with_all_str(h)
+                    .on_select(|s, item| {
+                        println!("{:?}", &item);
+                    })
+                    .with_name("heat_no")
+                    .fixed_width(30)
+                    .min_height(2))
+                .with(|list| {
+                    for i in 1..20 {
+                        list
+                        .add_child(&format!("Part {}", &i),
+                        EditView::new()
+                        .with_name(&format!("part_no_{}", &i))
+                        .fixed_width(30)
+                        .min_height(2)
+                        )
+                    }
+                })
+                .scrollable()
+            )
+            .button(
+                "Add",
+                |s| {
+                    let heat_no = s.call_on_name("heat_no", |v: &mut SelectView| {
+                        v.selection()
+                    }).unwrap();
+
+                    let mut v_part: Vec<usize> = Vec::new();
+
+                    for i in 1..20 {
+                        let part_no = s.call_on_name(&format!("part_no_{}", i), |v: &mut EditView| {
+                            v.get_content()
+                        }).unwrap();
+                        match part_no.to_string().len() {
+                            0 => {},
+                            _ => v_part.push(part_no.to_string().parse::<usize>().unwrap())
+                        }
+                    }
+
+                    match GateEntry::assign_approvals(heat_no.unwrap().to_string(), v_part) {
+                        Ok(_) =>{
+                            s.pop_layer();
+                            s.add_layer(Dialog::text("Gate Entry added successfully").dismiss_button("Ok"))
+                        },
+                        Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                    }
+                }
+            )
+            .dismiss_button("Cancel")
+        )
+    }
 }

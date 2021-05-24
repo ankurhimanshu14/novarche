@@ -114,5 +114,83 @@ pub mod gate_entry {
 
             Ok(())
         }
+
+        pub fn get_heat_no_list() -> Result<Vec<String>> {
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
+    
+            let mut conn = pool.get_conn()?;
+            
+            let query = "SELECT heat_no FROM gate_entry;";
+    
+            let mut v: Vec<String> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'gate_entry';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |heat_no: String| {
+                            v.push(heat_no.to_string())
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            Ok(v)
+        }
+
+        pub fn assign_approvals(h: String, v: Vec<usize>) -> Result<()> {
+
+            let url: &str = "mysql://root:@localhost:3306/mws_database";
+
+            let pool: Pool = Pool::new(url)?;
+
+            let mut conn = pool.get_conn()?;
+
+            let table = "CREATE TABLE IF NOT EXISTS approved_components(
+                approval_id         INT         NOT NULL                    PRIMARY KEY             AUTO_INCREMENT,
+                heat_no             VARCHAR(20) NOT NULL,
+                part_no             INT         NOT NULL,
+                created_at          DATETIME    NOT NULL                    DEFAULT             CURRENT_TIMESTAMP,
+                modified_at         DATETIME                                ON UPDATE           CURRENT_TIMESTAMP,
+                UNIQUE INDEX        heat_part                                                 (heat_no, part_no)
+            )ENGINE = InnoDB;";
+
+            let insert = "INSERT INTO approved_components(
+                heat_no,
+                part_no
+            ) VALUES (
+                :heat_no,
+                :part_no
+            );";
+
+            conn.query_drop(table)?;
+
+            for p in v {
+                conn.exec_drop(
+                    insert,
+                    params! {
+                        "heat_no" => h.to_string(),
+                        "part_no" => p
+                    }
+                )?;
+            }
+
+            Ok(())
+        }
     }
 }
