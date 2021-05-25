@@ -31,7 +31,10 @@ use frontend::{
         }
     },
     engineering::{
-        parts::parts::create_parts
+        parts::parts:: {
+            create_parts,
+            get_part_list
+        }
     },
     raw_material::{
         grades::grades::create_grades,
@@ -123,6 +126,10 @@ fn main() {
                 .leaf(
                     "New Part",
                     |s|{ create_parts(s) }
+                )
+                .leaf(
+                    "Part List",
+                    |s|{ get_part_list(s) }
                 )
             )
         )

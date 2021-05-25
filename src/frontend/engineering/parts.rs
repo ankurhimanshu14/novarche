@@ -2,10 +2,14 @@ pub mod parts {
 
     use cursive::{
         Cursive,
+        traits::*,
+        CursiveExt,
         event::Key,
-        align::{ VAlign, HAlign },
+        menu,
         view::{ Nameable, Resizable },
-        views::{ Dialog, EditView, ListView, SelectView },
+        align::{ HAlign, VAlign },
+        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, TextArea, LinearLayout },
+        direction::Orientation::{ Horizontal, Vertical }
     };
 
     use crate::apis::{
@@ -100,5 +104,81 @@ pub mod parts {
                     )
                     .dismiss_button("Cancel")
             )
+    }
+
+    pub fn get_part_list(s: &mut Cursive) {
+
+        let part_list = Part::get_part_list();
+
+        match part_list.is_empty() {
+            true => s.add_layer(Dialog::new().padding_lrtb(10, 10, 0, 0).content(TextView::new(format!("No Part Created!"))).dismiss_button("Ok")),
+            false => {
+                s.add_layer(
+                    Dialog::new()
+                    .title("Part List")
+                    .padding_lrtb(1, 1, 1, 0)
+                    .content(
+                        ListView::new()
+                        .with(
+                            |list| {
+                                list
+                                .add_child(
+                                    "",
+                                    LinearLayout::new(Horizontal)
+                                    .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Part No")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Part Name")).center().fixed_width(30))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Grade")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Cut Weight(Kgs)")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Forging Weight(Kgs)")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Delivery Condition")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Drawing Revision No")).center().fixed_width(25))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Drawing Revision Date")).center().fixed_width(25))
+                                );
+        
+                                let mut count: usize = 0;
+                                for part in part_list {
+                                    count = count + 1;
+                                    list
+                                    .add_child(
+                                        "",
+                                        LinearLayout::new(Horizontal)
+                                        .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.part_no)).fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.part_name)).fixed_width(30))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.grade)).fixed_width(15))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.cut_wt)).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.forging_wt)).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.del_cond)).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.drawing_rev_no)).center().fixed_width(25))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.drawing_rev_date)).center().fixed_width(25))
+                                    )
+                                }
+                            }
+                        )
+                        .min_height(10)
+                        .scrollable()
+        
+                    )
+                    .dismiss_button("Ok")
+                )
+            }
+        }
     }
 }

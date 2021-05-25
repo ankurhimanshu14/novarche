@@ -101,5 +101,60 @@ pub mod part {
 
             Ok(())
         }
+
+        pub fn get_part_list() -> Vec<Part> {
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+            
+            let query = "SELECT part_no,
+            part_name,
+            forging_wt,
+            grade,
+            cut_wt,
+            del_cond,
+            drawing_rev_no,
+            drawing_rev_date FROM part;";
+    
+            let mut v: Vec<Part> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'part';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |(part_no, part_name, forging_wt, grade, cut_wt, del_cond, drawing_rev_no, drawing_rev_date)| {
+                            let part = Part {
+                                part_no,
+                                part_name,
+                                forging_wt,
+                                grade,
+                                cut_wt,
+                                del_cond,
+                                drawing_rev_no,
+                                drawing_rev_date
+                            };
+                            v.push(part)
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            v
+        }
     }
 }
