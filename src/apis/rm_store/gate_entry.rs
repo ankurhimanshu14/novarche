@@ -235,5 +235,45 @@ pub mod gate_entry {
 
             Ok(())
         }
+
+        pub fn get_approved_list(h: String) -> Vec<usize> {
+            let query = format!("SELECT part_no FROM approved_components WHERE heat_no = '{}';", h);
+    
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+    
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+    
+            let mut v: Vec<usize> = Vec::new();
+    
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'approved_components';";
+    
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+    
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |part_no: usize| {
+    
+                            v.push(part_no);
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            v
+        }
     }
+
 }

@@ -205,27 +205,26 @@ pub mod gate_entry {
                                     "",
                                     LinearLayout::new(Horizontal)
                                     .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Challan No")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
-                                    .child(TextView::new(format!("Challan Date")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
-                                    .child(TextView::new(format!("Item Code")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
-                                    .child(TextView::new(format!("Item Description")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Challan Date")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Item Code")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Item Description")).center().fixed_width(30))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Party Code")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Heat No.")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
-                                    .child(TextView::new(format!("Received Quantity")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Received Quantity")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("UOM")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Unit Cost")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Total Cost")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
                                 );
         
                                 let mut count: usize = 0;
@@ -236,25 +235,25 @@ pub mod gate_entry {
                                         "",
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
-                                        .child(TextView::new(format!("{0}", gr.challan_no)).center().fixed_width(20))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
-                                        .child(TextView::new(format!("{0}", gr.challan_date)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
-                                        .child(TextView::new(format!("{0}", gr.item_code)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
-                                        .child(TextView::new(format!("{0}", gr.item_description)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(format!("{0}", gr.challan_no)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(format!("{0}", gr.challan_date)).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(format!("{0}", gr.item_code)).fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(format!("{0}", gr.item_description)).fixed_width(30))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(format!("{0}", gr.party_code)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(format!("{0}", gr.heat_no)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
-                                        .child(TextView::new(format!("{0}", gr.received_qty)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(format!("{0}", gr.received_qty)).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(format!("{0}", gr.uom)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
-                                        .child(TextView::new(format!("{:?}", gr.unit_cost)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(format!("{:?}", gr.unit_cost.unwrap())).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(format!("{:?}", gr.total_cost)).center().fixed_width(10))
                                     )
                                 }
@@ -268,5 +267,71 @@ pub mod gate_entry {
                 )
             }
         }
+    }
+
+    pub fn get_approved_list(s: &mut Cursive) {
+        s. add_layer(
+            Dialog::new()
+            .title("Search by Heat No")
+            .padding_lrtb(1, 1, 1, 1)
+            .content(
+                ListView::new()
+                .child("Enter heat no", EditView::new().with_name("ht_no").fixed_width(30))
+            )
+            .button(
+                "Search",
+                |s| {
+                    let ht_no = s.call_on_name("ht_no", |v: &mut EditView| {
+                        v.get_content()
+                    }).unwrap();
+
+                    let app_list = GateEntry::get_approved_list(ht_no.to_string());
+
+                    match app_list.is_empty() {
+                        true => s.add_layer(Dialog::new().padding_lrtb(10, 10, 0, 0).content(TextView::new(format!("Heat no has not yet been assigned parts!"))).dismiss_button("Ok")),
+                        false => {
+                            s.add_layer(
+                                Dialog::new()
+                                .title("Approved Component List")
+                                .padding_lrtb(1, 1, 1, 0)
+                                .content(
+                                    ListView::new()
+                                    .with(
+                                        |list| {
+                                            list
+                                            .add_child(
+                                                "",
+                                                LinearLayout::new(Horizontal)
+                                                .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
+                                                .child(TextView::new(format!("|")).center().fixed_width(5))
+                                                .child(TextView::new(format!("Part No")).center().fixed_width(20))
+                                            );
+                    
+                                            let mut count: usize = 0;
+                                            for a in app_list {
+                                                count = count + 1;
+                                                list
+                                                .add_child(
+                                                    "",
+                                                    LinearLayout::new(Horizontal)
+                                                    .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
+                                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                                    .child(TextView::new(format!("{0}", a)).center().fixed_width(20))
+                                                )
+                                            }
+                                        }
+                                    )
+                                    .min_height(10)
+                                    .scrollable()
+                    
+                                )
+                                .dismiss_button("Ok")
+                            )
+                        }
+                    }
+                }
+            )
+            .dismiss_button("Cancel")
+        )
     }
 }
