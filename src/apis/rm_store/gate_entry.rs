@@ -115,6 +115,49 @@ pub mod gate_entry {
             Ok(())
         }
 
+        pub fn get_gate_entry_list() -> Vec<GateEntry> {
+            let query = "SELECT challan_no, challan_date, item_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost FROM gate_entry;";
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+
+            let mut conn = pool.get_conn().unwrap();
+
+            let mut v: Vec<GateEntry> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'gate_entry';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |(challan_no, challan_date, item_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost)| {
+
+                            let gr = GateEntry {
+                                challan_no, challan_date, item_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost
+                            };
+
+                            v.push(gr);
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            v
+        }
+
         pub fn get_heat_no_list() -> Result<Vec<String>> {
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 

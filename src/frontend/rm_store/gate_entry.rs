@@ -10,7 +10,8 @@ pub mod gate_entry {
         menu,
         view::{ Nameable, Resizable },
         align::{ HAlign, VAlign },
-        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, TextArea },
+        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, TextArea, LinearLayout },
+        direction::Orientation::{ Horizontal, Vertical }
     };
 
     use crate::apis::rm_store:: {
@@ -182,5 +183,90 @@ pub mod gate_entry {
             )
             .dismiss_button("Cancel")
         )
+    }
+
+    pub fn get_gate_entry_list(s: &mut Cursive) {
+
+        let gr_list = GateEntry::get_gate_entry_list();
+
+        match gr_list.is_empty() {
+            true => s.add_layer(Dialog::new().padding_lrtb(10, 10, 0, 0).content(TextView::new(format!("No GRN Created!"))).dismiss_button("Ok")),
+            false => {
+                s.add_layer(
+                    Dialog::new()
+                    .title("GRN List")
+                    .padding_lrtb(1, 1, 1, 0)
+                    .content(
+                        ListView::new()
+                        .with(
+                            |list| {
+                                list
+                                .add_child(
+                                    "",
+                                    LinearLayout::new(Horizontal)
+                                    .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("Challan No")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("Challan Date")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("Item Code")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("Item Description")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("Party Code")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("Heat No.")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("Received Quantity")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("UOM")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("Unit Cost")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("Total Cost")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                );
+        
+                                let mut count: usize = 0;
+                                for gr in gr_list {
+                                    count = count + 1;
+                                    list
+                                    .add_child(
+                                        "",
+                                        LinearLayout::new(Horizontal)
+                                        .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{0}", gr.challan_no)).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{0}", gr.challan_date)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{0}", gr.item_code)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{0}", gr.item_description)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{0}", gr.party_code)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{0}", gr.heat_no)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{0}", gr.received_qty)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{0}", gr.uom)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{:?}", gr.unit_cost)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("{:?}", gr.total_cost)).center().fixed_width(10))
+                                    )
+                                }
+                            }
+                        )
+                        .min_height(10)
+                        .scrollable()
+        
+                    )
+                    .dismiss_button("Ok")
+                )
+            }
+        }
     }
 }

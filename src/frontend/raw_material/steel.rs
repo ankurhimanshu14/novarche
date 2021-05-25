@@ -110,17 +110,16 @@ pub mod steel {
                         .add_child(
                             "",
                             LinearLayout::new(Horizontal)
-                            .child(TextView::new(format!("Sr. No.")).v_align(VAlign::Center).fixed_width(10))
-                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
-                            .child(TextView::new(format!("Item Code")).v_align(VAlign::Center).fixed_width(20))
-                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
-                            .child(TextView::new(format!("Grade Name")).v_align(VAlign::Center).fixed_width(10))
-                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
-                            .child(TextView::new(format!("Section Type")).v_align(VAlign::Center).fixed_width(10))
-                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
-                            .child(TextView::new(format!("Section Size(mm)")).v_align(VAlign::Center).fixed_width(10))
-                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
-                            .child(TextView::new(format!("Select")).v_align(VAlign::Center).fixed_width(10))
+                            .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
+                            .child(TextView::new(format!("|")).center().fixed_width(5))
+                            .child(TextView::new(format!("Item Code")).center().fixed_width(20))
+                            .child(TextView::new(format!("|")).center().fixed_width(5))
+                            .child(TextView::new(format!("Grade Name")).center().fixed_width(10))
+                            .child(TextView::new(format!("|")).center().fixed_width(5))
+                            .child(TextView::new(format!("Section Type")).center().fixed_width(10))
+                            .child(TextView::new(format!("|")).center().fixed_width(5))
+                            .child(TextView::new(format!("Section Size(mm)")).center().fixed_width(10))
+                            .child(TextView::new(format!("|")).center().fixed_width(5))
                         );
 
                         let mut count: usize = 0;
@@ -130,16 +129,15 @@ pub mod steel {
                             .add_child(
                                 "",
                                 LinearLayout::new(Horizontal)
-                                .child(TextView::new(format!("{0}", count)).v_align(VAlign::Center).fixed_width(10))
-                                .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
-                                .child(TextView::new(format!("{0}", steel.item_code)).v_align(VAlign::Center).fixed_width(20))
-                                .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
-                                .child(TextView::new(format!("{0}", steel.grade)).v_align(VAlign::Center).fixed_width(10))
-                                .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
-                                .child(TextView::new(format!("{0}", steel.section)).v_align(VAlign::Center).fixed_width(10))
-                                .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
-                                .child(TextView::new(format!("{0}", steel.size)).v_align(VAlign::Center).fixed_width(10))
-                                .child(Checkbox::new().checked().with_name("select"))
+                                .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
+                                .child(TextView::new(format!("|")).center().fixed_width(5))
+                                .child(TextView::new(format!("{0}", steel.item_code)).center().fixed_width(20))
+                                .child(TextView::new(format!("|")).center().fixed_width(5))
+                                .child(TextView::new(format!("{0}", steel.grade)).center().fixed_width(10))
+                                .child(TextView::new(format!("|")).center().fixed_width(5))
+                                .child(TextView::new(format!("{0}", steel.section)).center().fixed_width(10))
+                                .child(TextView::new(format!("|")).center().fixed_width(5))
+                                .child(TextView::new(format!("{0}", steel.size)).center().fixed_width(10))
                             )
                         }
                     }
