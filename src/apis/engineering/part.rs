@@ -6,6 +6,7 @@ pub mod part {
 
     #[derive(Debug)]
     pub struct Part {
+        pub part_code: String,
         pub part_no: usize,
         pub part_name: String,
         pub grade: String,
@@ -18,6 +19,7 @@ pub mod part {
 
     impl Part {
         pub fn new(
+            part_code: String,
             part_no: usize,
             part_name: String,
             grade: String,
@@ -28,6 +30,7 @@ pub mod part {
             drawing_rev_date: String
         ) -> Self {
             Part {
+                part_code,
                 part_no,
                 part_name,
                 grade,
@@ -52,6 +55,7 @@ pub mod part {
 
             let table = "CREATE TABLE IF NOT EXISTS part (
                 part_id             INT             NOT NULL                PRIMARY KEY             AUTO_INCREMENT,
+                part_code           VARCHAR(20)     NOT NULL                UNIQUE,
                 part_no             INT             NOT NULL                UNIQUE,
                 part_name           TEXT            NOT NULL,
                 grade               VARCHAR(10)     NOT NULL,
@@ -67,6 +71,7 @@ pub mod part {
             conn.query_drop(table)?;
 
             let insert = "INSERT INTO part(
+                part_code,
                 part_no,
                 part_name,
                 forging_wt,
@@ -76,6 +81,7 @@ pub mod part {
                 drawing_rev_no,
                 drawing_rev_date
             ) VALUES (
+                :part_code,
                 :part_no,
                 :part_name,
                 :forging_wt,
@@ -87,6 +93,7 @@ pub mod part {
             );";
 
             let result = conn.exec_drop(insert, params!{
+                "part_code" => self.part_code.clone()
                 "part_no" => self.part_no.clone(),
                 "part_name" => self.part_name.clone(),
                 "forging_wt" => self.forging_wt.clone(),
@@ -109,7 +116,9 @@ pub mod part {
     
             let mut conn = pool.get_conn().unwrap();
             
-            let query = "SELECT part_no,
+            let query = "SELECT 
+            part_code,
+            part_no,
             part_name,
             forging_wt,
             grade,
@@ -137,8 +146,9 @@ pub mod part {
                 _ => {
                     conn.query_map(
                         query,
-                        |(part_no, part_name, forging_wt, grade, cut_wt, del_cond, drawing_rev_no, drawing_rev_date)| {
+                        |(part_code, part_no, part_name, forging_wt, grade, cut_wt, del_cond, drawing_rev_no, drawing_rev_date)| {
                             let part = Part {
+                                part_code,
                                 part_no,
                                 part_name,
                                 forging_wt,

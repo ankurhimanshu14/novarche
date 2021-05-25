@@ -5,7 +5,7 @@ pub mod steel {
 
     #[derive(Debug, Clone)]
     pub struct Steel {
-        pub item_code: String,
+        pub steel_code: String,
         pub grade: String,
         pub size: usize,
         pub section: String
@@ -13,13 +13,13 @@ pub mod steel {
 
     impl Steel {
         pub fn new(
-            item_code: String,
+            steel_code: String,
             grade: String,
             size: usize,
             section: String
         ) -> Self {
             Steel {
-                item_code,
+                steel_code,
                 grade,
                 size,
                 section
@@ -36,7 +36,7 @@ pub mod steel {
 
             let table = "CREATE TABLE IF NOT EXISTS steels (
                 steel_id            INT             NOT NULL            PRIMARY KEY             AUTO_INCREMENT,
-                item_code           VARCHAR(20)     NOT NULL            UNIQUE,
+                steel_code           VARCHAR(20)     NOT NULL            UNIQUE,
                 grade               VARCHAR(20)     NOT NULL,
                 size                INT             NOT NULL,
                 section             VARCHAR(10)     NOT NULL,
@@ -46,13 +46,13 @@ pub mod steel {
                 UNIQUE INDEX        grd_size_sec    (grade, size, section)
             )ENGINE = InnoDB";
 
-            let insert = "INSERT INTO steels( item_code, grade, size, section )
-            VALUES ( :item_code, :grade, :size, :section );";
+            let insert = "INSERT INTO steels( steel_code, grade, size, section )
+            VALUES ( :steel_code, :grade, :size, :section );";
 
             conn.query_drop(table)?;
 
             conn.exec_drop(insert, params!{
-                "item_code" => self.item_code.clone(),
+                "steel_code" => self.steel_code.clone(),
                 "grade" => self.grade.clone(),
                 "size" => self.size,
                 "section" => self.section.clone()
@@ -62,7 +62,7 @@ pub mod steel {
         }
 
         pub fn get_steel_list() -> Vec<Steel> {
-            let query = "SELECT item_code, grade, size, section FROM steels;";
+            let query = "SELECT steel_code, grade, size, section FROM steels;";
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -89,10 +89,10 @@ pub mod steel {
                 _ => {
                     conn.query_map(
                         query,
-                        |(item_code, grade, size, section)| {
+                        |(steel_code, grade, size, section)| {
 
                             let steel = Steel {
-                                item_code, grade, size, section
+                                steel_code, grade, size, section
                             };
 
                             v.push(steel);
