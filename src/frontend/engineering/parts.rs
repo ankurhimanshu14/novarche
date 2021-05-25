@@ -27,6 +27,7 @@ pub mod parts {
                     .padding_lrtb(1,1,1,0)
                     .content(
                         ListView::new()
+                            .child("Item Code", EditView::new().with_name("part_code").fixed_width(30))
                             .child("Part No", EditView::new().with_name("part_no").fixed_width(30))
                             .child("Part Name", EditView::new().with_name("part_name").fixed_width(30))
                             .child(
@@ -62,6 +63,10 @@ pub mod parts {
                     .button(
                         "Add",
                         |s| {
+                            let part_code = s.call_on_name("part_code", |v: &mut EditView| {
+                                v.get_content()
+                            }).unwrap();
+
                             let part_no = s.call_on_name("part_no", |v: &mut EditView| {
                                 v.get_content()
                             }).unwrap();
@@ -88,6 +93,7 @@ pub mod parts {
                             }).unwrap();
 
                             match Part::new(
+                                part_code.to_string(),
                                 part_no.parse::<usize>().unwrap(),
                                 part_name.to_string(),
                                 grade.unwrap().to_string(),
@@ -127,6 +133,8 @@ pub mod parts {
                                     LinearLayout::new(Horizontal)
                                     .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Item Code")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Part No")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Part Name")).center().fixed_width(30))
@@ -152,6 +160,8 @@ pub mod parts {
                                         "",
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.part_code)).fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", part.part_no)).fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))

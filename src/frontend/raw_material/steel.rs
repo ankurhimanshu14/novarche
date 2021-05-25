@@ -134,7 +134,7 @@ pub mod steel {
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(5))
-                                        .child(TextView::new(format!("{0}", steel.item_code)).fixed_width(20))
+                                        .child(TextView::new(format!("{0}", steel.steel_code)).fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(5))
                                         .child(TextView::new(format!("{0}", steel.grade)).fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(5))

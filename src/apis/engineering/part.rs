@@ -93,7 +93,7 @@ pub mod part {
             );";
 
             let result = conn.exec_drop(insert, params!{
-                "part_code" => self.part_code.clone()
+                "part_code" => self.part_code.clone(),
                 "part_no" => self.part_no.clone(),
                 "part_name" => self.part_name.clone(),
                 "forging_wt" => self.forging_wt.clone(),
