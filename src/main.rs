@@ -35,7 +35,7 @@ use frontend::{
     },
     raw_material::{
         grades::grades::create_grades,
-        steel::steel::create_steels
+        steel::steel::{ create_steels, get_steel_list }
     },
     rm_store::{
         gate_entry::gate_entry::{ create_grn, assign_parts },
@@ -143,6 +143,10 @@ fn main() {
                 .leaf(
                     "New steel",
                     |s|{ create_steels(s) }
+                )
+                .leaf(
+                    "Steel List",
+                    |s| { get_steel_list(s) }
                 )
             )
         )

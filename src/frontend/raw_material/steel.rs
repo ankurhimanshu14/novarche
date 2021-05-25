@@ -8,7 +8,8 @@ pub mod steel {
         menu,
         view::{ Nameable, Resizable },
         align::{ HAlign, VAlign },
-        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView },
+        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, LinearLayout, Checkbox },
+        direction::Orientation::{ Horizontal, Vertical }
     };
 
     use crate::apis::raw_material::{
@@ -91,6 +92,63 @@ pub mod steel {
                 }
             )
             .dismiss_button("Cancel")
+        )
+    }
+
+    pub fn get_steel_list(s: &mut Cursive) {
+
+        let steel_list = Steel::get_steel_list();
+        s.add_layer(
+            Dialog::new()
+            .title("Steel List")
+            .padding_lrtb(1, 1, 1, 0)
+            .content(
+                ListView::new()
+                .with(
+                    |list| {
+                        list
+                        .add_child(
+                            "",
+                            LinearLayout::new(Horizontal)
+                            .child(TextView::new(format!("Sr. No.")).v_align(VAlign::Center).fixed_width(10))
+                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
+                            .child(TextView::new(format!("Item Code")).v_align(VAlign::Center).fixed_width(20))
+                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
+                            .child(TextView::new(format!("Grade Name")).v_align(VAlign::Center).fixed_width(10))
+                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
+                            .child(TextView::new(format!("Section Type")).v_align(VAlign::Center).fixed_width(10))
+                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
+                            .child(TextView::new(format!("Section Size(mm)")).v_align(VAlign::Center).fixed_width(10))
+                            .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
+                            .child(TextView::new(format!("Select")).v_align(VAlign::Center).fixed_width(10))
+                        );
+
+                        let mut count: usize = 0;
+                        for steel in steel_list {
+                            count = count + 1;
+                            list
+                            .add_child(
+                                "",
+                                LinearLayout::new(Horizontal)
+                                .child(TextView::new(format!("{0}", count)).v_align(VAlign::Center).fixed_width(10))
+                                .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
+                                .child(TextView::new(format!("{0}", steel.item_code)).v_align(VAlign::Center).fixed_width(20))
+                                .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
+                                .child(TextView::new(format!("{0}", steel.grade)).v_align(VAlign::Center).fixed_width(10))
+                                .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
+                                .child(TextView::new(format!("{0}", steel.section)).v_align(VAlign::Center).fixed_width(10))
+                                .child(TextView::new(format!("|")).v_align(VAlign::Center).fixed_width(5))
+                                .child(TextView::new(format!("{0}", steel.size)).v_align(VAlign::Center).fixed_width(10))
+                                .child(Checkbox::new().checked().with_name("select"))
+                            )
+                        }
+                    }
+                )
+                .min_height(10)
+                .scrollable()
+
+            )
+            .dismiss_button("Ok")
         )
     }
 }

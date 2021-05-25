@@ -60,5 +60,48 @@ pub mod steel {
 
             Ok(())
         }
+
+        pub fn get_steel_list() -> Vec<Steel> {
+            let query = "SELECT item_code, grade, size, section FROM steels;";
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+
+            let mut conn = pool.get_conn().unwrap();
+
+            let mut v: Vec<Steel> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'steels';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |(item_code, grade, size, section)| {
+
+                            let steel = Steel {
+                                item_code, grade, size, section
+                            };
+
+                            v.push(steel);
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            v
+        }
     }
 }
