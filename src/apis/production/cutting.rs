@@ -120,13 +120,13 @@ pub mod cutting {
                 planned_qty            INT             NOT NULL,
                 actual_qty             INT,
                 ok_qty                 INT,
-                rej_qty                INT              DEFAULT          (actual_qty - ok_qty),
-                ok_wt                  FLOAT(10,3)      DEFAULT          (ok_qty * cut_wt),
-                rej_wt                 FLOAT(10,3)      DEFAULT          (rej_qty * cut_wt),
+                rej_qty                INT                             DEFAULT          (actual_qty - ok_qty),
+                ok_wt                  FLOAT(10,3)                     DEFAULT          (ok_qty * cut_wt),
+                rej_wt                 FLOAT(10,3)                     DEFAULT          (rej_qty * cut_wt),
                 end_pc_wt              FLOAT(10,3),
-                total_wt               FLOAT(10,3)      DEFAULT          (actual_qty * cut_wt),
-                created_at             DATETIME        NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
-                modified_at            DATETIME                        ON UPDATE           CURRENT_TIMESTAMP
+                total_wt               FLOAT(10,3)                     DEFAULT          (actual_qty * cut_wt),
+                created_at             DATETIME         NOT NULL       DEFAULT            CURRENT_TIMESTAMP,
+                modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP
             )ENGINE = InnoDB;";
 
             let insert = "INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty, actual_qty, ok_qty, end_pc_wt)
@@ -157,6 +157,35 @@ pub mod cutting {
 
 
             Ok(conn.last_insert_id())
+        }
+
+        pub fn update_cutting_status(d: NaiveDate, p: usize, aq: usize, oq: usize, ep: f64) -> Result<()> {
+            let stmt = format!("UPDATE cutting
+            SET actual_qty = '{2}', ok_qty = '{3}', end_pc_wt = '{4}'
+            WHERE part_no = '{1}' AND planned_date = '{0}';", d, p, aq, oq, ep);
+
+            let trigger = "DELIMITER $$
+            CREATE TRIGGER after_cutting_update
+            AFTER UPDATE
+            ON cutting FOR EACH ROW
+            BEGIN
+                    INSERT INTO cutting(rej_qty, ok_wt, rej_wt, total_wt)
+                    VALUES ((actual_qty - ok_qty), (cut_wt * ok_qty), (cut_wt * rej_qty), (cut_wt * actual_qty));
+            END$$
+            
+            DELIMITER ;";
+    
+            let url: &str = "mysql://root:@localhost:3306/mws_database";
+    
+            let pool: Pool = Pool::new(url)?;
+    
+            let mut conn = pool.get_conn()?;
+    
+            conn.query_drop(stmt)?;
+
+            conn.query_drop(trigger)?;
+    
+            Ok(())
         }
     }
 }

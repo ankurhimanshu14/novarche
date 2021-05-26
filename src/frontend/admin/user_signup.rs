@@ -76,9 +76,9 @@ pub mod user_signup {
                             true => { s.add_layer(Dialog::info("Employee not registered in the system. Contact HR.")) },
                             false => {
                                 match User::sign_up(new_user) {
-                                    Ok(_) => {
+                                    Ok(insert_id) => {
                                         s.pop_layer();
-                                        s.add_layer(Dialog::info("User added successfully"))
+                                        s.add_layer(Dialog::info(format!("User added successfully. Insert ID: {}", insert_id)))
                                     },
                                     Err(e) => s.add_layer(Dialog::info(format!("Sign Up Error encountered: {}", e)))
                                 };

@@ -45,7 +45,7 @@ use frontend::{
         party::party::create_party
     },
     production::{
-        cutting::cutting::plan,
+        cutting::cutting::{ plan, update_cutting_status },
     }
 };
 
@@ -201,6 +201,10 @@ fn main() {
                 .leaf(
                     "New Plan",
                     |s|{ plan(s) }
+                )
+                .leaf(
+                    "Update Cutting Status",
+                    |s|{ update_cutting_status(s) }
                 )
             )
         );

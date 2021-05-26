@@ -30,7 +30,7 @@ pub mod user_signup {
             }
         }
 
-        pub fn sign_up(self) -> Result<()> {
+        pub fn sign_up(self) -> Result<u64> {
             let table = "CREATE TEMPORARY TABLE IF NOT EXISTS user_details(
                 user_id             INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
                 username            VARCHAR(20)     NOT NULL        UNIQUE,
@@ -91,10 +91,10 @@ pub mod user_signup {
 
             conn.query_drop(insert)?;
 
-            Ok(())
+            Ok(conn.last_insert_id())
         }
 
-        pub fn default() -> Result<()> {
+        pub fn default() -> Result<u64> {
             User::new("0000".to_string(), "root".to_string(), "root".to_string(), "ROOT".to_string()).sign_up()
         }
 

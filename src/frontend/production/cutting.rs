@@ -125,13 +125,29 @@ pub mod cutting {
                         v.get_content()
                     }).unwrap();
 
+                    let actual_qty = match &actual_qty.len() {
+                        0 => None,
+                        _ => Some(actual_qty.to_string().parse::<usize>().unwrap()),
+
+                    };
+
                     let ok_qty = s.call_on_name("ok_qty", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
 
+                    let ok_qty = match &ok_qty.len() {
+                        0 => 0,
+                        _ => ok_qty.to_string().parse::<usize>().unwrap(),
+                    };
+
                     let end_pc_wt = s.call_on_name("end_pc_wt", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
+
+                    let end_pc_wt = match &end_pc_wt.len() {
+                        0 => None,
+                        _ => Some(end_pc_wt.to_string().parse::<f64>().unwrap()),
+                    };
 
                     match part_code.is_empty() || steel_code.is_empty() {
                         true => s.add_layer(Dialog::info("Part or Steel list is not available")),
@@ -143,9 +159,9 @@ pub mod cutting {
                                 steel_code[0].clone(),
                                 heat_no.unwrap().to_string(),
                                 planned_qty.to_string().parse::<usize>().unwrap(),
-                                Some(actual_qty.to_string().parse::<usize>().unwrap()),
-                                ok_qty.to_string().parse::<usize>().unwrap(),
-                                Some(end_pc_wt.to_string().parse::<f64>().unwrap()),
+                                actual_qty,
+                                ok_qty,
+                                end_pc_wt,
                             );
 
                             match Cutting::post(&new_plan) {
@@ -157,6 +173,60 @@ pub mod cutting {
                             };
                         }
                     }
+                }
+            )
+            .dismiss_button("Cancel")
+        )
+    }
+
+    pub fn update_cutting_status(s: &mut Cursive) {
+
+        s.add_layer(
+            Dialog::new()
+            .title("Update Cutting Status")
+            .padding_lrtb(1, 1, 1, 1)
+            .content(
+                ListView::new()
+                .child("Enter Date of planning", EditView::new().with_name("planned_date").fixed_width(30))
+                .child("Part No", EditView::new().with_name("part_no").fixed_width(30))
+                .child("Actual Qty", EditView::new().with_name("actual_qty").fixed_width(30))
+                .child("Ok Qty", EditView::new().with_name("ok_qty").fixed_width(30))
+                .child("End pcs wt.", EditView::new().with_name("end_pc_wt").fixed_width(30))
+            )
+            .button(
+                "Update",
+                |s| {
+                    let planned_date = s.call_on_name("planned_date", |v: &mut EditView|{
+                        v.get_content()
+                    }).unwrap();
+
+                    let planned_date = NaiveDate::parse_from_str(&planned_date.to_string(), "%d-%m-%Y").unwrap();
+
+                    let part_no = s.call_on_name("part_no", |v: &mut EditView|{
+                        v.get_content()
+                    }).unwrap();
+
+                    let part_no = part_no.parse::<usize>().unwrap();
+
+                    let actual_qty = s.call_on_name("actual_qty", |v: &mut EditView|{
+                        v.get_content()
+                    }).unwrap();
+
+                    let actual_qty = actual_qty.parse::<usize>().unwrap();
+
+                    let ok_qty = s.call_on_name("ok_qty", |v: &mut EditView|{
+                        v.get_content()
+                    }).unwrap();
+
+                    let ok_qty = ok_qty.parse::<usize>().unwrap();
+
+                    let end_pc_wt = s.call_on_name("end_pc_wt", |v: &mut EditView|{
+                        v.get_content()
+                    }).unwrap();
+
+                    let end_pc_wt = end_pc_wt.parse::<f64>().unwrap();
+
+                    Cutting::update_cutting_status(planned_date, part_no, actual_qty, ok_qty, end_pc_wt).unwrap();
                 }
             )
             .dismiss_button("Cancel")
