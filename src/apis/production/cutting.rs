@@ -42,7 +42,7 @@ pub mod cutting {
             }
         }
 
-        pub fn post(&self) -> Result<()> {
+        pub fn post(&self) -> Result<u64> {
 
             let temp_table = "CREATE TEMPORARY TABLE cutting_temp(
                 temp_id             INT             NOT NULL            PRIMARY KEY             AUTO_INCREMENT,
@@ -154,7 +154,9 @@ pub mod cutting {
             conn.query_drop(cutting_table)?;
             conn.query_drop(insert)?;
 
-            Ok(())
+
+
+            Ok(conn.last_insert_id())
         }
     }
 }

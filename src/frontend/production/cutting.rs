@@ -129,8 +129,6 @@ pub mod cutting {
                         v.get_content()
                     }).unwrap();
 
-                    println!("{}", &ok_qty);
-
                     let end_pc_wt = s.call_on_name("end_pc_wt", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
@@ -148,9 +146,9 @@ pub mod cutting {
                     );
                         
                     match Cutting::post(&new_plan) {
-                        Ok(_) =>{
+                        Ok(m) =>{
                             s.pop_layer();
-                            s.add_layer(Dialog::text("Plan added successfully").dismiss_button("Ok"))
+                            s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
                         },
                         Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                     };
