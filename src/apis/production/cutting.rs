@@ -84,8 +84,8 @@ pub mod cutting {
                 :heat_no,
                 :planned_qty,
                 :actual_qty,
-                ok_qty,
-                end_pc_wt
+                :ok_qty,
+                :end_pc_wt
             );";
 
             conn.exec_drop(

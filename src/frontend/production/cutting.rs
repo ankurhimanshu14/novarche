@@ -133,25 +133,30 @@ pub mod cutting {
                         v.get_content()
                     }).unwrap();
 
-                    let new_plan = Cutting::new(
-                        planned_date,
-                        machine.unwrap().to_string(),
-                        part_code[0].clone(),
-                        steel_code[0].clone(),
-                        heat_no.unwrap().to_string(),
-                        planned_qty.to_string().parse::<usize>().unwrap(),
-                        Some(actual_qty.to_string().parse::<usize>().unwrap()),
-                        ok_qty.to_string().parse::<usize>().unwrap(),
-                        Some(end_pc_wt.to_string().parse::<f64>().unwrap()),
-                    );
-                        
-                    match Cutting::post(&new_plan) {
-                        Ok(m) =>{
-                            s.pop_layer();
-                            s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
-                        },
-                        Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
-                    };
+                    match part_code.is_empty() || steel_code.is_empty() {
+                        true => s.add_layer(Dialog::info("Part or Steel list is not available")),
+                        false => {
+                            let new_plan = Cutting::new(
+                                planned_date,
+                                machine.unwrap().to_string(),
+                                part_code[0].clone(),
+                                steel_code[0].clone(),
+                                heat_no.unwrap().to_string(),
+                                planned_qty.to_string().parse::<usize>().unwrap(),
+                                Some(actual_qty.to_string().parse::<usize>().unwrap()),
+                                ok_qty.to_string().parse::<usize>().unwrap(),
+                                Some(end_pc_wt.to_string().parse::<f64>().unwrap()),
+                            );
+
+                            match Cutting::post(&new_plan) {
+                                Ok(m) =>{
+                                    s.pop_layer();
+                                    s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
+                                },
+                                Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                            };
+                        }
+                    }
                 }
             )
             .dismiss_button("Cancel")
