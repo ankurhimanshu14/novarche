@@ -77,6 +77,8 @@ pub mod cutting {
                     )
                     .child("Planned Qty", EditView::new().with_name("planned_qty").fixed_width(30))
                     .child("Actual Qty", EditView::new().with_name("actual_qty").fixed_width(30))
+                    .child("OK Qty", EditView::new().with_name("ok_qty").fixed_width(30))
+                    .child("End pcs Wt", EditView::new().with_name("end_pc_wt").fixed_width(30))
             )
             .button(
                 "Add",
@@ -123,6 +125,16 @@ pub mod cutting {
                         v.get_content()
                     }).unwrap();
 
+                    let ok_qty = s.call_on_name("ok_qty", |v: &mut EditView| {
+                        v.get_content()
+                    }).unwrap();
+
+                    println!("{}", &ok_qty);
+
+                    let end_pc_wt = s.call_on_name("end_pc_wt", |v: &mut EditView| {
+                        v.get_content()
+                    }).unwrap();
+
                     let new_plan = Cutting::new(
                         planned_date,
                         machine.unwrap().to_string(),
@@ -130,7 +142,9 @@ pub mod cutting {
                         steel_code[0].clone(),
                         heat_no.unwrap().to_string(),
                         planned_qty.to_string().parse::<usize>().unwrap(),
-                        Some(actual_qty.to_string().parse::<usize>().unwrap())
+                        Some(actual_qty.to_string().parse::<usize>().unwrap()),
+                        ok_qty.to_string().parse::<usize>().unwrap(),
+                        Some(end_pc_wt.to_string().parse::<f64>().unwrap()),
                     );
                         
                     match Cutting::post(&new_plan) {

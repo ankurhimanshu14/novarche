@@ -12,7 +12,9 @@ pub mod cutting {
         pub steel_code: String,
         pub heat_no: String,
         pub planned_qty: usize,
-        pub actual_qty: Option<usize>
+        pub actual_qty: Option<usize>,
+        pub ok_qty: usize,
+        pub end_pc_wt: Option<f64>
     }
 
     impl Cutting {
@@ -23,7 +25,9 @@ pub mod cutting {
             steel_code: String,
             heat_no: String,
             planned_qty: usize,
-            actual_qty: Option<usize>
+            actual_qty: Option<usize>,
+            ok_qty: usize,
+            end_pc_wt: Option<f64>
         ) -> Self {
             Cutting {
                 planned_date,
@@ -32,7 +36,9 @@ pub mod cutting {
                 steel_code,
                 heat_no,
                 planned_qty,
-                actual_qty
+                actual_qty,
+                ok_qty,
+                end_pc_wt
             }
         }
 
@@ -46,7 +52,10 @@ pub mod cutting {
                 steel_code          VARCHAR(20)     NOT NULL,
                 heat_no             VARCHAR(20)     NOT NULL,
                 planned_qty         INT             NOT NULL,
-                actual_qty          INT
+                actual_qty          INT,
+                ok_qty              INT,
+                rej_qty             INT             DEFAULT             (actual_qty - ok_qty),
+                end_pc_wt           FLOAT(10,3)
             )ENGINE = InnoDB;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
@@ -64,7 +73,9 @@ pub mod cutting {
                 steel_code,
                 heat_no,
                 planned_qty,
-                actual_qty
+                actual_qty,
+                ok_qty,
+                end_pc_wt
             ) VALUES (
                 :planned_date,
                 :machine,
@@ -72,7 +83,9 @@ pub mod cutting {
                 :steel_code,
                 :heat_no,
                 :planned_qty,
-                :actual_qty
+                :actual_qty,
+                ok_qty,
+                end_pc_wt
             );";
 
             conn.exec_drop(
@@ -87,7 +100,9 @@ pub mod cutting {
                     "actual_qty" => match self.actual_qty.clone() {
                         Some(v) => v,
                         None => 0
-                    }
+                    },
+                    "ok_qty" => self.ok_qty.clone(),
+                    "end_pc_wt" => self.end_pc_wt.clone()
                 }
             )?;
 
@@ -104,12 +119,17 @@ pub mod cutting {
                 cut_wt                 FLOAT(6,3)      NOT NULL,
                 planned_qty            INT             NOT NULL,
                 actual_qty             INT,
-                total_wt               FLOAT(10,3)      DEFAULT          (cut_wt*actual_qty),
+                ok_qty                 INT,
+                rej_qty                INT              DEFAULT          (actual_qty - ok_qty),
+                ok_wt                  FLOAT(10,3)      DEFAULT          (ok_qty * cut_wt),
+                rej_wt                 FLOAT(10,3)      DEFAULT          (rej_qty * cut_wt),
+                end_pc_wt              FLOAT(10,3),
+                total_wt               FLOAT(10,3)      DEFAULT          (actual_qty * cut_wt),
                 created_at             DATETIME        NOT NULL        DEFAULT             CURRENT_TIMESTAMP,
                 modified_at            DATETIME                        ON UPDATE           CURRENT_TIMESTAMP
             )ENGINE = InnoDB;";
 
-            let insert = "INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty, actual_qty)
+            let insert = "INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty, actual_qty, ok_qty, end_pc_wt)
             SELECT
             c.planned_date,
             c.machine,
@@ -120,7 +140,9 @@ pub mod cutting {
             s.section,
             p.cut_wt,
             c.planned_qty,
-            c.actual_qty
+            c.actual_qty,
+            c.ok_qty,
+            c.end_pc_wt
             FROM cutting_temp c
             INNER JOIN part p
             ON p.part_code = c.part_code
