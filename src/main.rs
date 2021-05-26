@@ -43,6 +43,9 @@ use frontend::{
     rm_store::{
         gate_entry::gate_entry::{ create_grn, assign_parts, get_gate_entry_list, get_approved_list },
         party::party::create_party
+    },
+    production::{
+        cutting::cutting::plan,
     }
 };
 
@@ -157,7 +160,6 @@ fn main() {
                 )
             )
         )
-        
         .add_subtree(
             "RM Store",
             menu::MenuTree::new()
@@ -187,6 +189,18 @@ fn main() {
                 .leaf(
                     "Approved Parts List",
                     |s| { get_approved_list(s) }
+                )
+            )
+        )
+        .add_subtree(
+            "Production",
+            menu::MenuTree::new()
+            .subtree(
+                "Cutting",
+                menu::MenuTree::new()
+                .leaf(
+                    "New Plan",
+                    |s|{ plan(s) }
                 )
             )
         );

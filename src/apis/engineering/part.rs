@@ -166,5 +166,43 @@ pub mod part {
             
             v
         }
+
+        pub fn find_part_code(p: usize) -> Vec<String> {
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+
+            let query = format!("SELECT part_code FROM part WHERE part_no = '{}';", p);
+
+            let mut v: Vec<String> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'part';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |part_code: String| {
+                            v.push(part_code.to_string())
+                        }
+                    ).unwrap()
+                }
+            };
+
+            v
+        }
     }
 }

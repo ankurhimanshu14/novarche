@@ -115,13 +115,13 @@ pub mod steel {
                                     "",
                                     LinearLayout::new(Horizontal)
                                     .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
-                                    .child(TextView::new(format!("Item Code")).center().fixed_width(20))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Item Code")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Grade Name")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Section Type")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(5))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Section Size(mm)")).center().fixed_width(10))
                                 );
         
@@ -133,13 +133,13 @@ pub mod steel {
                                         "",
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
-                                        .child(TextView::new(format!("{0}", steel.steel_code)).fixed_width(20))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(format!("{0}", steel.steel_code)).fixed_width(15))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(format!("{0}", steel.grade)).fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(format!("{0}", steel.section)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(5))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(format!("{0}", steel.size)).center().fixed_width(10))
                                     )
                                 }

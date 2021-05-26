@@ -103,5 +103,44 @@ pub mod steel {
             
             v
         }
+
+        pub fn find_steel_code(g: String, s: usize, t: String) -> Vec<String> {
+            let query = format!("SELECT steel_code FROM steels WHERE grade = '{0}' AND size = '{1}' AND section = '{2}';", g, s, t);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+
+            let mut conn = pool.get_conn().unwrap();
+
+            let mut v: Vec<String> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'steels';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |steel_code: String| {
+
+                            v.push(steel_code.to_string());
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            v
+        }
     }
 }

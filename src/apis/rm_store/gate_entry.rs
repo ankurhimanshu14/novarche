@@ -8,7 +8,7 @@ pub mod gate_entry {
     pub struct GateEntry {
         pub challan_no: usize,
         pub challan_date: NaiveDate,
-        pub item_code: String,
+        pub steel_code: String,
         pub item_description: String,
         pub party_code: String,
         pub heat_no: String,
@@ -22,7 +22,7 @@ pub mod gate_entry {
         pub fn new(
             challan_no: usize,
             challan_date: NaiveDate,
-            item_code: String,
+            steel_code: String,
             item_description: String,
             party_code: String,
             heat_no: String,
@@ -33,7 +33,7 @@ pub mod gate_entry {
             GateEntry {
                 challan_no,
                 challan_date,
-                item_code,
+                steel_code,
                 item_description,
                 party_code,
                 heat_no,
@@ -58,7 +58,7 @@ pub mod gate_entry {
                 grn             INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
                 challan_no      BIGINT          NOT NULL,
                 challan_date    DATETIME        NOT NULL,
-                item_code       VARCHAR(20)     NOT NULL,
+                steel_code       VARCHAR(20)     NOT NULL,
                 item_description TEXT,
                 party_code      VARCHAR(10)     NOT NULL,
                 heat_no         VARCHAR(20)     NOT NULL,
@@ -68,9 +68,9 @@ pub mod gate_entry {
                 total_cost      FLOAT(20, 3)    DEFAULT         (received_qty * unit_cost),
                 created_at          DATETIME    NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
                 modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP,
-                UNIQUE INDEX    ch_heatno_itmcd                 (challan_no, heat_no, item_code),
+                UNIQUE INDEX    ch_heatno_itmcd                 (challan_no, heat_no, steel_code),
                 CONSTRAINT      sr_fk_grn_prty  FOREIGN KEY(party_code)     REFERENCES        party(party_code)         ON UPDATE CASCADE ON DELETE CASCADE,
-                CONSTRAINT      sr_fk_grn_itm   FOREIGN KEY(item_code)      REFERENCES        steels(item_code)         ON UPDATE CASCADE ON DELETE CASCADE
+                CONSTRAINT      sr_fk_grn_itm   FOREIGN KEY(steel_code)      REFERENCES        steels(steel_code)         ON UPDATE CASCADE ON DELETE CASCADE
             )ENGINE = InnoDB;";
 
             conn.query_drop(table)?;
@@ -78,7 +78,7 @@ pub mod gate_entry {
             let insert = "INSERT INTO gate_entry(
                 challan_no,
                 challan_date,
-                item_code,
+                steel_code,
                 item_description,
                 party_code,
                 heat_no,
@@ -88,7 +88,7 @@ pub mod gate_entry {
             ) VALUES (
                 :challan_no,
                 :challan_date,
-                :item_code,
+                :steel_code,
                 :item_description,
                 :party_code,
                 :heat_no,
@@ -102,7 +102,7 @@ pub mod gate_entry {
                 params! {
                     "challan_no" => self.challan_no.clone(),
                     "challan_date" => self.challan_date.clone(),
-                    "item_code" => self.item_code.clone(),
+                    "steel_code" => self.steel_code.clone(),
                     "item_description" => self.item_description.clone(),
                     "party_code" => self.party_code.clone(),
                     "heat_no" => self.heat_no.clone(),
@@ -116,7 +116,7 @@ pub mod gate_entry {
         }
 
         pub fn get_gate_entry_list() -> Vec<GateEntry> {
-            let query = "SELECT challan_no, challan_date, item_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost FROM gate_entry;";
+            let query = "SELECT challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost FROM gate_entry;";
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -143,10 +143,10 @@ pub mod gate_entry {
                 _ => {
                     conn.query_map(
                         query,
-                        |(challan_no, challan_date, item_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost)| {
+                        |(challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost)| {
 
                             let gr = GateEntry {
-                                challan_no, challan_date, item_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost
+                                challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost
                             };
 
                             v.push(gr);
@@ -236,7 +236,7 @@ pub mod gate_entry {
             Ok(())
         }
 
-        pub fn get_approved_list(h: String) -> Vec<usize> {
+        pub fn get_approved_parts(h: String) -> Vec<usize> {
             let query = format!("SELECT part_no FROM approved_components WHERE heat_no = '{}';", h);
     
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
@@ -267,6 +267,45 @@ pub mod gate_entry {
                         |part_no: usize| {
     
                             v.push(part_no);
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            v
+        }
+
+        pub fn get_approved_heats(p: usize) -> Vec<String> {
+            let query = format!("SELECT heat_no FROM approved_components WHERE part_no = '{}';", p);
+    
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+    
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+    
+            let mut v: Vec<String> = Vec::new();
+    
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'approved_components';";
+    
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+    
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |heat_no: String| {
+    
+                            v.push(heat_no.to_string());
                         }
                     ).unwrap()
                 }

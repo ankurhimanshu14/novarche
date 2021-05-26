@@ -31,7 +31,7 @@ pub mod gate_entry {
                 ListView::new()
                 .child("Challan No", EditView::new().with_name("challan_no").fixed_width(30).min_height(2))
                 .child("Challan Date", EditView::new().with_name("challan_date").fixed_width(30).min_height(2))
-                .child("Item Code", EditView::new().with_name("item_code").fixed_width(30).min_height(2))
+                .child("Item Code", EditView::new().with_name("steel_code").fixed_width(30).min_height(2))
                 .child("Item Description", TextArea::new().content("Write description here...").with_name("item_description").fixed_width(30).min_height(5))
                 .child(
                     "Party Name",
@@ -65,7 +65,7 @@ pub mod gate_entry {
 
                     let challan_date = NaiveDate::parse_from_str(&challan_date, "%d-%m-%Y").unwrap();
 
-                    let item_code = s.call_on_name("item_code", |v: &mut EditView| {
+                    let steel_code = s.call_on_name("steel_code", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
 
@@ -98,7 +98,7 @@ pub mod gate_entry {
                     match GateEntry::new(
                         challan_no.parse::<usize>().unwrap(),
                         challan_date,
-                        item_code.to_string(),
+                        steel_code.to_string(),
                         item_description.to_string(),
                         party_code[0].clone(),
                         heat_no.to_string(),
@@ -240,7 +240,7 @@ pub mod gate_entry {
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.challan_date)).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{0}", gr.item_code)).fixed_width(20))
+                                        .child(TextView::new(format!("{0}", gr.steel_code)).fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.item_description)).fixed_width(30))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
@@ -285,7 +285,7 @@ pub mod gate_entry {
                         v.get_content()
                     }).unwrap();
 
-                    let app_list = GateEntry::get_approved_list(ht_no.to_string());
+                    let app_list = GateEntry::get_approved_parts(ht_no.to_string());
 
                     match app_list.is_empty() {
                         true => s.add_layer(Dialog::new().padding_lrtb(10, 10, 0, 0).content(TextView::new(format!("Heat no has not yet been assigned parts!"))).dismiss_button("Ok")),
