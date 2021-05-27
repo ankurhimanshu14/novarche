@@ -21,6 +21,8 @@ pub mod cutting {
         production::cutting::cutting::Cutting
     };
 
+    use crate::apis::utility_tools::parse::parse::parse_from_row;
+
     pub fn plan(s: &mut Cursive) {
 
         let h = GateEntry::get_heat_no_list().unwrap();
@@ -179,6 +181,98 @@ pub mod cutting {
         )
     }
 
+    // pub fn get_cutting_list(s: &mut Cursive) {
+
+    //     let cutting_list = Cutting::get_cutting_list();
+
+    //     match cutting_list.is_empty() {
+    //         true => s.add_layer(Dialog::new().padding_lrtb(10, 10, 0, 0).content(TextView::new(format!("No Cutting Available!"))).dismiss_button("Ok")),
+    //         false => {
+    //             s.add_layer(
+    //                 Dialog::new()
+    //                 .title("Cutting List")
+    //                 .padding_lrtb(1, 1, 1, 0)
+    //                 .content(
+    //                     ListView::new()
+    //                     .with(
+    //                         |list| {
+    //                             list
+    //                             .add_child(
+    //                                 "",
+    //                                 LinearLayout::new(Horizontal)
+    //                                 .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Planned Date")).center().fixed_width(10))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Machine")).center().fixed_width(10))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Part No")).center().fixed_width(10))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Heat No")).center().fixed_width(10))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Grade")).center().fixed_width(30))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Section Size")).center().fixed_width(15))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Section Type")).center().fixed_width(20))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Cut Weight (kgs)")).center().fixed_width(20))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Planned Quantity (Nos)")).center().fixed_width(20))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Actual Quantity (Nos)")).center().fixed_width(25))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Ok Quantity (Nos)")).center().fixed_width(25))
+    //                                 .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                 .child(TextView::new(format!("Total Weight (Kgs)")).center().fixed_width(25))
+    //                             );
+        
+    //                             let mut count: usize = 0;
+    //                             for cut in cutting_list {
+    //                                 count = count + 1;
+    //                                 list
+    //                                 .add_child(
+    //                                     "",
+    //                                     LinearLayout::new(Horizontal)
+    //                                     .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.0)).fixed_width(10))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.1)).fixed_width(10))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.2)).fixed_width(10))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.3)).fixed_width(30))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.4)).fixed_width(15))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.5)).center().fixed_width(20))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.6)).center().fixed_width(20))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.7)).center().fixed_width(20))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.8)).center().fixed_width(25))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.9)).center().fixed_width(25))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.10)).center().fixed_width(25))
+    //                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+    //                                     .child(TextView::new(format!("{:?}", cut.11)).center().fixed_width(25))
+    //                                 )
+    //                             }
+    //                         }
+    //                     )
+    //                     .min_height(10)
+    //                     .scrollable()
+        
+    //                 )
+    //                 .dismiss_button("Ok")
+    //             )
+    //         }
+    //     }
+    // }
+
     pub fn update_cutting_status(s: &mut Cursive) {
 
         s.add_layer(
@@ -226,7 +320,10 @@ pub mod cutting {
 
                     let end_pc_wt = end_pc_wt.parse::<f64>().unwrap();
 
-                    Cutting::update_cutting_status(planned_date, part_no, actual_qty, ok_qty, end_pc_wt).unwrap();
+                    match Cutting::update_cutting_status(planned_date, part_no, actual_qty, ok_qty, end_pc_wt) {
+                        Ok(_) => s.add_layer(Dialog::info("Cutting Status updated")),
+                        Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
+                    }
                 }
             )
             .dismiss_button("Cancel")

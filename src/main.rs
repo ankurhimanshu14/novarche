@@ -45,7 +45,7 @@ use frontend::{
         party::party::create_party
     },
     production::{
-        cutting::cutting::{ plan, update_cutting_status },
+        cutting::cutting::{ plan,  update_cutting_status },
     }
 };
 

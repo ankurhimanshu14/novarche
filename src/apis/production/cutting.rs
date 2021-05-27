@@ -4,6 +4,8 @@ pub mod cutting {
     use mysql::*;
     use mysql::prelude::*;
 
+    use crate::apis::utility_tools::parse::parse::parse_from_row;
+
     #[derive(Debug, Clone)]
     pub struct Cutting {
         pub planned_date: NaiveDate,
@@ -164,27 +166,42 @@ pub mod cutting {
             SET actual_qty = '{2}', ok_qty = '{3}', end_pc_wt = '{4}'
             WHERE part_no = '{1}' AND planned_date = '{0}';", d, p, aq, oq, ep);
 
-            let trigger = "DELIMITER $$
-            CREATE TRIGGER after_cutting_update
-            AFTER UPDATE
+            let trig = "CREATE TRIGGER before_cutting_update
+            BEFORE UPDATE
             ON cutting FOR EACH ROW
-            BEGIN
-                    INSERT INTO cutting(rej_qty, ok_wt, rej_wt, total_wt)
-                    VALUES ((actual_qty - ok_qty), (cut_wt * ok_qty), (cut_wt * rej_qty), (cut_wt * actual_qty));
-            END$$
-            
-            DELIMITER ;";
+                SET new.rej_qty = (new.actual_qty - new.ok_qty), new.ok_wt = (old.cut_wt * new.ok_qty), new.rej_wt = (old.cut_wt * new.rej_qty), new.total_wt = (old.cut_wt * new.actual_qty);";
     
             let url: &str = "mysql://root:@localhost:3306/mws_database";
     
             let pool: Pool = Pool::new(url)?;
     
             let mut conn = pool.get_conn()?;
-    
-            conn.query_drop(stmt)?;
 
-            conn.query_drop(trigger)?;
-    
+            let result = conn.query_map(
+                "SHOW TRIGGERS FROM mws_database;",
+                |t: Row| {
+                    parse_from_row(&t)
+                }
+            ).unwrap();
+
+            match result.len() {
+                0 => {
+                        conn.query_drop(&trig).unwrap();
+                        conn.query_drop(&stmt).unwrap();
+                    },
+                _ => {
+                    for v in result[0].clone() {
+                        if v == "before_cutting_update" {
+                            conn.query_drop(&stmt).unwrap();
+                            break;
+                        } else {
+                            conn.query_drop(&trig).unwrap();
+                            conn.query_drop(&stmt).unwrap()
+                        }
+                    }
+                }
+            }
+
             Ok(())
         }
     }
