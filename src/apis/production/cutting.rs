@@ -4,6 +4,8 @@ pub mod cutting {
     use mysql::*;
     use mysql::prelude::*;
 
+    use crate::apis::engineering::part::part::Part;
+    use crate::apis::raw_material::steel::steel::Steel;
     use crate::apis::utility_tools::parse::parse::parse_from_row;
 
     #[derive(Debug, Clone)]
@@ -156,8 +158,6 @@ pub mod cutting {
             conn.query_drop(cutting_table)?;
             conn.query_drop(insert)?;
 
-
-
             Ok(conn.last_insert_id())
         }
 
@@ -203,6 +203,33 @@ pub mod cutting {
             }
 
             Ok(())
+        }
+
+        pub fn get_cutting_list() -> Vec<Vec<String>> {
+            let query = "SELECT planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
+
+            let url: &str = "mysql://root:@localhost:3306/mws_database";
+    
+            let pool: Pool = Pool::new(url).unwrap();
+    
+            let conn = pool.get_conn().unwrap();
+
+            let mut outer_v: Vec<Vec<String>> = Vec::new();
+
+
+
+            let cut_rows: Vec<Row> = query.fetch(conn).unwrap();
+
+            for row in cut_rows {
+
+                let mut v: Vec<String> = Vec::new();
+                
+                for i in 0..7 {
+                    v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
+                }
+                outer_v.push(v.clone());
+            }
+            outer_v
         }
     }
 }

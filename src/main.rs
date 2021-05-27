@@ -8,6 +8,8 @@ use cursive::{
     views::{ Menubar },
 };
 
+use apis::production::cutting::cutting::Cutting;
+
 use frontend::{
     admin::{
         roles::roles::{
@@ -38,14 +40,25 @@ use frontend::{
     },
     raw_material::{
         grades::grades::create_grades,
-        steel::steel::{ create_steels, get_steel_list }
+        steel::steel::{
+            create_steels,
+            get_steel_list
+        }
     },
     rm_store::{
-        gate_entry::gate_entry::{ create_grn, assign_parts, get_gate_entry_list, get_approved_list },
+        gate_entry::gate_entry::{
+            create_grn,
+            assign_parts,
+            get_gate_entry_list,
+            get_approved_list
+        },
         party::party::create_party
     },
     production::{
-        cutting::cutting::{ plan,  update_cutting_status },
+        cutting::cutting::{
+            plan,
+            get_cutting_list
+        },
     }
 };
 
@@ -59,10 +72,7 @@ fn main() {
         .add_subtree(
             "File",
             menu::MenuTree::new()
-                .leaf(
-                    "Exit",
-                    |s| { s.quit() }
-                )
+                .leaf("Exit", |s| { s.quit() })
         )
         .add_subtree(
             "Administration",
@@ -70,38 +80,20 @@ fn main() {
                 .subtree(
                     "Roles",
                     menu::MenuTree::new()
-                        .leaf(
-                            "New",
-                            |s| { create_roles(s) }
-                        )
-                        .leaf(
-                            "Delete",
-                            |s| { delete_roles(s) }
-                        )
+                        .leaf("New", |s| { create_roles(s) })
+                        .leaf("Delete", |s| { delete_roles(s) })
                     )
                 .subtree(
                     "Authorities",
                     menu::MenuTree::new()
-                        .leaf(
-                            "New",
-                            |s| { create_authority(s) }
-                        )
-                        .leaf(
-                            "Assign Activities",
-                            |s| { assign_authority(s) }
-                        )
+                        .leaf("New", |s| { create_authority(s) })
+                        .leaf("Assign Activities", |s| { assign_authority(s) })
                 )
                 .subtree(
                     "User",
                     menu::MenuTree::new()
-                        .leaf(
-                            "Sign Up",
-                            |s| { create_user(s) }
-                        )
-                        .leaf(
-                            "Change Password",
-                            |s| { change_password(s) }
-                        )
+                        .leaf("Sign Up", |s| { create_user(s) } )
+                        .leaf("Change Password", |s| { change_password(s) })
                 )
         )
         .add_subtree(
@@ -110,14 +102,8 @@ fn main() {
                 .subtree(
                     "Employees",
                     menu::MenuTree::new()
-                        .leaf(
-                            "New Joining",
-                            |s| { create_employee(s) }
-                        )
-                        .leaf(
-                            "Change Department",
-                            |s|{ update_dept_code(s) }
-                        )
+                        .leaf("New Joining", |s| { create_employee(s) })
+                        .leaf("Change Department", |s|{ update_dept_code(s) })
                 )
         )
         .add_subtree(
@@ -126,14 +112,8 @@ fn main() {
             .subtree(
                 "Parts",
                 menu::MenuTree::new()
-                .leaf(
-                    "New Part",
-                    |s|{ create_parts(s) }
-                )
-                .leaf(
-                    "Part List",
-                    |s|{ get_part_list(s) }
-                )
+                .leaf("New Part", |s|{ create_parts(s) })
+                .leaf("Part List", |s|{ get_part_list(s) })
             )
         )
         .add_subtree(
@@ -142,22 +122,13 @@ fn main() {
             .subtree(
                 "Grades",
                 menu::MenuTree::new()
-                .leaf(
-                    "New Grade",
-                    |s|{ create_grades(s) }
-                )
+                .leaf("New Grade",|s|{ create_grades(s) })
             )
             .subtree(
                 "Steels",
                 menu::MenuTree::new()
-                .leaf(
-                    "New steel",
-                    |s|{ create_steels(s) }
-                )
-                .leaf(
-                    "Steel List",
-                    |s| { get_steel_list(s) }
-                )
+                .leaf("New steel",|s|{ create_steels(s) })
+                .leaf("Steel List", |s| { get_steel_list(s) })
             )
         )
         .add_subtree(
@@ -166,30 +137,15 @@ fn main() {
             .subtree(
                 "Party Details",
                 menu::MenuTree::new()
-                .leaf(
-                    "New Party",
-                    |s|{ create_party(s) }
-                )
+                .leaf("New Party", |s|{ create_party(s) })
             )
             .subtree(
                 "Gate Entry",
                 menu::MenuTree::new()
-                .leaf(
-                    "New GRN",
-                    |s|{ create_grn(s) }
-                )
-                .leaf(
-                    "GRN List",
-                    |s| { get_gate_entry_list(s) }
-                )
-                .leaf(
-                    "Assign Approved Parts",
-                    |s| { assign_parts(s) }
-                )
-                .leaf(
-                    "Approved Parts List",
-                    |s| { get_approved_list(s) }
-                )
+                .leaf("New GRN", |s|{ create_grn(s) })
+                .leaf("GRN List", |s| { get_gate_entry_list(s) })
+                .leaf("Assign Approved Parts", |s| { assign_parts(s) })
+                .leaf("Approved Parts List", |s| { get_approved_list(s) })
             )
         )
         .add_subtree(
@@ -198,14 +154,8 @@ fn main() {
             .subtree(
                 "Cutting",
                 menu::MenuTree::new()
-                .leaf(
-                    "New Plan",
-                    |s|{ plan(s) }
-                )
-                .leaf(
-                    "Update Cutting Status",
-                    |s|{ update_cutting_status(s) }
-                )
+                .leaf("New Plan", |s|{ plan(s) })
+                .leaf("Cutting List", |s|{ get_cutting_list(s) })
             )
         );
 
