@@ -104,7 +104,7 @@ pub mod gate_entry {
         }
 
         pub fn get_gate_entry_list() -> Vec<GateEntry> {
-            let query = "SELECT challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, avail_qty FROM gate_entry;";
+            let query = "SELECT challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, avail_qty FROM gate_entry ORDER BY challan_date DESC;";
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 

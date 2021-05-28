@@ -157,7 +157,7 @@ pub mod cutting {
             BEFORE UPDATE
             ON cutting FOR EACH ROW
                 SET new.rej_qty = (new.actual_qty - new.ok_qty), new.ok_wt = (old.cut_wt * new.ok_qty), new.rej_wt = (old.cut_wt * new.rej_qty), new.total_wt = (old.cut_wt * new.actual_qty);";
-    
+
             let url: &str = "mysql://root:@localhost:3306/mws_database";
     
             let pool: Pool = Pool::new(url)?;

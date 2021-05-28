@@ -207,6 +207,8 @@ pub mod gate_entry {
                                     .child(TextView::new(format!("Heat No.")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Received Quantity")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Available Quantity")).center().fixed_width(20))
                                 );
         
                                 let mut count: usize = 0;
@@ -231,6 +233,8 @@ pub mod gate_entry {
                                         .child(TextView::new(format!("{0}", gr.heat_no)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.received_qty)).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", gr.avail_qty)).center().fixed_width(20))
                                     )
                                 }
                             }

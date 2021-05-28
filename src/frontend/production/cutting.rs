@@ -136,6 +136,10 @@ pub mod cutting {
                                 );
     
                                 match Cutting::post(&new_plan) {
+                                    Ok(0) => {
+                                        s.pop_layer();
+                                        s.add_layer(Dialog::info("Inventory short"));
+                                    },
                                     Ok(m) =>{
                                         s.pop_layer();
                                         s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
