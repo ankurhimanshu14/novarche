@@ -163,8 +163,9 @@ pub mod cutting {
             AFTER UPDATE
             ON cutting FOR EACH ROW
             BEGIN
-                SET @total_wt := cutting.total_wt;
-                UPDATE gate_entry SET avail_qty = (avail_qty - @total_wt);
+                SET @total_wt := new.total_wt;
+                UPDATE gate_entry SET avail_qty = (avail_qty - @total_wt)
+                WHERE old.heat_no = heat_no;
             END $$
             
             DELIMITER ;";
