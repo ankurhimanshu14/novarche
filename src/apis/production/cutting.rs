@@ -153,10 +153,21 @@ pub mod cutting {
             SET actual_qty = '{0}', ok_qty = '{1}', end_pc_wt = '{2}'
             WHERE cutting_id = '{3}';", aq, oq, ep, id);
 
-            let trig = "CREATE TRIGGER before_cutting_update
+            let trig1 = "CREATE TRIGGER before_cutting_update
             BEFORE UPDATE
             ON cutting FOR EACH ROW
                 SET new.rej_qty = (new.actual_qty - new.ok_qty), new.ok_wt = (old.cut_wt * new.ok_qty), new.rej_wt = (old.cut_wt * new.rej_qty), new.total_wt = (old.cut_wt * new.actual_qty);";
+
+            let trig2 = "DELIMITER $$
+            CREATE TRIGGER after_cutting_update
+            AFTER UPDATE
+            ON cutting FOR EACH ROW
+            BEGIN
+                SET @total_wt := cutting.total_wt;
+                UPDATE gate_entry SET avail_qty = (avail_qty - @total_wt);
+            END $$
+            
+            DELIMITER ;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
     
@@ -171,23 +182,36 @@ pub mod cutting {
                 }
             ).unwrap();
 
-            match result.len() {
-                0 => {
-                        conn.query_drop(&trig).unwrap();
-                        conn.query_drop(&stmt).unwrap();
-                    },
-                _ => {
-                    for v in result[0].clone() {
-                        if v == "before_cutting_update" {
-                            conn.query_drop(&stmt).unwrap();
-                            break;
-                        } else {
-                            conn.query_drop(&trig).unwrap();
-                            conn.query_drop(&stmt).unwrap()
-                        }
-                    }
-                }
-            }
+            conn.query_drop(&stmt).unwrap();
+
+            // match result.len() {
+            //     0 => {
+            //             conn.query_drop(&trig1).unwrap();
+            //             conn.query_drop(&trig2).unwrap();
+            //             conn.query_drop(&stmt).unwrap();
+            //         },
+            //     _ => {
+            //         match result[0].clone().contains(&"before_cutting_update".to_string()) {
+            //             true => match result[0].clone().contains(&"after_cutting_update".to_string()) {
+            //                 true => conn.query_drop(&stmt).unwrap(),
+            //                 false => {
+            //                     conn.query_drop(&trig2).unwrap();
+            //                     conn.query_drop(&stmt).unwrap();
+            //                 },
+            //             },
+            //             false => {
+            //                 conn.query_drop(&trig1).unwrap();
+            //                 match result[0].clone().contains(&"after_cutting_update".to_string()) {
+            //                     true => conn.query_drop(&stmt).unwrap(),
+            //                     false => {
+            //                         conn.query_drop(&trig2).unwrap();
+            //                         conn.query_drop(&stmt).unwrap();
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
 
             Ok(())
         }
