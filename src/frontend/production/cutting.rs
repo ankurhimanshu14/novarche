@@ -21,6 +21,8 @@ pub mod cutting {
         production::cutting::cutting::Cutting
     };
 
+    use crate::frontend::raw_material::steel::steel::create_steels;
+
     use crate::apis::utility_tools::parse::parse::parse_from_row;
 
     pub fn plan(s: &mut Cursive) {
@@ -78,9 +80,6 @@ pub mod cutting {
                         .fixed_width(30)
                     )
                     .child("Planned Qty", EditView::new().with_name("planned_qty").fixed_width(30))
-                    .child("Actual Qty", EditView::new().with_name("actual_qty").fixed_width(30))
-                    .child("OK Qty", EditView::new().with_name("ok_qty").fixed_width(30))
-                    .child("End pcs Wt", EditView::new().with_name("end_pc_wt").fixed_width(30))
             )
             .button(
                 "Add",
@@ -123,57 +122,29 @@ pub mod cutting {
                         v.get_content()
                     }).unwrap();
 
-                    let actual_qty = s.call_on_name("actual_qty", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
-                    let actual_qty = match &actual_qty.len() {
-                        0 => None,
-                        _ => Some(actual_qty.to_string().parse::<usize>().unwrap()),
-
-                    };
-
-                    let ok_qty = s.call_on_name("ok_qty", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
-                    let ok_qty = match &ok_qty.len() {
-                        0 => 0,
-                        _ => ok_qty.to_string().parse::<usize>().unwrap(),
-                    };
-
-                    let end_pc_wt = s.call_on_name("end_pc_wt", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
-                    let end_pc_wt = match &end_pc_wt.len() {
-                        0 => None,
-                        _ => Some(end_pc_wt.to_string().parse::<f64>().unwrap()),
-                    };
-
-                    match part_code.is_empty() || steel_code.is_empty() {
-                        true => s.add_layer(Dialog::info("Part or Steel list is not available")),
-                        false => {
-                            let new_plan = Cutting::new(
-                                planned_date,
-                                machine.unwrap().to_string(),
-                                part_code[0].clone(),
-                                steel_code[0].clone(),
-                                heat_no.unwrap().to_string(),
-                                planned_qty.to_string().parse::<usize>().unwrap(),
-                                actual_qty,
-                                ok_qty,
-                                end_pc_wt,
-                            );
-
-                            match Cutting::post(&new_plan) {
-                                Ok(m) =>{
-                                    s.pop_layer();
-                                    s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
-                                },
-                                Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
-                            };
-                        }
+                    match part_code.is_empty() {
+                        false => match steel_code.is_empty() {
+                            true => s.add_layer(Dialog::info("Steel is not available")),
+                            false => {
+                                let new_plan = Cutting::new(
+                                    planned_date,
+                                    machine.unwrap().to_string(),
+                                    part_code[0].clone(),
+                                    steel_code[0].clone(),
+                                    heat_no.unwrap().to_string(),
+                                    planned_qty.to_string().parse::<usize>().unwrap()
+                                );
+    
+                                match Cutting::post(&new_plan) {
+                                    Ok(m) =>{
+                                        s.pop_layer();
+                                        s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
+                                    },
+                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                }
+                            }
+                        },
+                        true => s.add_layer(Dialog::info("Part is not available"))
                     }
                 }
             )
@@ -202,6 +173,8 @@ pub mod cutting {
                                     LinearLayout::new(Horizontal)
                                     .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Cutting ID")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Planned Date")).center().fixed_width(20))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Part No")).center().fixed_width(10))
@@ -222,7 +195,7 @@ pub mod cutting {
                                 for cut in &cutting_list {
                                     count = count + 1;
 
-                                    let enable_button: bool = match &cut[4].parse::<usize>().unwrap() {
+                                    let enable_button: bool = match &cut[5].parse::<usize>().unwrap() {
                                         0 => true,
                                         _ => false
                                     };
@@ -233,19 +206,21 @@ pub mod cutting {
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[0]).fixed_width(20))
+                                        .child(TextView::new(&cut[0]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[1]).fixed_width(10))
+                                        .child(TextView::new(&cut[1]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[2]).center().fixed_width(10))
+                                        .child(TextView::new(&cut[2]).fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[3]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[3]).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[4]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[5]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[6]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[7]).center().fixed_width(20))
                                         .child(Button::new_raw("        Update       ", |s| { update_cutting_status(s)}).with_enabled(enable_button))
                                     )
                                 }
@@ -268,8 +243,7 @@ pub mod cutting {
             .padding_lrtb(1, 1, 1, 1)
             .content(
                 ListView::new()
-                .child("Enter Date of planning", EditView::new().with_name("planned_date").fixed_width(30))
-                .child("Part No", EditView::new().with_name("part_no").fixed_width(30))
+                .child("Cutting ID", EditView::new().with_name("cutting_id").fixed_width(30))
                 .child("Actual Qty", EditView::new().with_name("actual_qty").fixed_width(30))
                 .child("Ok Qty", EditView::new().with_name("ok_qty").fixed_width(30))
                 .child("End pcs wt.", EditView::new().with_name("end_pc_wt").fixed_width(30))
@@ -277,17 +251,11 @@ pub mod cutting {
             .button(
                 "Update",
                 |s| {
-                    let planned_date = s.call_on_name("planned_date", |v: &mut EditView|{
+                    let cutting_id = s.call_on_name("cutting_id", |v: &mut EditView|{
                         v.get_content()
                     }).unwrap();
 
-                    let planned_date = NaiveDate::parse_from_str(&planned_date.to_string(), "%d-%m-%Y").unwrap();
-
-                    let part_no = s.call_on_name("part_no", |v: &mut EditView|{
-                        v.get_content()
-                    }).unwrap();
-
-                    let part_no = part_no.parse::<usize>().unwrap();
+                    let cutting_id = cutting_id.parse::<usize>().unwrap();
 
                     let actual_qty = s.call_on_name("actual_qty", |v: &mut EditView|{
                         v.get_content()
@@ -309,10 +277,14 @@ pub mod cutting {
 
                     match ok_qty <= actual_qty {
                         true => {
-                            match Cutting::update_cutting_status(planned_date, part_no, actual_qty, ok_qty, end_pc_wt) {
+                            match Cutting::update_cutting_status(cutting_id, actual_qty, ok_qty, end_pc_wt) {
                                 Ok(_) => {
                                     s.pop_layer();
-                                    s.add_layer(Dialog::info("Cutting Status updated"))
+                                    s.add_layer(Dialog::text("Cutting Status updated").button("Ok", |c| {
+                                        c.pop_layer();
+                                        c.pop_layer();
+                                        get_cutting_list(c);
+                                    }))
                                 },
                                 Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
                             }

@@ -6,6 +6,7 @@ pub mod cutting {
 
     use crate::apis::engineering::part::part::Part;
     use crate::apis::raw_material::steel::steel::Steel;
+    use crate::apis::rm_store::gate_entry::gate_entry::GateEntry;
     use crate::apis::utility_tools::parse::parse::parse_from_row;
 
     #[derive(Debug, Clone)]
@@ -15,10 +16,7 @@ pub mod cutting {
         pub part_code: String,
         pub steel_code: String,
         pub heat_no: String,
-        pub planned_qty: usize,
-        pub actual_qty: Option<usize>,
-        pub ok_qty: usize,
-        pub end_pc_wt: Option<f64>
+        pub planned_qty: usize
     }
 
     impl Cutting {
@@ -28,10 +26,7 @@ pub mod cutting {
             part_code: String,
             steel_code: String,
             heat_no: String,
-            planned_qty: usize,
-            actual_qty: Option<usize>,
-            ok_qty: usize,
-            end_pc_wt: Option<f64>
+            planned_qty: usize
         ) -> Self {
             Cutting {
                 planned_date,
@@ -39,10 +34,7 @@ pub mod cutting {
                 part_code,
                 steel_code,
                 heat_no,
-                planned_qty,
-                actual_qty,
-                ok_qty,
-                end_pc_wt
+                planned_qty
             }
         }
 
@@ -76,20 +68,14 @@ pub mod cutting {
                 part_code,
                 steel_code,
                 heat_no,
-                planned_qty,
-                actual_qty,
-                ok_qty,
-                end_pc_wt
+                planned_qty
             ) VALUES (
                 :planned_date,
                 :machine,
                 :part_code,
                 :steel_code,
                 :heat_no,
-                :planned_qty,
-                :actual_qty,
-                :ok_qty,
-                :end_pc_wt
+                :planned_qty
             );";
 
             conn.exec_drop(
@@ -100,13 +86,7 @@ pub mod cutting {
                     "part_code" => self.part_code.clone(),
                     "steel_code" => self.steel_code.clone(),
                     "heat_no" => self.heat_no.clone(),
-                    "planned_qty" => self.planned_qty.clone(),
-                    "actual_qty" => match self.actual_qty.clone() {
-                        Some(v) => v,
-                        None => 0
-                    },
-                    "ok_qty" => self.ok_qty.clone(),
-                    "end_pc_wt" => self.end_pc_wt.clone()
+                    "planned_qty" => self.planned_qty.clone()
                 }
             )?;
 
@@ -122,8 +102,8 @@ pub mod cutting {
                 section                VARCHAR(10)     NOT NULL,
                 cut_wt                 FLOAT(6,3)      NOT NULL,
                 planned_qty            INT             NOT NULL,
-                actual_qty             INT,
-                ok_qty                 INT,
+                actual_qty             INT                             DEFAULT          0,
+                ok_qty                 INT                             DEFAULT          0,
                 rej_qty                INT                             DEFAULT          (actual_qty - ok_qty),
                 ok_wt                  FLOAT(10,3)                     DEFAULT          (ok_qty * cut_wt),
                 rej_wt                 FLOAT(10,3)                     DEFAULT          (rej_qty * cut_wt),
@@ -133,7 +113,16 @@ pub mod cutting {
                 modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP
             )ENGINE = InnoDB;";
 
-            let insert = "INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty, actual_qty, ok_qty, end_pc_wt)
+            let challan_no = conn.query_map(
+                format!("SELECT challan_no FROM gate_entry WHERE heat_no = '{}' LIMIT 1;", self.heat_no.clone()),
+                |v: Row| {
+                    v
+                }
+            ).unwrap();
+
+            let val = parse_from_row(&challan_no[0])[0].parse::<f64>().unwrap();
+
+            let insert = format!("INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
             SELECT
             c.planned_date,
             c.machine,
@@ -143,28 +132,26 @@ pub mod cutting {
             s.size,
             s.section,
             p.cut_wt,
-            c.planned_qty,
-            c.actual_qty,
-            c.ok_qty,
-            c.end_pc_wt
+            c.planned_qty
             FROM cutting_temp c
             INNER JOIN part p
             ON p.part_code = c.part_code
             INNER JOIN gate_entry g
-            ON g.heat_no = c.heat_no
+            ON g.heat_no = c.heat_no AND g.challan_no = '{}' AND g.avail_qty >= (p.cut_wt * c.planned_qty)
             INNER JOIN steels s
-            ON s.steel_code = c.steel_code;";
+            ON s.steel_code = c.steel_code;", val);
 
             conn.query_drop(cutting_table)?;
+
             conn.query_drop(insert)?;
 
             Ok(conn.last_insert_id())
         }
 
-        pub fn update_cutting_status(d: NaiveDate, p: usize, aq: usize, oq: usize, ep: f64) -> Result<()> {
+        pub fn update_cutting_status(id: usize, aq: usize, oq: usize, ep: f64) -> Result<()> {
             let stmt = format!("UPDATE cutting
-            SET actual_qty = '{2}', ok_qty = '{3}', end_pc_wt = '{4}'
-            WHERE part_no = '{1}' AND planned_date = '{0}';", d, p, aq, oq, ep);
+            SET actual_qty = '{0}', ok_qty = '{1}', end_pc_wt = '{2}'
+            WHERE cutting_id = '{3}';", aq, oq, ep, id);
 
             let trig = "CREATE TRIGGER before_cutting_update
             BEFORE UPDATE
@@ -206,7 +193,7 @@ pub mod cutting {
         }
 
         pub fn get_cutting_list() -> Vec<Vec<String>> {
-            let query = "SELECT planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
+            let query = "SELECT cutting_id, planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
     
@@ -224,7 +211,7 @@ pub mod cutting {
 
                 let mut v: Vec<String> = Vec::new();
                 
-                for i in 0..7 {
+                for i in 0..8 {
                     v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
                 }
                 outer_v.push(v.clone());

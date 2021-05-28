@@ -10,6 +10,8 @@ pub mod part {
         pub part_no: usize,
         pub part_name: String,
         pub grade: String,
+        pub sec_size: usize,
+        pub sec_type: String,
         pub forging_wt: f32,
         pub cut_wt: f32,
         pub del_cond: String,
@@ -23,6 +25,8 @@ pub mod part {
             part_no: usize,
             part_name: String,
             grade: String,
+            sec_size: usize,
+            sec_type: String,
             forging_wt: f32,
             cut_wt: f32,
             del_cond: String,
@@ -34,6 +38,8 @@ pub mod part {
                 part_no,
                 part_name,
                 grade,
+                sec_size,
+                sec_type,
                 forging_wt,
                 cut_wt,
                 del_cond,
@@ -59,6 +65,8 @@ pub mod part {
                 part_no             INT             NOT NULL                UNIQUE,
                 part_name           TEXT            NOT NULL,
                 grade               VARCHAR(10)     NOT NULL,
+                sec_size            INT             NOT NULL,
+                sec_type            VARCHAR(5)      NOT NULL,
                 forging_wt          FLOAT(6,3)      NOT NULL,
                 cut_wt              FLOAT(6,3),
                 del_cond            VARCHAR(20)     NOT NULL,
@@ -76,6 +84,8 @@ pub mod part {
                 part_name,
                 forging_wt,
                 grade,
+                sec_size,
+                sec_type,
                 cut_wt,
                 del_cond,
                 drawing_rev_no,
@@ -86,6 +96,8 @@ pub mod part {
                 :part_name,
                 :forging_wt,
                 :grade,
+                :sec_size,
+                :sec_type,
                 :cut_wt,
                 :del_cond,
                 :drawing_rev_no,
@@ -98,6 +110,8 @@ pub mod part {
                 "part_name" => self.part_name.clone(),
                 "forging_wt" => self.forging_wt.clone(),
                 "grade" => self.grade.clone(),
+                "sec_size" => self.sec_size.clone(),
+                "sec_type" => self.sec_type.clone(),
                 "cut_wt" => self.cut_wt.clone(),
                 "del_cond" => self.del_cond.clone(),
                 "drawing_rev_no" => self.drawing_rev_no.clone(),
@@ -120,8 +134,10 @@ pub mod part {
             part_code,
             part_no,
             part_name,
-            forging_wt,
             grade,
+            sec_size,
+            sec_type,
+            forging_wt,
             cut_wt,
             del_cond,
             drawing_rev_no,
@@ -146,13 +162,15 @@ pub mod part {
                 _ => {
                     conn.query_map(
                         query,
-                        |(part_code, part_no, part_name, forging_wt, grade, cut_wt, del_cond, drawing_rev_no, drawing_rev_date)| {
+                        |(part_code, part_no, part_name, grade, sec_size, sec_type, forging_wt, cut_wt, del_cond, drawing_rev_no, drawing_rev_date)| {
                             let part = Part {
                                 part_code,
                                 part_no,
                                 part_name,
-                                forging_wt,
                                 grade,
+                                sec_size,
+                                sec_type,
+                                forging_wt,
                                 cut_wt,
                                 del_cond,
                                 drawing_rev_no,
@@ -197,6 +215,44 @@ pub mod part {
                         query,
                         |part_code: String| {
                             v.push(part_code.to_string())
+                        }
+                    ).unwrap()
+                }
+            };
+
+            v
+        }
+
+        pub fn get_steel(p: usize) -> Vec<(String, usize, String)> {
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+
+            let query = format!("SELECT grade, sec_size, sec_type FROM part WHERE part_no = '{}';", p);
+
+            let mut v: Vec<(String, usize, String)> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'part';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |(grade, sec_size, sec_type): (String, usize, String)| {
+                            v.push((grade, sec_size, sec_type))
                         }
                     ).unwrap()
                 }

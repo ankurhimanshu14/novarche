@@ -49,8 +49,6 @@ pub mod gate_entry {
                 )
                 .child("Heat No", EditView::new().with_name("heat_no").fixed_width(30).min_height(2))
                 .child("Received Quantity", EditView::new().with_name("received_qty").fixed_width(30).min_height(2))
-                .child("U. O. M.", EditView::new().with_name("uom").fixed_width(30).min_height(2))
-                .child("Unit Cost", EditView::new().with_name("unit_cost").fixed_width(30).min_height(2))
             )
             .button(
                 "Add",
@@ -87,14 +85,6 @@ pub mod gate_entry {
                         v.get_content()
                     }).unwrap();
 
-                    let uom = s.call_on_name("uom", |v: &mut EditView|{
-                        v.get_content()
-                    }).unwrap();
-
-                    let unit_cost = s.call_on_name("unit_cost", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
                     match GateEntry::new(
                         challan_no.parse::<usize>().unwrap(),
                         challan_date,
@@ -102,9 +92,7 @@ pub mod gate_entry {
                         item_description.to_string(),
                         party_code[0].clone(),
                         heat_no.to_string(),
-                        received_qty.parse::<f64>().unwrap(),
-                        uom.to_string(),
-                        Some(unit_cost.parse::<f64>().unwrap())
+                        received_qty.parse::<f64>().unwrap()
                     ).post() {
                         Ok(_) =>{
                             s.pop_layer();
@@ -219,12 +207,6 @@ pub mod gate_entry {
                                     .child(TextView::new(format!("Heat No.")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Received Quantity")).center().fixed_width(20))
-                                    .child(TextView::new(format!("|")).center().fixed_width(1))
-                                    .child(TextView::new(format!("UOM")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(1))
-                                    .child(TextView::new(format!("Unit Cost")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(1))
-                                    .child(TextView::new(format!("Total Cost")).center().fixed_width(10))
                                 );
         
                                 let mut count: usize = 0;
@@ -249,12 +231,6 @@ pub mod gate_entry {
                                         .child(TextView::new(format!("{0}", gr.heat_no)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.received_qty)).center().fixed_width(20))
-                                        .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{0}", gr.uom)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{:?}", gr.unit_cost.unwrap())).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{:?}", gr.total_cost)).center().fixed_width(10))
                                     )
                                 }
                             }

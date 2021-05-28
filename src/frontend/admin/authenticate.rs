@@ -55,7 +55,8 @@ pub mod authenticate {
                                             s.add_layer(Dialog::text("Hit <Esc> to show the menu!"));
                                         },
                                         false => {
-                                            s.add_layer(Dialog::info("Wrong Credentials"));
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::text("Wrong Credentials").button("Ok", |s| sign_in(s) ));
                                         }
                                     }
                                 }

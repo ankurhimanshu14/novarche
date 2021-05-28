@@ -4,6 +4,8 @@ pub mod gate_entry {
     use mysql::*;
     use mysql::prelude::*;
 
+    use crate::apis::utility_tools::parse::parse::parse_from_row;
+
     #[derive(Debug, Clone)]
     pub struct GateEntry {
         pub challan_no: usize,
@@ -13,9 +15,7 @@ pub mod gate_entry {
         pub party_code: String,
         pub heat_no: String,
         pub received_qty: f64,
-        pub uom: String,
-        pub unit_cost: Option<f64>,
-        pub total_cost: f64
+        pub avail_qty: f64
     }
 
     impl GateEntry {
@@ -27,8 +27,6 @@ pub mod gate_entry {
             party_code: String,
             heat_no: String,
             received_qty: f64,
-            uom: String,
-            unit_cost: Option<f64>
         ) -> Self {
             GateEntry {
                 challan_no,
@@ -38,12 +36,7 @@ pub mod gate_entry {
                 party_code,
                 heat_no,
                 received_qty,
-                uom,
-                unit_cost,
-                total_cost: match unit_cost {
-                    None => 0.0,
-                    Some(_) => unit_cost.unwrap() * received_qty
-                }
+                avail_qty: received_qty.clone()
             }
         }
 
@@ -63,11 +56,9 @@ pub mod gate_entry {
                 party_code      VARCHAR(10)     NOT NULL,
                 heat_no         VARCHAR(20)     NOT NULL,
                 received_qty    FLOAT(20, 3)    NOT NULL,
-                uom             VARCHAR(5)      NOT NULL,
-                unit_cost       FLOAT(20, 3),
-                total_cost      FLOAT(20, 3)    DEFAULT         (received_qty * unit_cost),
-                created_at          DATETIME    NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
-                modified_at         DATETIME                        ON UPDATE           CURRENT_TIMESTAMP,
+                avail_qty       FLOAT(20, 3)    NOT NULL,
+                created_at      DATETIME        NOT NULL            DEFAULT             CURRENT_TIMESTAMP,
+                modified_at     DATETIME                            ON UPDATE           CURRENT_TIMESTAMP,
                 UNIQUE INDEX    ch_heatno_itmcd                 (challan_no, heat_no, steel_code),
                 CONSTRAINT      sr_fk_grn_prty  FOREIGN KEY(party_code)     REFERENCES        party(party_code)         ON UPDATE CASCADE ON DELETE CASCADE,
                 CONSTRAINT      sr_fk_grn_itm   FOREIGN KEY(steel_code)      REFERENCES        steels(steel_code)         ON UPDATE CASCADE ON DELETE CASCADE
@@ -83,8 +74,7 @@ pub mod gate_entry {
                 party_code,
                 heat_no,
                 received_qty,
-                uom,
-                unit_cost
+                avail_qty
             ) VALUES (
                 :challan_no,
                 :challan_date,
@@ -93,8 +83,7 @@ pub mod gate_entry {
                 :party_code,
                 :heat_no,
                 :received_qty,
-                :uom,
-                :unit_cost
+                :avail_qty
             )";
 
             conn.exec_drop(
@@ -107,8 +96,7 @@ pub mod gate_entry {
                     "party_code" => self.party_code.clone(),
                     "heat_no" => self.heat_no.clone(),
                     "received_qty" => self.received_qty.clone(),
-                    "uom" => self.uom.clone(),
-                    "unit_cost" => self.unit_cost.clone()
+                    "avail_qty" => self.received_qty.clone()
                 }
             )?;
 
@@ -116,7 +104,7 @@ pub mod gate_entry {
         }
 
         pub fn get_gate_entry_list() -> Vec<GateEntry> {
-            let query = "SELECT challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost FROM gate_entry;";
+            let query = "SELECT challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, avail_qty FROM gate_entry;";
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -143,10 +131,10 @@ pub mod gate_entry {
                 _ => {
                     conn.query_map(
                         query,
-                        |(challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost)| {
+                        |(challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, avail_qty)| {
 
                             let gr = GateEntry {
-                                challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, uom, unit_cost, total_cost
+                                challan_no, challan_date, steel_code, item_description, party_code, heat_no, received_qty, avail_qty
                             };
 
                             v.push(gr);
@@ -313,6 +301,24 @@ pub mod gate_entry {
             
             v
         }
-    }
 
+        pub fn check_availability(h: String, w: f64) -> bool {
+            let query = format!("SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{}'", h.to_string());
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+    
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+
+            let avail_qty = conn.query_map(
+                query,
+                |v: Row| {
+                    v
+                }
+            ).unwrap();
+
+            parse_from_row(&avail_qty[0])[0].parse::<f64>().unwrap() >= w
+        }
+    }
 }

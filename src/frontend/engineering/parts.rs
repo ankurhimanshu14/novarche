@@ -41,7 +41,22 @@ pub mod parts {
                                         println!("{}", &item)
                                     })
                                     .with_name("grade")
-                                    .fixed_width(30))
+                                    .fixed_width(30)
+                                )
+                            .child("Section Size", EditView::new().with_name("sec_size").fixed_width(30))
+                            .child(
+                                "Section Type",
+                                SelectView::new()
+                                    .popup()
+                                    .v_align(VAlign::Center)
+                                    .autojump()
+                                    .with_all_str(&["DIA".to_string(), "RCS".to_string()])
+                                    .on_select(|s, item| {
+                                        println!("{}", &item)
+                                    })
+                                    .with_name("sec_type")
+                                    .fixed_width(30)
+                                )
                             .child("Forging Weight", EditView::new().with_name("forging_wt").fixed_width(30))
                             .child("Cut Weight", EditView::new().with_name("cut_wt").fixed_width(30))
                             .child(
@@ -76,6 +91,12 @@ pub mod parts {
                             let grade = s.call_on_name("grade", |v: &mut SelectView| {
                                 v.selection()
                             }).unwrap();
+                            let sec_size = s.call_on_name("sec_size", |v: &mut EditView| {
+                                v.get_content()
+                            }).unwrap();
+                            let sec_type = s.call_on_name("sec_type", |v: &mut SelectView| {
+                                v.selection()
+                            }).unwrap();
                             let forging_wt = s.call_on_name("forging_wt", |v: &mut EditView| {
                                 v.get_content()
                             }).unwrap();
@@ -97,13 +118,22 @@ pub mod parts {
                                 part_no.parse::<usize>().unwrap(),
                                 part_name.to_string(),
                                 grade.unwrap().to_string(),
+                                sec_size.parse::<usize>().unwrap(),
+                                sec_type.unwrap().to_string(),
                                 forging_wt.parse::<f32>().unwrap(),
                                 cut_wt.parse::<f32>().unwrap(),
                                 del_cond.unwrap().to_string(),
                                 drawing_rev_no.to_string(),
                                 drawing_rev_date.to_string()
                             ).post() {
-                                Ok(_) => s.add_layer(Dialog::text("New Part added successfully").dismiss_button("Ok")),
+                                Ok(_) => { s.pop_layer();
+                                s.add_layer(Dialog::text("New Part added successfully").button(
+                                    "Ok",
+                                    |c| {
+                                        c.pop_layer();
+                                        create_parts(c);
+                                    }
+                                ))},
                                 Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                             }
                         }
@@ -141,6 +171,10 @@ pub mod parts {
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Grade")).center().fixed_width(15))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Bar Size")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Section")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Cut Weight(Kgs)")).center().fixed_width(20))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Forging Weight(Kgs)")).center().fixed_width(20))
@@ -168,6 +202,10 @@ pub mod parts {
                                         .child(TextView::new(format!("{0}", part.part_name)).fixed_width(30))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", part.grade)).fixed_width(15))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.sec_size)).fixed_width(15))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", part.sec_type)).fixed_width(15))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", part.cut_wt)).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
