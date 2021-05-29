@@ -303,7 +303,7 @@ pub mod gate_entry {
         }
 
         pub fn get_avail_qty(h: String) -> f64 {
-            let query = format!("SELECT avail_qty FROM gate_entry WHERE heat_no = '{}' ORDER BY challan_date LIMIT 1;", h.to_string());
+            let query = format!("SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{}';", h.to_string());
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
     
@@ -321,8 +321,10 @@ pub mod gate_entry {
             parse_from_row(&avail_qty[0])[0].parse::<f64>().unwrap()
         }
 
-        pub fn get_next_avail_supply(h: String, pl_wt: f64) -> usize {
-            let query = format!("SELECT challan_no FROM gate_entry WHERE heat_no = '{}' AND avail_qty >= '{}' ORDER BY challan_date LIMIT 1;", h.to_string(), pl_wt);
+        pub fn get_next_avail_supply(h: String, pl_wt: f64) -> Vec<usize> {
+
+            let query1 = format!("SET @total_avail := (SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{0}');", &h.to_string());
+            let query2 = format!("SELECT challan_no FROM gate_entry WHERE heat_no = '{0}' AND @total_avail >= '{1}' ORDER BY challan_date;", h.to_string(), pl_wt);
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
     
@@ -330,16 +332,26 @@ pub mod gate_entry {
     
             let mut conn = pool.get_conn().unwrap();
 
+            conn.query_drop(query1).unwrap();
             let avail_heat = conn.query_map(
-                query,
+                query2,
                 |v: Row| {
                     v
                 }
             ).unwrap();
 
             match &avail_heat.len() {
-                0 => 0,
-                _ => parse_from_row(&avail_heat[0])[0].parse::<usize>().unwrap()
+                0 => vec![0],
+                _ => {
+                    let mut ch_vec: Vec<usize> = Vec::new();
+
+                    for entries in &avail_heat {
+                        let parsed = parse_from_row(entries)[0].to_string().parse::<usize>().unwrap();
+
+                        ch_vec.push(parsed);
+                    }
+                    ch_vec
+                }
             }
         }
 

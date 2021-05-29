@@ -113,30 +113,35 @@ pub mod cutting {
                 modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP
             )ENGINE = InnoDB;";
 
-            let challan_no = GateEntry::get_next_avail_supply(self.heat_no.clone(), pl_wt);
+            let challan_list = GateEntry::get_next_avail_supply(self.heat_no.clone(), pl_wt);
 
-            let insert = format!("INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
-            SELECT
-            c.planned_date,
-            c.machine,
-            p.part_no,
-            g.heat_no,
-            s.grade,
-            s.size,
-            s.section,
-            p.cut_wt,
-            c.planned_qty
-            FROM cutting_temp c
-            INNER JOIN part p
-            ON p.part_code = c.part_code
-            INNER JOIN gate_entry g
-            ON g.heat_no = c.heat_no AND g.challan_no = '{}' AND g.avail_qty >= (p.cut_wt * c.planned_qty)
-            INNER JOIN steels s
-            ON s.steel_code = c.steel_code;", challan_no);
+            for challan in challan_list {
 
-            conn.query_drop(cutting_table)?;
+                let insert = format!("INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
+                SELECT
+                c.planned_date,
+                c.machine,
+                p.part_no,
+                g.heat_no,
+                s.grade,
+                s.size,
+                s.section,
+                p.cut_wt,
+                c.planned_qty
+                FROM cutting_temp c
+                INNER JOIN part p
+                ON p.part_code = c.part_code
+                INNER JOIN gate_entry g
+                ON g.heat_no = c.heat_no AND g.challan_no = '{}'
+                INNER JOIN steels s
+                ON s.steel_code = c.steel_code;", challan);
 
-            conn.query_drop(insert)?;
+                //AND g.avail_qty >= (p.cut_wt * c.planned_qty)
+    
+                conn.query_drop(cutting_table)?;
+    
+                conn.query_drop(insert)?;
+            }
 
             Ok(conn.last_insert_id())
         }
