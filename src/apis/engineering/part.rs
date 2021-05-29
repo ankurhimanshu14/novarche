@@ -281,5 +281,24 @@ pub mod part {
 
             parse_from_row(&cut_wt[0])[0].parse::<f64>().unwrap()
         }
+
+        pub fn fetch_cut_wt(pc: String) -> f64 {
+            let query = format!("SELECT cut_wt FROM part WHERE part_code = '{}';", pc);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+
+            let cut_wt = conn.query_map(
+                query,
+                |v: Row| {
+                    v
+                }
+            ).unwrap();
+
+            parse_from_row(&cut_wt[0])[0].parse::<f64>().unwrap()
+        }
     }
 }
