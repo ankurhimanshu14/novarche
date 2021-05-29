@@ -153,7 +153,7 @@ pub mod gate_entry {
     
             let mut conn = pool.get_conn()?;
             
-            let query = "SELECT heat_no FROM gate_entry;";
+            let query = "SELECT heat_no FROM gate_entry GROUP BY heat_no;";
     
             let mut v: Vec<String> = Vec::new();
 
@@ -302,6 +302,47 @@ pub mod gate_entry {
             v
         }
 
+        pub fn get_avail_qty(h: String) -> f64 {
+            let query = format!("SELECT avail_qty FROM gate_entry WHERE heat_no = '{}' ORDER BY challan_date LIMIT 1;", h.to_string());
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+    
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+
+            let avail_qty = conn.query_map(
+                query,
+                |v: Row| {
+                    v
+                }
+            ).unwrap();
+
+            parse_from_row(&avail_qty[0])[0].parse::<f64>().unwrap()
+        }
+
+        pub fn get_next_avail_supply(h: String, pl_wt: f64) -> usize {
+            let query = format!("SELECT challan_no FROM gate_entry WHERE heat_no = '{}' AND avail_qty >= '{}' ORDER BY challan_date LIMIT 1;", h.to_string(), pl_wt);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+    
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+
+            let avail_heat = conn.query_map(
+                query,
+                |v: Row| {
+                    v
+                }
+            ).unwrap();
+
+            match &avail_heat.len() {
+                0 => 0,
+                _ => parse_from_row(&avail_heat[0])[0].parse::<usize>().unwrap()
+            }
+        }
+
         pub fn check_availability(h: String, w: f64) -> bool {
             let query = format!("SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{}'", h.to_string());
 
@@ -319,6 +360,20 @@ pub mod gate_entry {
             ).unwrap();
 
             parse_from_row(&avail_qty[0])[0].parse::<f64>().unwrap() >= w
+        }
+
+        pub fn update_by_ch_no(tot_wt: f64, c: usize) -> Result<()> {
+            let query = format!("UPDATE gate_entry SET avail_qty = (avail_qty - '{}') WHERE challan_no = '{}' LIMIT 1;", tot_wt, c);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+    
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+
+            conn.query_drop(query)?;
+
+            Ok(())
         }
     }
 }

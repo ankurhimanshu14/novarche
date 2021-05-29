@@ -122,6 +122,12 @@ pub mod cutting {
                         v.get_content()
                     }).unwrap();
 
+                    let cut_wt = Part::get_cut_wt(p_no.to_string().parse::<usize>().unwrap());
+                    let avail_qty = GateEntry::get_avail_qty(heat_no.clone().unwrap().to_string());
+                    let planned_wt = planned_qty.to_string().parse::<f64>().unwrap() * cut_wt.clone();
+
+                    let est_prod: usize = (avail_qty / cut_wt) as usize;
+
                     match part_code.is_empty() {
                         false => match steel_code.is_empty() {
                             true => s.add_layer(Dialog::info("Steel is not available")),
@@ -131,14 +137,14 @@ pub mod cutting {
                                     machine.unwrap().to_string(),
                                     part_code[0].clone(),
                                     steel_code[0].clone(),
-                                    heat_no.unwrap().to_string(),
+                                    heat_no.clone().unwrap().to_string(),
                                     planned_qty.to_string().parse::<usize>().unwrap()
                                 );
     
-                                match Cutting::post(&new_plan) {
+                                match Cutting::post(&new_plan, planned_wt) {
                                     Ok(0) => {
                                         s.pop_layer();
-                                        s.add_layer(Dialog::info("Inventory short"));
+                                        s.add_layer(Dialog::text(format!("Inventory Short. Max production qty: {}", est_prod)).dismiss_button("Ok"));
                                     },
                                     Ok(m) =>{
                                         s.pop_layer();

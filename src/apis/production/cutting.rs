@@ -38,7 +38,7 @@ pub mod cutting {
             }
         }
 
-        pub fn post(&self) -> Result<u64> {
+        pub fn post(&self, pl_wt: f64) -> Result<u64> {
 
             let temp_table = "CREATE TEMPORARY TABLE cutting_temp(
                 temp_id             INT             NOT NULL            PRIMARY KEY             AUTO_INCREMENT,
@@ -113,14 +113,7 @@ pub mod cutting {
                 modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP
             )ENGINE = InnoDB;";
 
-            let challan_no = conn.query_map(
-                format!("SELECT challan_no FROM gate_entry WHERE heat_no = '{}' LIMIT 1;", self.heat_no.clone()),
-                |v: Row| {
-                    v
-                }
-            ).unwrap();
-
-            let val = parse_from_row(&challan_no[0])[0].parse::<f64>().unwrap();
+            let challan_no = GateEntry::get_next_avail_supply(self.heat_no.clone(), pl_wt);
 
             let insert = format!("INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
             SELECT
@@ -139,7 +132,7 @@ pub mod cutting {
             INNER JOIN gate_entry g
             ON g.heat_no = c.heat_no AND g.challan_no = '{}' AND g.avail_qty >= (p.cut_wt * c.planned_qty)
             INNER JOIN steels s
-            ON s.steel_code = c.steel_code;", val);
+            ON s.steel_code = c.steel_code;", challan_no);
 
             conn.query_drop(cutting_table)?;
 
@@ -158,17 +151,15 @@ pub mod cutting {
             ON cutting FOR EACH ROW
                 SET new.rej_qty = (new.actual_qty - new.ok_qty), new.ok_wt = (old.cut_wt * new.ok_qty), new.rej_wt = (old.cut_wt * new.rej_qty), new.total_wt = (old.cut_wt * new.actual_qty);";
 
-            let trig2 = "DELIMITER $$
-            CREATE TRIGGER after_cutting_update
+            let trig2 = "CREATE TRIGGER after_cutting_update
             AFTER UPDATE
             ON cutting FOR EACH ROW
             BEGIN
                 SET @total_wt := new.total_wt;
                 UPDATE gate_entry SET avail_qty = (avail_qty - @total_wt)
-                WHERE old.heat_no = heat_no;
-            END $$
-            
-            DELIMITER ;";
+                WHERE old.heat_no = heat_no AND avail_qty >= @total_wt
+                LIMIT 1;
+            END ;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
     
@@ -183,36 +174,33 @@ pub mod cutting {
                 }
             ).unwrap();
 
-            conn.query_drop(&stmt).unwrap();
+            let mut trig_name: Vec<String> = Vec::new();
 
-            // match result.len() {
-            //     0 => {
-            //             conn.query_drop(&trig1).unwrap();
-            //             conn.query_drop(&trig2).unwrap();
-            //             conn.query_drop(&stmt).unwrap();
-            //         },
-            //     _ => {
-            //         match result[0].clone().contains(&"before_cutting_update".to_string()) {
-            //             true => match result[0].clone().contains(&"after_cutting_update".to_string()) {
-            //                 true => conn.query_drop(&stmt).unwrap(),
-            //                 false => {
-            //                     conn.query_drop(&trig2).unwrap();
-            //                     conn.query_drop(&stmt).unwrap();
-            //                 },
-            //             },
-            //             false => {
-            //                 conn.query_drop(&trig1).unwrap();
-            //                 match result[0].clone().contains(&"after_cutting_update".to_string()) {
-            //                     true => conn.query_drop(&stmt).unwrap(),
-            //                     false => {
-            //                         conn.query_drop(&trig2).unwrap();
-            //                         conn.query_drop(&stmt).unwrap();
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
+            for v in result.clone() {
+                trig_name.push(v[0].clone());
+            }
+
+            match trig_name.contains(&"before_cutting_update".to_string()) {
+                true => {
+                    match trig_name.contains(&"after_cutting_update".to_string()) {
+                        true => conn.query_drop(stmt)?,
+                        false => {
+                            conn.query_drop(trig2)?;
+                            conn.query_drop(stmt)?;
+                        }
+                    }
+                },
+                false => {
+                    conn.query_drop(trig1)?;
+                    match trig_name.contains(&"after_cutting_update".to_string()) {
+                        true => conn.query_drop(stmt)?,
+                        false => {
+                            conn.query_drop(trig2)?;
+                            conn.query_drop(stmt)?;
+                        }
+                    }
+                }
+            }
 
             Ok(())
         }

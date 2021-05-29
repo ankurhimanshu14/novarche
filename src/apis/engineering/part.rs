@@ -4,6 +4,8 @@ pub mod part {
     use mysql::prelude::*;
     use mysql::*;
 
+    use crate::apis::utility_tools::parse::parse::parse_from_row;
+
     #[derive(Debug)]
     pub struct Part {
         pub part_code: String,
@@ -259,6 +261,25 @@ pub mod part {
             };
 
             v
+        }
+
+        pub fn get_cut_wt(p: usize) -> f64 {
+            let query = format!("SELECT cut_wt FROM part WHERE part_no = '{}';", p);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+
+            let cut_wt = conn.query_map(
+                query,
+                |v: Row| {
+                    v
+                }
+            ).unwrap();
+
+            parse_from_row(&cut_wt[0])[0].parse::<f64>().unwrap()
         }
     }
 }
