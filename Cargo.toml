@@ -13,3 +13,4 @@ bcrypt = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 cursive = { version = "0.16", default-features = false, features = ['pancurses-backend'] }
+uuid = { version = "0.8", default-features = false, features  = ['serde', 'v4'] }

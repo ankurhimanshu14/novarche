@@ -48,6 +48,7 @@ pub mod gate_entry {
                     .min_height(2)
                 )
                 .child("Heat No", EditView::new().with_name("heat_no").fixed_width(30).min_height(2))
+                .child("Heat Code", EditView::new().with_name("heat_code").fixed_width(30).min_height(2))
                 .child("Received Quantity", EditView::new().with_name("received_qty").fixed_width(30).min_height(2))
             )
             .button(
@@ -81,6 +82,10 @@ pub mod gate_entry {
                         v.get_content()
                     }).unwrap();
 
+                    let heat_code = s.call_on_name("heat_code", |v: &mut EditView| {
+                        v.get_content()
+                    }).unwrap();
+
                     let received_qty = s.call_on_name("received_qty", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
@@ -92,6 +97,7 @@ pub mod gate_entry {
                         item_description.to_string(),
                         party_code[0].clone(),
                         heat_no.to_string(),
+                        Some(heat_code.to_string()),
                         received_qty.parse::<f64>().unwrap()
                     ).post() {
                         Ok(_) =>{
@@ -163,7 +169,7 @@ pub mod gate_entry {
                     match GateEntry::assign_approvals(heat_no.unwrap().to_string(), v_part) {
                         Ok(_) =>{
                             s.pop_layer();
-                            s.add_layer(Dialog::text("Gate Entry added successfully").dismiss_button("Ok"))
+                            s.add_layer(Dialog::text("Approved Parts added successfully").dismiss_button("Ok"))
                         },
                         Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                     }
@@ -194,31 +200,41 @@ pub mod gate_entry {
                                     LinearLayout::new(Horizontal)
                                     .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Gate Entry ID")).center().fixed_width(40))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Challan No")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Challan Date")).center().fixed_width(20))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Item Code")).center().fixed_width(20))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
-                                    .child(TextView::new(format!("Item Description")).center().fixed_width(30))
+                                    .child(TextView::new(format!("Item Description")).center().fixed_width(25))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Party Code")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Heat No.")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
-                                    .child(TextView::new(format!("Received Quantity")).center().fixed_width(20))
+                                    .child(TextView::new(format!("Heat Code")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
-                                    .child(TextView::new(format!("Available Quantity")).center().fixed_width(20))
+                                    .child(TextView::new(format!("Received Quantity")).center().fixed_width(20))
                                 );
         
                                 let mut count: usize = 0;
                                 for gr in gr_list {
                                     count = count + 1;
+
+                                    let hc = match gr.heat_code {
+                                        Some(v) => v.to_string(),
+                                        None => "".to_string()
+                                    };
+
                                     list
                                     .add_child(
                                         "",
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", gr.gate_entry_id)).center().fixed_width(40))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.challan_no)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
@@ -226,15 +242,15 @@ pub mod gate_entry {
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.steel_code)).fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{0}", gr.item_description)).fixed_width(30))
+                                        .child(TextView::new(format!("{0}", gr.item_description)).center().fixed_width(25))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.party_code)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.heat_no)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{0}", gr.received_qty)).center().fixed_width(20))
+                                        .child(TextView::new(format!("{}", hc)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{0}", gr.avail_qty)).center().fixed_width(20))
+                                        .child(TextView::new(format!("{0}", gr.received_qty)).center().fixed_width(20))
                                     )
                                 }
                             }

@@ -3,6 +3,7 @@ pub mod cutting {
     use chrono::NaiveDate;
     use mysql::*;
     use mysql::prelude::*;
+    use uuid::Uuid;
 
     use crate::apis::engineering::part::part::Part;
     use crate::apis::raw_material::steel::steel::Steel;
@@ -11,6 +12,7 @@ pub mod cutting {
 
     #[derive(Debug, Clone)]
     pub struct Cutting {
+        pub cutting_id: String,
         pub planned_date: NaiveDate,
         pub machine: String,
         pub part_code: String,
@@ -29,6 +31,7 @@ pub mod cutting {
             planned_qty: usize
         ) -> Self {
             Cutting {
+                cutting_id: Uuid::new_v4().to_string(),
                 planned_date,
                 machine,
                 part_code,
@@ -40,18 +43,15 @@ pub mod cutting {
 
         pub fn post(&self, pl_wt: f64) -> Result<u64> {
 
-            let temp_table = "CREATE TEMPORARY TABLE cutting_temp(
+            let temp_table = "CREATE TABLE IF NOT EXISTS cutting_temp(
                 temp_id             INT             NOT NULL            PRIMARY KEY             AUTO_INCREMENT,
+                cutting_id          VARCHAR(200)    NOT NULL            UNIQUE,
                 planned_date        DATETIME        NOT NULL,
                 machine             VARCHAR(10)     NOT NULL,
                 part_code           VARCHAR(20)     NOT NULL,
                 steel_code          VARCHAR(20)     NOT NULL,
                 heat_no             VARCHAR(20)     NOT NULL,
-                planned_qty         INT             NOT NULL,
-                actual_qty          INT,
-                ok_qty              INT,
-                rej_qty             INT             DEFAULT             (actual_qty - ok_qty),
-                end_pc_wt           FLOAT(10,3)
+                planned_qty         INT             NOT NULL
             )ENGINE = InnoDB;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
@@ -63,6 +63,7 @@ pub mod cutting {
             conn.query_drop(temp_table)?;
 
             let insert = "INSERT INTO cutting_temp(
+                cutting_id,
                 planned_date,
                 machine,
                 part_code,
@@ -70,6 +71,7 @@ pub mod cutting {
                 heat_no,
                 planned_qty
             ) VALUES (
+                :cutting_id,
                 :planned_date,
                 :machine,
                 :part_code,
@@ -81,6 +83,7 @@ pub mod cutting {
             conn.exec_drop(
                 insert,
                 params! {
+                    "cutting_id" => self.cutting_id.clone(),
                     "planned_date" => self.planned_date.clone(),
                     "machine" => self.machine.clone(),
                     "part_code" => self.part_code.clone(),
@@ -92,7 +95,9 @@ pub mod cutting {
 
             let cutting_table = "CREATE TABLE IF NOT EXISTS cutting
             (   
-                cutting_id             INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
+                id                     INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
+                rm_id                  VARCHAR(100)    NOT NULL,
+                prod_id                VARCHAR(100)    NOT NULL,
                 planned_date           DATETIME        NOT NULL,
                 machine                VARCHAR(10)     NOT NULL,
                 part_no                INT             NOT NULL,
@@ -110,126 +115,36 @@ pub mod cutting {
                 end_pc_wt              FLOAT(10,3),
                 total_wt               FLOAT(10,3)                     DEFAULT          (actual_qty * cut_wt),
                 created_at             DATETIME         NOT NULL       DEFAULT            CURRENT_TIMESTAMP,
-                modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP
+                modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP,
+                CONSTRAINT          sr_fk_cut_rm    FOREIGN KEY(rm_id)            REFERENCES      approved_components(rm_id)       ON UPDATE CASCADE ON DELETE CASCADE
             )ENGINE = InnoDB;";
 
-            let challan_list = GateEntry::get_next_avail_supply(self.heat_no.clone(), pl_wt);
+            let insert = "INSERT INTO cutting(rm_id, prod_id, planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
+            SELECT
+            a.rm_id,
+            c.cutting_id,
+            c.planned_date,
+            c.machine,
+            p.part_no,
+            a.heat_no,
+            s.grade,
+            s.size,
+            s.section,
+            p.cut_wt,
+            c.planned_qty
+            FROM cutting_temp c
+            INNER JOIN part p
+            ON p.part_code = c.part_code
+            INNER JOIN approved_components a
+            ON a.heat_no = c.heat_no AND a.part_no = p.part_no
+            INNER JOIN steels s
+            ON s.steel_code = c.steel_code;";
 
-            println!("Challan nos: {:?}", &challan_list);
+            conn.query_drop(cutting_table)?;
 
-            match challan_list.len() {
-                0 => Ok(0),
-                1 => {
-                    let insert = format!("INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
-                    SELECT
-                    c.planned_date,
-                    c.machine,
-                    p.part_no,
-                    g.heat_no,
-                    s.grade,
-                    s.size,
-                    s.section,
-                    p.cut_wt,
-                    c.planned_qty
-                    FROM cutting_temp c
-                    INNER JOIN part p
-                    ON p.part_code = c.part_code
-                    INNER JOIN gate_entry g
-                    ON g.heat_no = c.heat_no AND g.challan_no = '{}' AND g.avail_qty >= (p.cut_wt * c.planned_qty)
-                    INNER JOIN steels s
-                    ON s.steel_code = c.steel_code;", challan_list[0]);
-        
-                    conn.query_drop(cutting_table)?;
-        
-                    conn.query_drop(insert)?;
-    
-                    Ok(conn.last_insert_id())
-                },
-                _ => {
-                    let mut pq = self.planned_qty.clone();
-                    
-                    for challan in challan_list {
-                        let query = format!("SELECT avail_qty FROM GATE_ENTRY WHERE challan_no = '{0}' AND heat_no = '{1}';", challan, self.heat_no.clone());
+            conn.query_drop(insert)?;
 
-                        let avail_qty = conn.query_map(
-                            query,
-                            |v: Row| {
-                                v
-                            }
-                        ).unwrap();
-
-                        println!("Avail Qty: {:?}", &avail_qty);
-            
-                        let avail_inv = parse_from_row(&avail_qty[0])[0].parse::<f64>().unwrap();
-
-                        println!("Avail Inv: {:?}", &avail_inv);
-
-                        let cut_wt = Part::fetch_cut_wt(self.part_code.clone());
-
-                        let dist_qty = (avail_inv/cut_wt) as usize;
-
-                        println!("Print dist{:?}", &dist_qty);
-
-                        println!("Planning {:?}", &pq);
-
-                        while pq != 0 {
-                            let insert = "INSERT INTO cutting_temp(
-                                planned_date,
-                                machine,
-                                part_code,
-                                steel_code,
-                                heat_no,
-                                planned_qty
-                            ) VALUES (
-                                :planned_date,
-                                :machine,
-                                :part_code,
-                                :steel_code,
-                                :heat_no,
-                                :planned_qty
-                            );";
-                
-                            conn.exec_drop(
-                                insert,
-                                params! {
-                                    "planned_date" => self.planned_date.clone(),
-                                    "machine" => self.machine.clone(),
-                                    "part_code" => self.part_code.clone(),
-                                    "steel_code" => self.steel_code.clone(),
-                                    "heat_no" => self.heat_no.clone(),
-                                    "planned_qty" => &dist_qty
-                                }
-                            )?;
-
-                            let insert = format!("INSERT INTO cutting(planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
-                            SELECT
-                            c.planned_date,
-                            c.machine,
-                            p.part_no,
-                            g.heat_no,
-                            s.grade,
-                            s.size,
-                            s.section,
-                            p.cut_wt,
-                            c.planned_qty
-                            FROM cutting_temp c
-                            INNER JOIN part p
-                            ON p.part_code = c.part_code
-                            INNER JOIN gate_entry g
-                            ON g.heat_no = c.heat_no AND g.challan_no = '{}' AND g.avail_qty >= (p.cut_wt * c.planned_qty)
-                            INNER JOIN steels s
-                            ON s.steel_code = c.steel_code;", challan);
-                
-                            conn.query_drop(cutting_table)?;
-                
-                            conn.query_drop(insert)?;
-
-                            pq =  pq - dist_qty;
-                        }
-                    }
-                    Ok(conn.last_insert_id())
-                }
-            }                
+            Ok(conn.last_insert_id())        
         }
 
         pub fn update_cutting_status(id: usize, aq: usize, oq: usize, ep: f64) -> Result<()> {
