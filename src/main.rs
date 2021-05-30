@@ -50,7 +50,8 @@ use frontend::{
             get_gate_entry_list,
             get_approved_list
         },
-        party::party::create_party
+        party::party::create_party,
+        inventory::inventory::inventory,
     },
     production::{
         cutting::cutting::{
@@ -144,6 +145,11 @@ fn main() {
                 .leaf("GRN List", |s| { get_gate_entry_list(s) })
                 .leaf("Assign Approved Parts", |s| { assign_parts(s) })
                 .leaf("Approved Parts List", |s| { get_approved_list(s) })
+            )
+            .subtree(
+                "Inventory",
+                menu::MenuTree::new()
+                .leaf("All", |s|{ inventory(s) })
             )
         )
         .add_subtree(

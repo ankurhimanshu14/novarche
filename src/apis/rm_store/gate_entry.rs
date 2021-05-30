@@ -276,7 +276,7 @@ pub mod gate_entry {
                 rm_id               VARCHAR(100) NOT NULL,
                 heat_no             VARCHAR(20) NOT NULL,
                 part_no             INT         NOT NULL,
-                avail_qty           INT         NOT NULL,
+                avail_qty           FLOAT(10, 3)     NOT NULL,
                 created_at          DATETIME    NOT NULL                    DEFAULT             CURRENT_TIMESTAMP,
                 modified_at         DATETIME                                ON UPDATE           CURRENT_TIMESTAMP,
                 UNIQUE INDEX        heat_part                                                 (heat_no, part_no),
