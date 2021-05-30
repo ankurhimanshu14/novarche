@@ -43,7 +43,7 @@ pub mod cutting {
 
         pub fn post(&self, pl_wt: f64) -> Result<u64> {
 
-            let temp_table = "CREATE TABLE IF NOT EXISTS cutting_temp(
+            let temp_table = "CREATE TEMPORARY TABLE cutting_temp(
                 temp_id             INT             NOT NULL            PRIMARY KEY             AUTO_INCREMENT,
                 cutting_id          VARCHAR(200)    NOT NULL            UNIQUE,
                 planned_date        DATETIME        NOT NULL,
@@ -116,6 +116,7 @@ pub mod cutting {
                 total_wt               FLOAT(10,3)                     DEFAULT          (actual_qty * cut_wt),
                 created_at             DATETIME         NOT NULL       DEFAULT            CURRENT_TIMESTAMP,
                 modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP,
+                UNIQUE INDEX           rm_prod                                          (rm_id, prod_id),
                 CONSTRAINT          sr_fk_cut_rm    FOREIGN KEY(rm_id)            REFERENCES      approved_components(rm_id)       ON UPDATE CASCADE ON DELETE CASCADE
             )ENGINE = InnoDB;";
 
@@ -126,7 +127,7 @@ pub mod cutting {
             c.planned_date,
             c.machine,
             p.part_no,
-            a.heat_no,
+            c.heat_no,
             s.grade,
             s.size,
             s.section,
@@ -136,9 +137,11 @@ pub mod cutting {
             INNER JOIN part p
             ON p.part_code = c.part_code
             INNER JOIN approved_components a
-            ON a.heat_no = c.heat_no AND a.part_no = p.part_no
+            ON a.heat_no = c.heat_no
+            AND a.part_no = (SELECT part_no FROM part WHERE part_code = c.part_code)
+            AND a.avail_qty >= (planned_qty * p.cut_wt)
             INNER JOIN steels s
-            ON s.steel_code = c.steel_code;";
+            ON c.steel_code = s.steel_code;";
 
             conn.query_drop(cutting_table)?;
 
@@ -212,7 +215,7 @@ pub mod cutting {
         }
 
         pub fn get_cutting_list() -> Vec<Vec<String>> {
-            let query = "SELECT cutting_id, planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
+            let query = "SELECT planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
     
@@ -230,7 +233,7 @@ pub mod cutting {
 
                 let mut v: Vec<String> = Vec::new();
                 
-                for i in 0..8 {
+                for i in 0..7 {
                     v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
                 }
                 outer_v.push(v.clone());

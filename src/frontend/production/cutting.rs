@@ -183,8 +183,6 @@ pub mod cutting {
                                     LinearLayout::new(Horizontal)
                                     .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
-                                    .child(TextView::new(format!("Cutting ID")).center().fixed_width(20))
-                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Planned Date")).center().fixed_width(20))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Part No")).center().fixed_width(10))
@@ -229,8 +227,6 @@ pub mod cutting {
                                         .child(TextView::new(&cut[5]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[6]).center().fixed_width(20))
-                                        .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[7]).center().fixed_width(20))
                                         .child(Button::new_raw("        Update       ", |s| { update_cutting_status(s)}).with_enabled(enable_button))
                                     )
                                 }
