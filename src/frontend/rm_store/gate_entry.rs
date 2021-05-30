@@ -200,8 +200,6 @@ pub mod gate_entry {
                                     LinearLayout::new(Horizontal)
                                     .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
-                                    .child(TextView::new(format!("Gate Entry ID")).center().fixed_width(40))
-                                    .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Challan No")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Challan Date")).center().fixed_width(20))
@@ -233,8 +231,6 @@ pub mod gate_entry {
                                         "",
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{0}", gr.gate_entry_id)).center().fixed_width(40))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.challan_no)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))

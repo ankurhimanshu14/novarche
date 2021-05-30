@@ -150,10 +150,10 @@ pub mod cutting {
             Ok(conn.last_insert_id())        
         }
 
-        pub fn update_cutting_status(id: usize, aq: usize, oq: usize, ep: f64) -> Result<()> {
+        pub fn update_cutting_status(r_id: String, p_id: String, aq: usize, oq: usize, ep: f64) -> Result<()> {
             let stmt = format!("UPDATE cutting
             SET actual_qty = '{0}', ok_qty = '{1}', end_pc_wt = '{2}'
-            WHERE cutting_id = '{3}';", aq, oq, ep, id);
+            WHERE rm_id = '{3}' AND prod_id = '{4}';", aq, oq, ep, r_id, p_id);
 
             let trig1 = "CREATE TRIGGER before_cutting_update
             BEFORE UPDATE
@@ -164,10 +164,8 @@ pub mod cutting {
             AFTER UPDATE
             ON cutting FOR EACH ROW
             BEGIN
-                SET @total_wt := new.total_wt;
-                UPDATE gate_entry SET avail_qty = (avail_qty - @total_wt)
-                WHERE old.heat_no = heat_no AND avail_qty >= @total_wt
-                LIMIT 1;
+                UPDATE approved_components SET avail_qty = (avail_qty - new.total_wt)
+                WHERE rm_id = (SELECT DISTINCT rm_id FROM cutting WHERE heat_no = old.heat_no);
             END ;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
@@ -215,7 +213,7 @@ pub mod cutting {
         }
 
         pub fn get_cutting_list() -> Vec<Vec<String>> {
-            let query = "SELECT planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
+            let query = "SELECT rm_id, prod_id, planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
     
@@ -225,15 +223,13 @@ pub mod cutting {
 
             let mut outer_v: Vec<Vec<String>> = Vec::new();
 
-
-
             let cut_rows: Vec<Row> = query.fetch(conn).unwrap();
 
             for row in cut_rows {
 
                 let mut v: Vec<String> = Vec::new();
                 
-                for i in 0..7 {
+                for i in 0..9 {
                     v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
                 }
                 outer_v.push(v.clone());

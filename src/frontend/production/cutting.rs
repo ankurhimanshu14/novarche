@@ -142,10 +142,7 @@ pub mod cutting {
                                 );
     
                                 match Cutting::post(&new_plan, planned_wt) {
-                                    Ok(0) => {
-                                        s.pop_layer();
-                                        s.add_layer(Dialog::text(format!("Inventory Short. Max production qty: {}", est_prod)).dismiss_button("Ok"));
-                                    },
+                                    Ok(0) => s.add_layer(Dialog::info("Check planning again")),
                                     Ok(m) =>{
                                         s.pop_layer();
                                         s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
@@ -200,10 +197,10 @@ pub mod cutting {
                                 );
         
                                 let mut count: usize = 0;
-                                for cut in &cutting_list {
+                                for cut in cutting_list {
                                     count = count + 1;
 
-                                    let enable_button: bool = match &cut[5].parse::<usize>().unwrap() {
+                                    let enable_button: bool = match &cut[6].parse::<usize>().unwrap() {
                                         0 => true,
                                         _ => false
                                     };
@@ -214,20 +211,27 @@ pub mod cutting {
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[0]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[2]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[1]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[3]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[2]).fixed_width(10))
+                                        .child(TextView::new(&cut[4]).fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[3]).center().fixed_width(10))
-                                        .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[4]).center().fixed_width(20))
-                                        .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[5]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[5]).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[6]).center().fixed_width(20))
-                                        .child(Button::new_raw("        Update       ", |s| { update_cutting_status(s)}).with_enabled(enable_button))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[7]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[8]).center().fixed_width(20))
+                                        .child(Button::new_raw(
+                                            "        Update       ",
+                                            move |s| {
+                                                let r_id = &cut[0];
+                                                let p_id = &cut[1];
+                                                update_cutting_status(s, r_id.to_string(), p_id.to_string())
+                                            }
+                                        ).with_enabled(enable_button))
                                     )
                                 }
                             }
@@ -241,7 +245,7 @@ pub mod cutting {
         }
     }
 
-    pub fn update_cutting_status(s: &mut Cursive) {
+    pub fn update_cutting_status(s: &mut Cursive, r: String, p: String) {
 
         s.add_layer(
             Dialog::new()
@@ -249,20 +253,13 @@ pub mod cutting {
             .padding_lrtb(1, 1, 1, 1)
             .content(
                 ListView::new()
-                .child("Cutting ID", EditView::new().with_name("cutting_id").fixed_width(30))
-                .child("Actual Qty", EditView::new().with_name("actual_qty").fixed_width(30))
-                .child("Ok Qty", EditView::new().with_name("ok_qty").fixed_width(30))
-                .child("End pcs wt.", EditView::new().with_name("end_pc_wt").fixed_width(30))
+                .child("Actual Qty", EditView::new().with_name("actual_qty").fixed_width(40))
+                .child("Ok Qty", EditView::new().with_name("ok_qty").fixed_width(40))
+                .child("End pcs wt.", EditView::new().with_name("end_pc_wt").fixed_width(40))
             )
             .button(
                 "Update",
-                |s| {
-                    let cutting_id = s.call_on_name("cutting_id", |v: &mut EditView|{
-                        v.get_content()
-                    }).unwrap();
-
-                    let cutting_id = cutting_id.parse::<usize>().unwrap();
-
+                move |s| {
                     let actual_qty = s.call_on_name("actual_qty", |v: &mut EditView|{
                         v.get_content()
                     }).unwrap();
@@ -283,7 +280,7 @@ pub mod cutting {
 
                     match ok_qty <= actual_qty {
                         true => {
-                            match Cutting::update_cutting_status(cutting_id, actual_qty, ok_qty, end_pc_wt) {
+                            match Cutting::update_cutting_status(r.clone(), p.clone(), actual_qty, ok_qty, end_pc_wt) {
                                 Ok(_) => {
                                     s.pop_layer();
                                     s.add_layer(Dialog::text("Cutting Status updated").button("Ok", |c| {
