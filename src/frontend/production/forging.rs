@@ -80,7 +80,9 @@ pub mod forging {
                                             move |s| {
                                                 let r_id = &cut[0];
                                                 let c_id = &cut[1];
-                                                forging_plan(s, r_id.to_string(), c_id.to_string())
+                                                let p_no = &cut[2].parse::<usize>().unwrap();
+                                                let q = &cut[4].parse::<usize>().unwrap();
+                                                forging_plan(s, r_id.to_string(), c_id.to_string(), *p_no, *q)
                                             }
                                         ).with_enabled(enable))
                                     )
@@ -96,7 +98,7 @@ pub mod forging {
         }
     }
 
-    pub fn forging_plan(s: &mut Cursive, r: String, c: String) {
+    pub fn forging_plan(s: &mut Cursive, r: String, c: String, p_no: usize, qty: usize) {
 
         s.add_layer(
             Dialog::new()
@@ -119,12 +121,13 @@ pub mod forging {
                         .fixed_width(30)
                         .min_height(2)    
                     )
-                    .child("Part No", EditView::new().with_name("part_no").fixed_width(30))
+                    .child("Part No", TextView::new(p_no.to_string()).center().fixed_width(30))
+                    .child("Available Qty", TextView::new(qty.to_string()).center().fixed_width(30))
                     .child("Planned Qty", EditView::new().with_name("planned_qty").fixed_width(30))
             )
             .button(
                 "Add",
-                |s| {
+                move |s| {
                     let pd = s.call_on_name("planned_date", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
@@ -135,40 +138,56 @@ pub mod forging {
                         v.selection()
                     }).unwrap();
 
-                    let p_no = s.call_on_name("part_no", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
                     let part_code = Part::find_part_code(p_no.to_string().parse::<usize>().unwrap());
 
                     let planned_qty = s.call_on_name("planned_qty", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
 
-                    // let cut_wt = Part::get_cut_wt(p_no.to_string().parse::<usize>().unwrap());
-                    // let avail_qty = GateEntry::get_avail_qty(heat_no.clone().unwrap().to_string());
-                    // let planned_wt = planned_qty.to_string().parse::<f64>().unwrap() * cut_wt.clone();
-
-                    // let est_prod: usize = (avail_qty / cut_wt) as usize;
+                    let planned_qty = planned_qty.parse::<usize>().unwrap();
 
                     match part_code.is_empty() {
                         true => s.add_layer(Dialog::info("Part not defined")),
                         false => {
-                            let new_plan = Forging::new(
-                                planned_date,
-                                machine.unwrap().to_string(),
-                                part_code[0].clone(),
-                                planned_qty.to_string().parse::<usize>().unwrap()
-                            );
-
-                            match Forging::post(&new_plan) {
-                                Ok(0) => s.add_layer(Dialog::info("Check planning again")),
-                                Ok(m) =>{
-                                    s.pop_layer();
-                                    s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"));
-                                    get_input_material(s);
+                            match planned_qty <= qty {
+                                true => {
+                                    let new_plan = Forging::new(
+                                        planned_date,
+                                        machine.unwrap().to_string(),
+                                        part_code[0].clone(),
+                                        qty
+                                    );
+        
+                                    match Forging::post(&new_plan) {
+                                        Ok(0) => s.add_layer(Dialog::info("Check planning again")),
+                                        Ok(m) =>{
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"));
+                                            get_input_material(s);
+                                        },
+                                        Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                    }
                                 },
-                                Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                false => {
+                                    s.add_layer(Dialog::info("Raise Cutting Order"));
+
+                                    let new_plan = Forging::new(
+                                        planned_date,
+                                        machine.unwrap().to_string(),
+                                        part_code[0].clone(),
+                                        qty
+                                    );
+        
+                                    match Forging::post(&new_plan) {
+                                        Ok(0) => s.add_layer(Dialog::info("Check planning again")),
+                                        Ok(m) =>{
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"));
+                                            get_input_material(s);
+                                        },
+                                        Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                    }
+                                }
                             }
                         }
                     }
