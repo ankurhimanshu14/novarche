@@ -8,7 +8,8 @@ pub mod cutting {
     use crate::apis::engineering::part::part::Part;
     use crate::apis::raw_material::steel::steel::Steel;
     use crate::apis::rm_store::gate_entry::gate_entry::GateEntry;
-    use crate::apis::utility_tools::parse::parse::parse_from_row;
+    use crate::apis::utils::parse::parse::parse_from_row;
+    use crate::apis::utils::row_parser::parser::row_parser;
 
     #[derive(Debug, Clone)]
     pub struct Cutting {
@@ -115,8 +116,6 @@ pub mod cutting {
                 rej_wt                 FLOAT(10,3)                     DEFAULT          (rej_qty * cut_wt),
                 end_pc_wt              FLOAT(10,3),
                 total_wt               FLOAT(10,3)                     DEFAULT          (actual_qty * cut_wt),
-                store                  VARCHAR(100),
-                issued                 TINYINT,
                 issued_qty             INT                             DEFAULT          (ok_qty),
                 created_at             DATETIME         NOT NULL       DEFAULT            CURRENT_TIMESTAMP,
                 modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP,
@@ -169,9 +168,7 @@ pub mod cutting {
                 new.rej_qty = (new.actual_qty - new.ok_qty),
                 new.ok_wt = (old.cut_wt * new.ok_qty),
                 new.rej_wt = (old.cut_wt * new.rej_qty),
-                new.total_wt = (old.cut_wt * new.actual_qty),
-                new.store = 'CUTTING STORE',
-                new.issued = 0;";
+                new.total_wt = (old.cut_wt * new.actual_qty);";
 
             let trig2 = "CREATE TRIGGER after_cutting_update
             AFTER UPDATE
@@ -225,6 +222,16 @@ pub mod cutting {
             Ok(())
         }
 
+        pub fn cutting_heat(p: usize) -> Vec<Vec<String>> {
+            let query = format!("SELECT rm_id, cutting_id, part_no, heat_no, heat_code, (ok_qty - issued_qty) FROM cutting WHERE part_no = {} AND (ok_qty - issued_qty) > 0 ORDER BY modified_at ASC;", p);
+            
+            let list = row_parser(query, 6);
+
+            println!("{:?}", &list);
+
+            list
+        }
+
         pub fn get_cutting_list() -> Vec<Vec<String>> {
             let query = "SELECT
             rm_id,
@@ -239,62 +246,9 @@ pub mod cutting {
             rej_qty
             FROM cutting ORDER BY planned_date DESC;";
 
-            let url: &str = "mysql://root:@localhost:3306/mws_database";
-    
-            let pool: Pool = Pool::new(url).unwrap();
-    
-            let conn = pool.get_conn().unwrap();
-
-            let mut outer_v: Vec<Vec<String>> = Vec::new();
-
-            let cut_rows: Vec<Row> = query.fetch(conn).unwrap();
-
-            for row in cut_rows {
-
-                let mut v: Vec<String> = Vec::new();
-                
-                for i in 0..10 {
-                    v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
-                }
-                outer_v.push(v.clone());
-            }
-            outer_v
+            row_parser(query.to_string(), 10)
         }
 
-        pub fn ready_to_forge() -> Vec<Vec<String>> {
-            let query = "SELECT
-            rm_id,
-            cutting_id,
-            part_no,
-            heat_no,
-            heat_code,
-            ok_qty,
-            issued_qty
-            FROM cutting
-            WHERE ok_qty > issued_qty AND STORE = 'CUTTING STORE'
-            ORDER BY planned_date
-            DESC;";
 
-            let url: &str = "mysql://root:@localhost:3306/mws_database";
-    
-            let pool: Pool = Pool::new(url).unwrap();
-    
-            let conn = pool.get_conn().unwrap();
-
-            let mut outer_v: Vec<Vec<String>> = Vec::new();
-
-            let cut_rows: Vec<Row> = query.fetch(conn).unwrap();
-
-            for row in cut_rows {
-
-                let mut v: Vec<String> = Vec::new();
-                
-                for i in 0..7 {
-                    v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
-                }
-                outer_v.push(v.clone());
-            }
-            outer_v
-        }
     }
 }

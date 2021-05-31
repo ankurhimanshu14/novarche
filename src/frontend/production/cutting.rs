@@ -23,7 +23,7 @@ pub mod cutting {
 
     use crate::frontend::raw_material::steel::steel::create_steels;
 
-    use crate::apis::utility_tools::parse::parse::parse_from_row;
+    use crate::apis::utils::parse::parse::parse_from_row;
 
     pub fn plan(s: &mut Cursive) {
 
@@ -313,6 +313,57 @@ pub mod cutting {
                 }
             )
             .dismiss_button("Cancel")
+        )
+    }
+
+    pub fn display_cutting_heat(s: &mut Cursive, p: usize) {
+
+        let cutting_list = Cutting::cutting_heat(p);
+
+        s.add_layer(
+            Dialog::new()
+            .title("Available Heats")
+            .padding_lrtb(1, 1, 1, 1)
+            .content(
+                ListView::new()
+                .with(
+                    |list| {
+                        list.add_child(
+                            "",
+                            LinearLayout::new(Horizontal)
+                            .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
+                            .child(TextView::new(format!("|")).center().fixed_width(3))
+                            .child(TextView::new(format!("Part No")).center().fixed_width(10))
+                            .child(TextView::new(format!("|")).center().fixed_width(3))
+                            .child(TextView::new(format!("Heat No")).center().fixed_width(10))
+                            .child(TextView::new(format!("|")).center().fixed_width(3))
+                            .child(TextView::new(format!("Heat Code")).center().fixed_width(10))
+                            .child(TextView::new(format!("|")).center().fixed_width(3))
+                            .child(TextView::new(format!("Available Qty (Nos)")).center().fixed_width(20))
+                        );
+
+                        let mut count: usize = 0;
+                        for cut in cutting_list {
+                            count = count + 1;
+
+                            list
+                            .add_child(
+                                "",
+                                LinearLayout::new(Horizontal)
+                                .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
+                                .child(TextView::new(format!("|")).center().fixed_width(3))
+                                .child(TextView::new(&cut[2]).center().fixed_width(20))
+                                .child(TextView::new(format!("|")).center().fixed_width(3))
+                                .child(TextView::new(&cut[3]).center().fixed_width(10))
+                                .child(TextView::new(format!("|")).center().fixed_width(3))
+                                .child(TextView::new(&cut[4]).center().fixed_width(10))
+                                .child(TextView::new(format!("|")).center().fixed_width(3))
+                                .child(TextView::new(&cut[5]).center().fixed_width(10))
+                            )
+                        }
+                    }
+                )                  
+            )
         )
     }
 }

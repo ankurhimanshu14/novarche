@@ -5,7 +5,8 @@ pub mod forging {
     use mysql::prelude::*;
     use uuid::Uuid;
 
-    use crate::apis::utility_tools::parse::parse::parse_from_row;
+    use crate::apis::utils::row_parser::parser::row_parser;
+    use crate::apis::utils::parse::parse::parse_from_row;
 
     #[derive(Debug, Clone)]
     pub struct Forging {
@@ -136,26 +137,7 @@ pub mod forging {
             issued_qty
             FROM forging ORDER BY planned_date DESC;";
 
-            let url: &str = "mysql://root:@localhost:3306/mws_database";
-    
-            let pool: Pool = Pool::new(url).unwrap();
-    
-            let conn = pool.get_conn().unwrap();
-
-            let mut outer_v: Vec<Vec<String>> = Vec::new();
-
-            let forg_rows: Vec<Row> = query.fetch(conn).unwrap();
-
-            for row in forg_rows {
-
-                let mut v: Vec<String> = Vec::new();
-                
-                for i in 0..11 {
-                    v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
-                }
-                outer_v.push(v.clone());
-            }
-            outer_v
+            row_parser(query.to_string(), 11)
         }
 
         pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {

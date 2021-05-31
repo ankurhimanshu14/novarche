@@ -4,7 +4,7 @@ pub mod part {
     use mysql::prelude::*;
     use mysql::*;
 
-    use crate::apis::utility_tools::parse::parse::parse_from_row;
+    use crate::apis::utils::parse::parse::parse_from_row;
 
     #[derive(Debug)]
     pub struct Part {
