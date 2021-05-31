@@ -277,6 +277,12 @@ pub mod gate_entry {
                         .scrollable()
         
                     )
+                    .button(
+                        "Print",
+                        |_| {
+                            GateEntry::export_to_csv();
+                        }
+                    )
                     .dismiss_button("Ok")
                 )
             }

@@ -4,6 +4,7 @@ pub mod gate_entry {
     use mysql::*;
     use mysql::prelude::*;
     use uuid::Uuid;
+    use std::fs;
 
     use crate::apis::utility_tools::parse::parse::parse_from_row;
 
@@ -181,6 +182,33 @@ pub mod gate_entry {
             };
             
             v
+        }
+
+        pub fn export_to_csv() {
+
+            let query = "SELECT
+            grn,
+            grn_date,
+            challan_no,
+            challan_date,
+            steel_code,
+            item_description,
+            party_code,
+            heat_no,
+            heat_code,
+            received_qty
+            FROM gate_entry ORDER BY challan_date ASC
+            INTO OUTFILE 'C:/Program Files/MySQL/MySQL Workbench 8.0 CE/Uploads/data.csv'
+            FIELDS TERMINATED BY ','
+            LINES TERMINATED BY '\r\n';";
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+
+            let mut conn = pool.get_conn().unwrap();
+
+            conn.query_drop(query).unwrap();
         }
 
         /// Returns the Total Received Quantity in Kgs.
