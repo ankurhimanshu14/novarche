@@ -9,6 +9,8 @@ pub mod gate_entry {
 
     #[derive(Debug, Clone)]
     pub struct GateEntry {
+        pub grn: usize,
+        pub grn_date: NaiveDate,
         pub gate_entry_id: String,
         pub challan_no: usize,
         pub challan_date: NaiveDate,
@@ -26,6 +28,8 @@ pub mod gate_entry {
         /// The generated uuid is converted to String value before initializing the struct.
         /// The heat code field identified by heat_code is an optional value.
         pub fn new(
+            grn: usize,
+            grn_date: NaiveDate,
             challan_no: usize,
             challan_date: NaiveDate,
             steel_code: String,
@@ -38,6 +42,8 @@ pub mod gate_entry {
 
             GateEntry {
                 gate_entry_id: Uuid::new_v4().to_string(),
+                grn,
+                grn_date,
                 challan_no,
                 challan_date,
                 steel_code,
@@ -62,8 +68,10 @@ pub mod gate_entry {
             let mut conn = pool.get_conn()?;
 
             let table = "CREATE TABLE IF NOT EXISTS gate_entry(
-                grn             INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
+                grn_id          INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
                 gate_entry_id   VARCHAR(200)    NOT NULL        UNIQUE,
+                grn             BIGINT          NOT NULL,
+                grn_date        DATETIME        NOT NULL,
                 challan_no      BIGINT          NOT NULL,
                 challan_date    DATETIME        NOT NULL,
                 steel_code       VARCHAR(20)     NOT NULL,
@@ -84,6 +92,8 @@ pub mod gate_entry {
 
             let insert = "INSERT INTO gate_entry(
                 gate_entry_id,
+                grn,
+                grn_date,
                 challan_no,
                 challan_date,
                 steel_code,
@@ -95,6 +105,8 @@ pub mod gate_entry {
                 avail_qty
             ) VALUES (
                 :gate_entry_id,
+                :grn,
+                :grn_date,
                 :challan_no,
                 :challan_date,
                 :steel_code,
@@ -110,6 +122,8 @@ pub mod gate_entry {
                 insert,
                 params! {
                     "gate_entry_id" => self.gate_entry_id.clone(),
+                    "grn" => self.grn.clone(),
+                    "grn_date" => self.grn_date,
                     "challan_no" => self.challan_no.clone(),
                     "challan_date" => self.challan_date.clone(),
                     "steel_code" => self.steel_code.clone(),
@@ -127,7 +141,7 @@ pub mod gate_entry {
 
         /// Generates the Gate Entry List ordered by challan date.
         pub fn get_gate_entry_list() -> Vec<GateEntry> {
-            let query = "SELECT gate_entry_id, challan_no, challan_date, steel_code, item_description, party_code, heat_no, heat_code, received_qty FROM gate_entry ORDER BY challan_date ASC;";
+            let query = "SELECT gate_entry_id, grn, grn_date, challan_no, challan_date, steel_code, item_description, party_code, heat_no, heat_code, received_qty FROM gate_entry ORDER BY challan_date ASC;";
 
             let url = "mysql://root:@localhost:3306/mws_database".to_string();
 
@@ -154,10 +168,10 @@ pub mod gate_entry {
                 _ => {
                     conn.query_map(
                         query,
-                        |(gate_entry_id, challan_no, challan_date, steel_code, item_description, party_code, heat_no, heat_code, received_qty)| {
+                        |(gate_entry_id, grn, grn_date, challan_no, challan_date, steel_code, item_description, party_code, heat_no, heat_code, received_qty)| {
 
                             let gr = GateEntry {
-                                gate_entry_id, challan_no, challan_date, steel_code, item_description, party_code, heat_no, heat_code, received_qty
+                                gate_entry_id, grn, grn_date, challan_no, challan_date, steel_code, item_description, party_code, heat_no, heat_code, received_qty
                             };
 
                             v.push(gr);

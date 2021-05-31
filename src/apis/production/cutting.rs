@@ -41,11 +41,11 @@ pub mod cutting {
             }
         }
 
-        pub fn post(&self, pl_wt: f64) -> Result<u64> {
+        pub fn post(&self) -> Result<u64> {
 
             let temp_table = "CREATE TEMPORARY TABLE cutting_temp(
                 temp_id             INT             NOT NULL            PRIMARY KEY             AUTO_INCREMENT,
-                cutting_id          VARCHAR(200)    NOT NULL            UNIQUE,
+                cutting_id          VARCHAR(100)    NOT NULL            UNIQUE,
                 planned_date        DATETIME        NOT NULL,
                 machine             VARCHAR(10)     NOT NULL,
                 part_code           VARCHAR(20)     NOT NULL,
@@ -97,7 +97,7 @@ pub mod cutting {
             (   
                 id                     INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
                 rm_id                  VARCHAR(100)    NOT NULL,
-                prod_id                VARCHAR(100)    NOT NULL,
+                cutting_id             VARCHAR(100)    NOT NULL         UNIQUE,
                 planned_date           DATETIME        NOT NULL,
                 machine                VARCHAR(10)     NOT NULL,
                 part_no                INT             NOT NULL,
@@ -116,11 +116,11 @@ pub mod cutting {
                 total_wt               FLOAT(10,3)                     DEFAULT          (actual_qty * cut_wt),
                 created_at             DATETIME         NOT NULL       DEFAULT            CURRENT_TIMESTAMP,
                 modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP,
-                UNIQUE INDEX           rm_prod                                          (rm_id, prod_id),
+                UNIQUE INDEX           rm_cutting                                          (rm_id, cutting_id),
                 CONSTRAINT          sr_fk_cut_rm    FOREIGN KEY(rm_id)            REFERENCES      approved_components(rm_id)       ON UPDATE CASCADE ON DELETE CASCADE
             )ENGINE = InnoDB;";
 
-            let insert = "INSERT INTO cutting(rm_id, prod_id, planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
+            let insert = "INSERT INTO cutting(rm_id, cutting_id, planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
             SELECT
             a.rm_id,
             c.cutting_id,
@@ -147,13 +147,13 @@ pub mod cutting {
 
             conn.query_drop(insert)?;
 
-            Ok(conn.last_insert_id())        
+            Ok(conn.last_insert_id())
         }
 
         pub fn update_cutting_status(r_id: String, p_id: String, aq: usize, oq: usize, ep: f64) -> Result<()> {
             let stmt = format!("UPDATE cutting
             SET actual_qty = '{0}', ok_qty = '{1}', end_pc_wt = '{2}'
-            WHERE rm_id = '{3}' AND prod_id = '{4}';", aq, oq, ep, r_id, p_id);
+            WHERE rm_id = '{3}' AND cutting_id = '{4}';", aq, oq, ep, r_id, p_id);
 
             let trig1 = "CREATE TRIGGER before_cutting_update
             BEFORE UPDATE
@@ -213,7 +213,7 @@ pub mod cutting {
         }
 
         pub fn get_cutting_list() -> Vec<Vec<String>> {
-            let query = "SELECT rm_id, prod_id, planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
+            let query = "SELECT rm_id, cutting_id, planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
     

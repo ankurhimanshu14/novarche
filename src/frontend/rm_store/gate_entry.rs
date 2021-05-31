@@ -29,6 +29,8 @@ pub mod gate_entry {
             .padding_lrtb(1, 1, 1, 0)
             .content(
                 ListView::new()
+                .child("GRN", EditView::new().with_name("grn").fixed_width(30).min_height(2))
+                .child("GRN Date", EditView::new().with_name("grn_date").fixed_width(30).min_height(2))
                 .child("Challan No", EditView::new().with_name("challan_no").fixed_width(30).min_height(2))
                 .child("Challan Date", EditView::new().with_name("challan_date").fixed_width(30).min_height(2))
                 .child("Item Code", EditView::new().with_name("steel_code").fixed_width(30).min_height(2))
@@ -54,6 +56,16 @@ pub mod gate_entry {
             .button(
                 "Add",
                 |s| {
+                    let grn = s.call_on_name("grn", |v: &mut EditView| {
+                        v.get_content()
+                    }).unwrap();
+
+                    let grn_date = s.call_on_name("grn_date", |v: &mut EditView| {
+                        v.get_content()
+                    }).unwrap();
+
+                    let grn_date = NaiveDate::parse_from_str(&grn_date, "%d-%m-%Y").unwrap();
+
                     let challan_no = s.call_on_name("challan_no", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
@@ -91,6 +103,8 @@ pub mod gate_entry {
                     }).unwrap();
 
                     match GateEntry::new(
+                        grn.parse::<usize>().unwrap(),
+                        grn_date,
                         challan_no.parse::<usize>().unwrap(),
                         challan_date,
                         steel_code.to_string(),
@@ -200,9 +214,13 @@ pub mod gate_entry {
                                     LinearLayout::new(Horizontal)
                                     .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
-                                    .child(TextView::new(format!("Challan No")).center().fixed_width(10))
+                                    .child(TextView::new(format!("GRN")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
-                                    .child(TextView::new(format!("Challan Date")).center().fixed_width(20))
+                                    .child(TextView::new(format!("GRN Date")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Challan No")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(1))
+                                    .child(TextView::new(format!("Challan Date")).center().fixed_width(15))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
                                     .child(TextView::new(format!("Item Code")).center().fixed_width(20))
                                     .child(TextView::new(format!("|")).center().fixed_width(1))
@@ -232,11 +250,15 @@ pub mod gate_entry {
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{0}", count)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{0}", gr.challan_no)).center().fixed_width(10))
+                                        .child(TextView::new(format!("{0}", gr.grn)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{0}", gr.challan_date)).center().fixed_width(20))
+                                        .child(TextView::new(format!("{0}", gr.grn_date)).center().fixed_width(15))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
-                                        .child(TextView::new(format!("{0}", gr.steel_code)).fixed_width(20))
+                                        .child(TextView::new(format!("{0}", gr.challan_no)).center().fixed_width(15))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", gr.challan_date)).center().fixed_width(15))
+                                        .child(TextView::new(format!("|")).center().fixed_width(1))
+                                        .child(TextView::new(format!("{0}", gr.steel_code)).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))
                                         .child(TextView::new(format!("{0}", gr.item_description)).center().fixed_width(25))
                                         .child(TextView::new(format!("|")).center().fixed_width(1))

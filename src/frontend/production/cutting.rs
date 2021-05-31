@@ -141,7 +141,7 @@ pub mod cutting {
                                     planned_qty.to_string().parse::<usize>().unwrap()
                                 );
     
-                                match Cutting::post(&new_plan, planned_wt) {
+                                match Cutting::post(&new_plan) {
                                     Ok(0) => s.add_layer(Dialog::info("Check planning again")),
                                     Ok(m) =>{
                                         s.pop_layer();
@@ -213,11 +213,11 @@ pub mod cutting {
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[2]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[3]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[3]).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[4]).fixed_width(10))
+                                        .child(TextView::new(&cut[4]).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[5]).center().fixed_width(10))
+                                        .child(TextView::new(&cut[5]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[6]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
