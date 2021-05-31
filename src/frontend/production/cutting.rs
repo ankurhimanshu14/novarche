@@ -112,46 +112,56 @@ pub mod cutting {
                         v.selection()
                     }).unwrap();
 
-                    let steel_code = Steel::find_steel_code(gd.to_string(), bs.to_string().parse::<usize>().unwrap(), bt.unwrap().to_string());
+                    match Part::match_with_steel(
+                        p_no.to_string().parse::<usize>().unwrap(),
+                        gd.to_string(),
+                        bs.parse::<usize>().unwrap(),
+                        bt.clone().unwrap().to_string()
+                    ) {
+                        Ok(()) => {
+                            let steel_code = Steel::find_steel_code(gd.to_string(), bs.to_string().parse::<usize>().unwrap(), bt.unwrap().to_string());
 
-                    let heat_no = s.call_on_name("heat_no", |v: &mut SelectView| {
-                        v.selection()
-                    }).unwrap();
-
-                    let planned_qty = s.call_on_name("planned_qty", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
-                    let cut_wt = Part::get_cut_wt(p_no.to_string().parse::<usize>().unwrap());
-                    let avail_qty = GateEntry::get_avail_qty(heat_no.clone().unwrap().to_string());
-                    let planned_wt = planned_qty.to_string().parse::<f64>().unwrap() * cut_wt.clone();
-
-                    let est_prod: usize = (avail_qty / cut_wt) as usize;
-
-                    match part_code.is_empty() {
-                        false => match steel_code.is_empty() {
-                            true => s.add_layer(Dialog::info("Steel is not available")),
-                            false => {
-                                let new_plan = Cutting::new(
-                                    planned_date,
-                                    machine.unwrap().to_string(),
-                                    part_code[0].clone(),
-                                    steel_code[0].clone(),
-                                    heat_no.clone().unwrap().to_string(),
-                                    planned_qty.to_string().parse::<usize>().unwrap()
-                                );
-    
-                                match Cutting::post(&new_plan) {
-                                    Ok(0) => s.add_layer(Dialog::info("Check planning again")),
-                                    Ok(m) =>{
-                                        s.pop_layer();
-                                        s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
-                                    },
-                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
-                                }
+                            let heat_no = s.call_on_name("heat_no", |v: &mut SelectView| {
+                                v.selection()
+                            }).unwrap();
+        
+                            let planned_qty = s.call_on_name("planned_qty", |v: &mut EditView| {
+                                v.get_content()
+                            }).unwrap();
+        
+                            let cut_wt = Part::get_cut_wt(p_no.to_string().parse::<usize>().unwrap());
+                            let avail_qty = GateEntry::get_avail_qty(heat_no.clone().unwrap().to_string());
+                            let planned_wt = planned_qty.to_string().parse::<f64>().unwrap() * cut_wt.clone();
+        
+                            let est_prod: usize = (avail_qty / cut_wt) as usize;
+        
+                            match part_code.is_empty() {
+                                false => match steel_code.is_empty() {
+                                    true => s.add_layer(Dialog::info("Steel is not available")),
+                                    false => {
+                                        let new_plan = Cutting::new(
+                                            planned_date,
+                                            machine.unwrap().to_string(),
+                                            part_code[0].clone(),
+                                            steel_code[0].clone(),
+                                            heat_no.clone().unwrap().to_string(),
+                                            planned_qty.to_string().parse::<usize>().unwrap()
+                                        );
+            
+                                        match Cutting::post(&new_plan) {
+                                            Ok(0) => s.add_layer(Dialog::info("Check planning again")),
+                                            Ok(m) =>{
+                                                s.pop_layer();
+                                                s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
+                                            },
+                                            Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                        }
+                                    }
+                                },
+                                true => s.add_layer(Dialog::info("Part is not available"))
                             }
                         },
-                        true => s.add_layer(Dialog::info("Part is not available"))
+                        Err(e) => s.add_layer(Dialog::text(format!("{:#?}", e)).dismiss_button("Ok"))
                     }
                 }
             )
@@ -186,6 +196,8 @@ pub mod cutting {
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Heat No")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Heat Code")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Planned Qty (Nos)")).center().fixed_width(20))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Actual Qty (Nos)")).center().fixed_width(20))
@@ -200,7 +212,7 @@ pub mod cutting {
                                 for cut in cutting_list {
                                     count = count + 1;
 
-                                    let enable_button: bool = match &cut[6].parse::<usize>().unwrap() {
+                                    let enable_button: bool = match &cut[7].parse::<usize>().unwrap() {
                                         0 => true,
                                         _ => false
                                     };
@@ -217,13 +229,15 @@ pub mod cutting {
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[4]).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[5]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[5]).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[6]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[7]).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[8]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[9]).center().fixed_width(20))
                                         .child(Button::new_raw(
                                             "        Update       ",
                                             move |s| {

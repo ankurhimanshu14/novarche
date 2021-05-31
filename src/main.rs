@@ -59,7 +59,8 @@ use frontend::{
             get_cutting_list
         },
         forging::forging::{
-            get_input_material
+            get_input_material,
+            get_forging_list
         }
     }
 };
@@ -168,6 +169,7 @@ fn main() {
                 "forging",
                 menu::MenuTree::new()
                 .leaf("New Plan", |s|{ get_input_material(s) })
+                .leaf("Forging Plan List", |s|{ get_forging_list(s) })
             )
         );
 

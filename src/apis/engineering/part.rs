@@ -300,5 +300,22 @@ pub mod part {
 
             parse_from_row(&cut_wt[0])[0].parse::<f64>().unwrap()
         }
+
+        pub fn match_with_steel(p: usize, g: String, s: usize, t: String) -> Result<()> {
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
+
+            let query = format!("SELECT COUNT(*) FROM part WHERE part_no = {} AND grade = '{}' AND sec_size = {} AND sec_type = '{}' ", p, g, s, t);
+
+            match &conn.query_map(query, |count: u32| count).unwrap()[0] {
+                0 => Err(mysql::Error::MySqlError(MySqlError {  message: "Part and Steel Mismatch".to_string(), state: "MySqlError".to_string(), code: 1001 })),
+                1 => Ok(()),
+                _ => Err(mysql::Error::MySqlError(MySqlError {  message: "No unique part associated with the steel".to_string(), state: "MySqlError".to_string(), code: 1002 }))
+            }
+        }
     }
 }

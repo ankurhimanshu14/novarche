@@ -88,6 +88,7 @@ pub mod forging {
                 actual_qty             INT                             DEFAULT          0,
                 ok_qty                 INT                             DEFAULT          0,
                 rej_qty                INT                             DEFAULT          (actual_qty - ok_qty),
+                issued_qty             INT                             DEFAULT          0,
                 ok_wt                  FLOAT(10,3)                     DEFAULT          (ok_qty * forging_wt),
                 rej_wt                 FLOAT(10,3)                     DEFAULT          (rej_qty * forging_wt),
                 total_wt               FLOAT(10,3)                     DEFAULT          (actual_qty * forging_wt),
@@ -118,6 +119,109 @@ pub mod forging {
             conn.query_drop(insert)?;
 
             Ok(conn.last_insert_id())
+        }
+
+        pub fn get_forging_list() -> Vec<Vec<String>> {
+            let query = "SELECT
+            cutting_id,
+            forging_id,
+            planned_date,
+            machine,
+            part_no,
+            forging_wt,
+            planned_qty,
+            actual_qty,
+            ok_qty,
+            rej_qty,
+            issued_qty
+            FROM forging ORDER BY planned_date DESC;";
+
+            let url: &str = "mysql://root:@localhost:3306/mws_database";
+    
+            let pool: Pool = Pool::new(url).unwrap();
+    
+            let conn = pool.get_conn().unwrap();
+
+            let mut outer_v: Vec<Vec<String>> = Vec::new();
+
+            let forg_rows: Vec<Row> = query.fetch(conn).unwrap();
+
+            for row in forg_rows {
+
+                let mut v: Vec<String> = Vec::new();
+                
+                for i in 0..11 {
+                    v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
+                }
+                outer_v.push(v.clone());
+            }
+            outer_v
+        }
+
+        pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {
+            let stmt = format!("UPDATE forging
+            SET actual_qty = '{0}', ok_qty = '{1}'
+            WHERE cutting_id = '{2}' AND forging_id = '{3}';", aq, oq, c_id, f_id);
+
+            let trig1 = "CREATE TRIGGER before_forging_update
+            BEFORE UPDATE
+            ON forging FOR EACH ROW
+                SET
+                new.rej_qty = (new.actual_qty - new.ok_qty),
+                new.ok_wt = (old.forging_wt * new.ok_qty),
+                new.rej_wt = (old.forging_wt * new.rej_qty),
+                new.total_wt = (old.forging_wt * new.actual_qty);";
+
+            let trig2 = "CREATE TRIGGER after_forging_update
+            AFTER UPDATE
+            ON forging FOR EACH ROW
+            BEGIN
+                UPDATE cutting SET issued_qty = new.actual_qty
+                WHERE cutting_id = (SELECT DISTINCT cutting_id FROM forging WHERE forging_id = old.forging_id);
+            END ;";
+
+            let url: &str = "mysql://root:@localhost:3306/mws_database";
+    
+            let pool: Pool = Pool::new(url)?;
+    
+            let mut conn = pool.get_conn()?;
+
+            let result = conn.query_map(
+                "SHOW TRIGGERS FROM mws_database;",
+                |t: Row| {
+                    parse_from_row(&t)
+                }
+            ).unwrap();
+
+            let mut trig_name: Vec<String> = Vec::new();
+
+            for v in result.clone() {
+                trig_name.push(v[0].clone());
+            }
+
+            match trig_name.contains(&"before_forging_update".to_string()) {
+                true => {
+                    match trig_name.contains(&"after_forging_update".to_string()) {
+                        true => conn.query_drop(stmt)?,
+                        false => {
+                            conn.query_drop(trig2)?;
+                            conn.query_drop(stmt)?;
+                        }
+                    }
+                },
+                false => {
+                    conn.query_drop(trig1)?;
+                    match trig_name.contains(&"after_forging_update".to_string()) {
+                        true => conn.query_drop(stmt)?,
+                        false => {
+                            conn.query_drop(trig2)?;
+                            conn.query_drop(stmt)?;
+                        }
+                    }
+                }
+            }
+
+            Ok(())
         }
     }
 }

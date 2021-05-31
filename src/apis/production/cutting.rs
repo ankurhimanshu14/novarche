@@ -102,6 +102,7 @@ pub mod cutting {
                 machine                VARCHAR(10)     NOT NULL,
                 part_no                INT             NOT NULL,
                 heat_no                VARCHAR(20)     NOT NULL,
+                heat_code              VARCHAR(10),
                 grade                  VARCHAR(20)     NOT NULL,
                 size                   INT             NOT NULL,
                 section                VARCHAR(10)     NOT NULL,
@@ -116,13 +117,14 @@ pub mod cutting {
                 total_wt               FLOAT(10,3)                     DEFAULT          (actual_qty * cut_wt),
                 store                  VARCHAR(100),
                 issued                 TINYINT,
+                issued_qty             INT                             DEFAULT          (ok_qty),
                 created_at             DATETIME         NOT NULL       DEFAULT            CURRENT_TIMESTAMP,
                 modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP,
                 UNIQUE INDEX           rm_cutting                                          (rm_id, cutting_id),
                 CONSTRAINT          sr_fk_cut_rm    FOREIGN KEY(rm_id)            REFERENCES      approved_components(rm_id)       ON UPDATE CASCADE ON DELETE CASCADE
             )ENGINE = InnoDB;";
 
-            let insert = "INSERT INTO cutting(rm_id, cutting_id, planned_date, machine, part_no, heat_no, grade, size, section, cut_wt, planned_qty)
+            let insert = "INSERT INTO cutting(rm_id, cutting_id, planned_date, machine, part_no, heat_no, heat_code, grade, size, section, cut_wt, planned_qty)
             SELECT
             a.rm_id,
             c.cutting_id,
@@ -130,6 +132,7 @@ pub mod cutting {
             c.machine,
             p.part_no,
             c.heat_no,
+            g.heat_code,
             s.grade,
             s.size,
             s.section,
@@ -143,7 +146,9 @@ pub mod cutting {
             AND a.part_no = (SELECT part_no FROM part WHERE part_code = c.part_code)
             AND a.avail_qty >= (planned_qty * p.cut_wt)
             INNER JOIN steels s
-            ON c.steel_code = s.steel_code;";
+            ON c.steel_code = s.steel_code
+            INNER JOIN gate_entry g
+            ON a.rm_id = g.gate_entry_id;";
 
             conn.query_drop(cutting_table)?;
 
@@ -221,7 +226,18 @@ pub mod cutting {
         }
 
         pub fn get_cutting_list() -> Vec<Vec<String>> {
-            let query = "SELECT rm_id, cutting_id, planned_date, part_no, heat_no, planned_qty, actual_qty, ok_qty, rej_qty FROM cutting ORDER BY planned_date DESC;";
+            let query = "SELECT
+            rm_id,
+            cutting_id,
+            planned_date,
+            part_no,
+            heat_no,
+            heat_code,
+            planned_qty,
+            actual_qty,
+            ok_qty,
+            rej_qty
+            FROM cutting ORDER BY planned_date DESC;";
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
     
@@ -237,7 +253,7 @@ pub mod cutting {
 
                 let mut v: Vec<String> = Vec::new();
                 
-                for i in 0..9 {
+                for i in 0..10 {
                     v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
                 }
                 outer_v.push(v.clone());
@@ -251,10 +267,11 @@ pub mod cutting {
             cutting_id,
             part_no,
             heat_no,
+            heat_code,
             ok_qty,
-            issued
+            issued_qty
             FROM cutting
-            WHERE issued = 0 AND STORE = 'CUTTING STORE'
+            WHERE ok_qty > issued_qty AND STORE = 'CUTTING STORE'
             ORDER BY planned_date
             DESC;";
 
@@ -272,7 +289,7 @@ pub mod cutting {
 
                 let mut v: Vec<String> = Vec::new();
                 
-                for i in 0..6 {
+                for i in 0..7 {
                     v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
                 }
                 outer_v.push(v.clone());
