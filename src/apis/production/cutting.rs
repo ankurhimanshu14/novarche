@@ -114,6 +114,8 @@ pub mod cutting {
                 rej_wt                 FLOAT(10,3)                     DEFAULT          (rej_qty * cut_wt),
                 end_pc_wt              FLOAT(10,3),
                 total_wt               FLOAT(10,3)                     DEFAULT          (actual_qty * cut_wt),
+                store                  VARCHAR(100),
+                issued                 TINYINT,
                 created_at             DATETIME         NOT NULL       DEFAULT            CURRENT_TIMESTAMP,
                 modified_at            DATETIME                        ON UPDATE          CURRENT_TIMESTAMP,
                 UNIQUE INDEX           rm_cutting                                          (rm_id, cutting_id),
@@ -158,7 +160,13 @@ pub mod cutting {
             let trig1 = "CREATE TRIGGER before_cutting_update
             BEFORE UPDATE
             ON cutting FOR EACH ROW
-                SET new.rej_qty = (new.actual_qty - new.ok_qty), new.ok_wt = (old.cut_wt * new.ok_qty), new.rej_wt = (old.cut_wt * new.rej_qty), new.total_wt = (old.cut_wt * new.actual_qty);";
+                SET
+                new.rej_qty = (new.actual_qty - new.ok_qty),
+                new.ok_wt = (old.cut_wt * new.ok_qty),
+                new.rej_wt = (old.cut_wt * new.rej_qty),
+                new.total_wt = (old.cut_wt * new.actual_qty),
+                new.store = 'CUTTING STORE',
+                new.issued = 0;";
 
             let trig2 = "CREATE TRIGGER after_cutting_update
             AFTER UPDATE
@@ -230,6 +238,41 @@ pub mod cutting {
                 let mut v: Vec<String> = Vec::new();
                 
                 for i in 0..9 {
+                    v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
+                }
+                outer_v.push(v.clone());
+            }
+            outer_v
+        }
+
+        pub fn ready_to_forge() -> Vec<Vec<String>> {
+            let query = "SELECT
+            rm_id,
+            cutting_id,
+            part_no,
+            heat_no,
+            ok_qty,
+            issued
+            FROM cutting
+            WHERE issued = 0 AND STORE = 'CUTTING STORE'
+            ORDER BY planned_date
+            DESC;";
+
+            let url: &str = "mysql://root:@localhost:3306/mws_database";
+    
+            let pool: Pool = Pool::new(url).unwrap();
+    
+            let conn = pool.get_conn().unwrap();
+
+            let mut outer_v: Vec<Vec<String>> = Vec::new();
+
+            let cut_rows: Vec<Row> = query.fetch(conn).unwrap();
+
+            for row in cut_rows {
+
+                let mut v: Vec<String> = Vec::new();
+                
+                for i in 0..6 {
                     v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
                 }
                 outer_v.push(v.clone());

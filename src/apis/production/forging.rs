@@ -5,6 +5,8 @@ pub mod forging {
     use mysql::prelude::*;
     use uuid::Uuid;
 
+    use crate::apis::utility_tools::parse::parse::parse_from_row;
+
     #[derive(Debug, Clone)]
     pub struct Forging {
         pub forging_id: String,
@@ -73,7 +75,7 @@ pub mod forging {
                 }
             )?;
 
-            let cutting_table = "CREATE TABLE IF NOT EXISTS forging
+            let forging_table = "CREATE TABLE IF NOT EXISTS forging
             (   
                 id                     INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
                 cutting_id             VARCHAR(100)    NOT NULL,
@@ -111,9 +113,42 @@ pub mod forging {
             ON c.part_no = (SELECT part_no FROM part WHERE part_code = f.part_code)
             AND c.actual_qty >= f.planned_qty;";
 
-            conn.query_drop(cutting_table)?;
+            let trig = "CREATE PROCEDURE after_issue_cutting
+            AFTER INSERT
+            ON forging FOR EACH ROW
+            BEGIN
+                UPDATE cutting
+                SET store = NULL AND issued = 1
+                WHERE cutting_id = (SELECT cutting_id FROM forging WHERE forging_id = NEW.forging_id);
+            END ;";
 
-            conn.query_drop(insert)?;
+            let result = conn.query_map(
+                "SHOW TRIGGERS FROM mws_database;",
+                |t: Row| {
+                    parse_from_row(&t)
+                }
+            ).unwrap();
+
+            let mut trig_name: Vec<String> = Vec::new();
+
+            for v in result.clone() {
+                trig_name.push(v[0].clone());
+            }
+
+            match trig_name.contains(&"after_issue_cutting".to_string()) {
+                true => {
+                    conn.query_drop(forging_table)?;
+
+                    conn.query_drop(insert)?;
+                },
+                false => {
+                    conn.query_drop(trig)?;
+
+                    conn.query_drop(forging_table)?;
+
+                    conn.query_drop(insert)?;
+                }
+            }
 
             Ok(conn.last_insert_id())
         }

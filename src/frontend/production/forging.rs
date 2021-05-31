@@ -24,7 +24,79 @@ pub mod forging {
 
     use crate::apis::utility_tools::parse::parse::parse_from_row;
 
-    pub fn forging_plan(s: &mut Cursive) {
+    pub fn get_input_material(s: &mut Cursive) {
+        let cutting_inv = Cutting::ready_to_forge();
+
+        match cutting_inv.is_empty() {
+            true => s.add_layer(Dialog::new().padding_lrtb(10, 10, 0, 0).content(TextView::new(format!("No Cutting Inventory!"))).dismiss_button("Ok")),
+            false => {
+                s.add_layer(
+                    Dialog::new()
+                    .title("Cutting Inventory List")
+                    .padding_lrtb(1, 1, 1, 0)
+                    .content(
+                        ListView::new()
+                        .with(
+                            |list| {
+                                list
+                                .add_child(
+                                    "",
+                                    LinearLayout::new(Horizontal)
+                                    .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Part No")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Heat No")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("OK Qty (Nos)")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new("Select").center().fixed_width(20))
+                                );
+        
+                                let mut count: usize = 0;
+                                for cut in cutting_inv {
+                                    count = count + 1;
+
+                                    let enable: bool = match cut[5].parse::<u32>().unwrap() {
+                                        0 => true,
+                                        _ => false
+                                    };
+
+                                    list
+                                    .add_child(
+                                        "",
+                                        LinearLayout::new(Horizontal)
+                                        .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[2]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[3]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[4]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[5]).center().fixed_width(20))
+                                        .child(Button::new_raw(
+                                            "Add to production",
+                                            move |s| {
+                                                let r_id = &cut[0];
+                                                let c_id = &cut[1];
+                                                forging_plan(s, r_id.to_string(), c_id.to_string())
+                                            }
+                                        ).with_enabled(enable))
+                                    )
+                                }
+                            }
+                        )
+                        .scrollable()
+        
+                    )
+                    .dismiss_button("Ok")
+                )
+            }
+        }
+    }
+
+    pub fn forging_plan(s: &mut Cursive, r: String, c: String) {
 
         s.add_layer(
             Dialog::new()
@@ -93,7 +165,8 @@ pub mod forging {
                                 Ok(0) => s.add_layer(Dialog::info("Check planning again")),
                                 Ok(m) =>{
                                     s.pop_layer();
-                                    s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
+                                    s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"));
+                                    get_input_material(s);
                                 },
                                 Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
                             }
