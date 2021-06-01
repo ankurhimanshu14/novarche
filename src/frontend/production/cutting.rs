@@ -5,13 +5,10 @@ pub mod cutting {
     use cursive::{
         Cursive,
         traits::*,
-        CursiveExt,
-        event::Key,
-        menu,
         view::{ Nameable, Resizable },
-        align::{ HAlign, VAlign },
-        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, TextArea, LinearLayout, Button },
-        direction::Orientation::{ Horizontal, Vertical }
+        align::HAlign,
+        views::{ Dialog, EditView, ListView, SelectView, TextView, LinearLayout, Button },
+        direction::Orientation::Horizontal
     };
 
     use crate::apis::{
@@ -21,9 +18,7 @@ pub mod cutting {
         production::cutting::cutting::Cutting
     };
 
-    use crate::frontend::raw_material::steel::steel::create_steels;
-
-    use crate::apis::utils::parse::parse::parse_from_row;
+    use crate::frontend::production::forging::forging::submit_forging_plan;
 
     pub fn plan(s: &mut Cursive) {
 
@@ -42,7 +37,7 @@ pub mod cutting {
                         .popup()
                         .autojump()
                         .with_all_str(&["BS01".to_string(), "BS02".to_string(), "BS03".to_string(), "BS04".to_string(), "BS05".to_string(), "SH-4 INCH".to_string(), "SH-5 INCH".to_string(), "SH-6 INCH".to_string()])
-                        .on_select(|s, item| {
+                        .on_select(|_, item| {
                             println!("{}", &item);
                         }
                         )
@@ -128,12 +123,6 @@ pub mod cutting {
                             let planned_qty = s.call_on_name("planned_qty", |v: &mut EditView| {
                                 v.get_content()
                             }).unwrap();
-        
-                            let cut_wt = Part::get_cut_wt(p_no.to_string().parse::<usize>().unwrap());
-                            let avail_qty = GateEntry::get_avail_qty(heat_no.clone().unwrap().to_string());
-                            let planned_wt = planned_qty.to_string().parse::<f64>().unwrap() * cut_wt.clone();
-        
-                            let est_prod: usize = (avail_qty / cut_wt) as usize;
         
                             match part_code.is_empty() {
                                 false => match steel_code.is_empty() {
@@ -316,54 +305,82 @@ pub mod cutting {
         )
     }
 
-    pub fn display_cutting_heat(s: &mut Cursive, p: usize) {
+    pub fn display_cutting_heat(s: &mut Cursive, p: usize, p_date: NaiveDate) {
 
         let cutting_list = Cutting::cutting_heat(p);
 
-        s.add_layer(
-            Dialog::new()
-            .title("Available Heats")
-            .padding_lrtb(1, 1, 1, 1)
-            .content(
-                ListView::new()
-                .with(
-                    |list| {
-                        list.add_child(
-                            "",
-                            LinearLayout::new(Horizontal)
-                            .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
-                            .child(TextView::new(format!("|")).center().fixed_width(3))
-                            .child(TextView::new(format!("Part No")).center().fixed_width(10))
-                            .child(TextView::new(format!("|")).center().fixed_width(3))
-                            .child(TextView::new(format!("Heat No")).center().fixed_width(10))
-                            .child(TextView::new(format!("|")).center().fixed_width(3))
-                            .child(TextView::new(format!("Heat Code")).center().fixed_width(10))
-                            .child(TextView::new(format!("|")).center().fixed_width(3))
-                            .child(TextView::new(format!("Available Qty (Nos)")).center().fixed_width(20))
-                        );
+        match cutting_list.len() {
+            0 => s.add_layer(Dialog::info("No cutting available")),
+            _ => {
+                s.add_layer(
+                    Dialog::new()
+                    .title("Available Heats")
+                    .padding_lrtb(1, 1, 1, 1)
+                    .content(
+                        ListView::new()
+                        .with(
+                            |list| {
+                                list.add_child(
+                                    "",
+                                    LinearLayout::new(Horizontal)
+                                    .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Part No")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Heat No")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Heat Code")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Available Qty (Nos)")).center().fixed_width(20))
+                                );
+        
+                                let mut count: usize = 0;
+                                for cut in cutting_list {
+                                    count = count + 1;
 
-                        let mut count: usize = 0;
-                        for cut in cutting_list {
-                            count = count + 1;
+                                    let enable_button: bool = match &cut[4].parse::<usize>().unwrap() {
+                                        0 => false,
+                                        _ => true
+                                    };
+        
+                                    list
+                                    .add_child(
+                                        "",
+                                        LinearLayout::new(Horizontal)
+                                        .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[1]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[2]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[3]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[4]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(EditView::new().with_name("planned_qty").fixed_width(20))
+                                        .child(Button::new_raw(
+                                            "Plan",
+                                            move |s| {
+                                                let p = s.call_on_name("planned_qty", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
 
-                            list
-                            .add_child(
-                                "",
-                                LinearLayout::new(Horizontal)
-                                .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
-                                .child(TextView::new(format!("|")).center().fixed_width(3))
-                                .child(TextView::new(&cut[2]).center().fixed_width(20))
-                                .child(TextView::new(format!("|")).center().fixed_width(3))
-                                .child(TextView::new(&cut[3]).center().fixed_width(10))
-                                .child(TextView::new(format!("|")).center().fixed_width(3))
-                                .child(TextView::new(&cut[4]).center().fixed_width(10))
-                                .child(TextView::new(format!("|")).center().fixed_width(3))
-                                .child(TextView::new(&cut[5]).center().fixed_width(10))
-                            )
-                        }
-                    }
-                )                  
-            )
-        )
+                                                let planned_qty = p.parse::<usize>().unwrap();
+
+                                                let part_code = Part::find_part_code(cut[1].parse::<usize>().unwrap());
+
+                                                submit_forging_plan(s, p_date, part_code[0].clone(), planned_qty);
+                                            }
+                                        ).with_enabled(enable_button))
+                                    )
+                                }
+                            }
+                        )              
+                    ).dismiss_button("Cancel")
+                )
+            }
+        }
+
+        
     }
 }

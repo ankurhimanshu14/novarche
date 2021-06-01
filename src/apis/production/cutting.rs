@@ -3,13 +3,10 @@ pub mod cutting {
     use chrono::NaiveDate;
     use mysql::*;
     use mysql::prelude::*;
-    use uuid::Uuid;
 
-    use crate::apis::engineering::part::part::Part;
-    use crate::apis::raw_material::steel::steel::Steel;
-    use crate::apis::rm_store::gate_entry::gate_entry::GateEntry;
     use crate::apis::utils::parse::parse::parse_from_row;
     use crate::apis::utils::row_parser::parser::row_parser;
+    use crate::apis::utils::gen_uuid::gen_uuid::generate_uuid;
 
     #[derive(Debug, Clone)]
     pub struct Cutting {
@@ -32,7 +29,7 @@ pub mod cutting {
             planned_qty: usize
         ) -> Self {
             Cutting {
-                cutting_id: Uuid::new_v4().to_string(),
+                cutting_id: generate_uuid(),
                 planned_date,
                 machine,
                 part_code,
@@ -223,11 +220,9 @@ pub mod cutting {
         }
 
         pub fn cutting_heat(p: usize) -> Vec<Vec<String>> {
-            let query = format!("SELECT rm_id, cutting_id, part_no, heat_no, heat_code, (ok_qty - issued_qty) FROM cutting WHERE part_no = {} AND (ok_qty - issued_qty) > 0 ORDER BY modified_at ASC;", p);
+            let query = format!("SELECT rm_id, part_no, heat_no, heat_code, SUM(ok_qty - issued_qty) FROM cutting WHERE part_no = {} AND ok_qty - issued_qty > 0 GROUP BY rm_id, heat_no, heat_code LIMIT 1;", p);
             
-            let list = row_parser(query, 6);
-
-            println!("{:?}", &list);
+            let list = row_parser(query, 5);
 
             list
         }

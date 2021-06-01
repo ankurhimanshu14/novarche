@@ -3,10 +3,9 @@ pub mod gate_entry {
     use chrono::NaiveDate;
     use mysql::*;
     use mysql::prelude::*;
-    use uuid::Uuid;
-    use std::fs;
 
     use crate::apis::utils::parse::parse::parse_from_row;
+    use crate::apis::utils::gen_uuid::gen_uuid::generate_uuid;
 
     #[derive(Debug, Clone)]
     pub struct GateEntry {
@@ -42,7 +41,7 @@ pub mod gate_entry {
         ) -> Self {
 
             GateEntry {
-                gate_entry_id: Uuid::new_v4().to_string(),
+                gate_entry_id: generate_uuid(),
                 grn,
                 grn_date,
                 challan_no,

@@ -3,10 +3,10 @@ pub mod forging {
     use chrono::NaiveDate;
     use mysql::*;
     use mysql::prelude::*;
-    use uuid::Uuid;
 
     use crate::apis::utils::row_parser::parser::row_parser;
     use crate::apis::utils::parse::parse::parse_from_row;
+    use crate::apis::utils::gen_uuid::gen_uuid::generate_uuid;
 
     #[derive(Debug, Clone)]
     pub struct Forging {
@@ -25,7 +25,7 @@ pub mod forging {
             planned_qty: usize
         ) -> Self {
             Forging {
-                forging_id: Uuid::new_v4().to_string(),
+                forging_id: generate_uuid(),
                 planned_date,
                 machine,
                 part_code,
@@ -124,20 +124,19 @@ pub mod forging {
 
         pub fn get_forging_list() -> Vec<Vec<String>> {
             let query = "SELECT
-            cutting_id,
             forging_id,
             planned_date,
             machine,
             part_no,
             forging_wt,
-            planned_qty,
-            actual_qty,
-            ok_qty,
-            rej_qty,
-            issued_qty
-            FROM forging ORDER BY planned_date DESC;";
+            AVG(planned_qty),
+            AVG(actual_qty),
+            AVG(ok_qty),
+            AVG(rej_qty),
+            AVG(issued_qty)
+            FROM forging GROUP BY forging_id, planned_date, machine, part_no, forging_wt ORDER BY planned_date DESC;";
 
-            row_parser(query.to_string(), 11)
+            row_parser(query.to_string(), 10)
         }
 
         pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {
