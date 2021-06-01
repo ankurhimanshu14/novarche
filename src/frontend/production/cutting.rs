@@ -367,9 +367,11 @@ pub mod cutting {
 
                                                 let planned_qty = p.parse::<usize>().unwrap();
 
-                                                let part_code = Part::find_part_code(cut[1].parse::<usize>().unwrap());
+                                                let part_no = cut[1].parse::<usize>().unwrap();
 
-                                                submit_forging_plan(s, p_date, part_code[0].clone(), planned_qty);
+                                                let r_id = cut[0].to_string();
+
+                                                submit_forging_plan(r_id, s, p_date, part_no, planned_qty);
                                             }
                                         ).with_enabled(enable_button))
                                     )

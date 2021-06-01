@@ -4,16 +4,16 @@ pub mod forging {
 
     use cursive::{
         Cursive,
-        traits::*,
         view::{ Nameable, Resizable },
-        views::{  Dialog, EditView, ListView, SelectView, TextView, LinearLayout, Button },
-        direction::Orientation::{ Horizontal }
+        views::{  Dialog, EditView, ListView, SelectView, TextView },
     };
 
     use crate::apis::{
         engineering::part::part::Part,
-        production::cutting::cutting::Cutting,
-        production::forging::forging::Forging
+        production::{
+            cutting::cutting::Cutting,
+            forging::forging::Forging
+        }
     };
 
     use crate::frontend::production::cutting::cutting::display_cutting_heat;
@@ -50,7 +50,7 @@ pub mod forging {
                         1 => {
                             display_cutting_heat(s, part_no , planned_date);
                         },
-                        _ => s.add_layer(Dialog::info("Error is fetching part list"))
+                        _ => s.add_layer(Dialog::info("Error in fetching part list"))
                     }
                 }
             )
@@ -58,7 +58,7 @@ pub mod forging {
         )
     }
 
-    pub fn submit_forging_plan(s: &mut Cursive, d: NaiveDate, p: String, q: usize) {
+    pub fn submit_forging_plan(r: String, s: &mut Cursive, d: NaiveDate, p: usize, q: usize) {
         s.add_layer(
             Dialog::new()
             .title("Forging Plan")
@@ -98,12 +98,42 @@ pub mod forging {
                         v.selection()
                     }).unwrap();
 
-                    match Forging::new(d, m.clone().unwrap().to_string(), p.clone(), q).post() {
-                        Ok(_) => {
-                            s.pop_layer();
-                            s.add_layer(Dialog::info("Forging plan updated"))
-                        },
-                        Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
+                    let avail_cuttings = Cutting::avail_qty_list(r.to_string(), p);
+
+                    let part_code = &Part::find_part_code(p.clone())[0];
+
+                    let mut q = q;
+
+                    for val in avail_cuttings.clone() {
+
+                        let qty = val[2].parse::<usize>().unwrap();
+
+                        while q > 0 {
+                            match q > qty {
+                                true => {
+                                    match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), qty).post(val[0].clone()) {
+                                        Ok(_) => {
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::info("Forging plan updated"));
+    
+                                            q = q - qty;
+                                        },
+                                        Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
+                                    }
+                                },
+                                false => {
+                                    match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(val[0].clone()) {
+                                        Ok(_) => {
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::info("Forging plan updated"));
+
+                                            q = 0;
+                                        },
+                                        Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             )

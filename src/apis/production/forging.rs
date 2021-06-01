@@ -33,7 +33,7 @@ pub mod forging {
             }
         }
 
-        pub fn post(&self) -> Result<u64> {
+        pub fn post(&self, c_id: String) -> Result<u64> {
             let temp_table = "CREATE TEMPORARY TABLE forging_temp(
                 temp_id             INT             NOT NULL            PRIMARY KEY             AUTO_INCREMENT,
                 forging_id          VARCHAR(100)    NOT NULL            UNIQUE,
@@ -101,7 +101,7 @@ pub mod forging {
 
             conn.query_drop(forging_table)?;
 
-            let insert = "INSERT INTO forging(cutting_id, forging_id, planned_date, machine, part_no, forging_wt, planned_qty)
+            let insert = format!("INSERT INTO forging(cutting_id, forging_id, planned_date, machine, part_no, forging_wt, planned_qty)
             SELECT
             c.cutting_id,
             f.forging_id,
@@ -114,8 +114,8 @@ pub mod forging {
             INNER JOIN part p
             ON p.part_code = f.part_code
             INNER JOIN cutting c
-            ON c.part_no = (SELECT part_no FROM part WHERE part_code = f.part_code)
-            AND c.actual_qty >= f.planned_qty;";
+            ON c.part_no = (SELECT part_no FROM part WHERE part_code = f.part_code) AND c.cutting_id = '{}'
+            AND c.actual_qty >= f.planned_qty;", c_id);
 
             conn.query_drop(insert)?;
 

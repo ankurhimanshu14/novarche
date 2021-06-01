@@ -244,6 +244,10 @@ pub mod cutting {
             row_parser(query.to_string(), 10)
         }
 
+        pub fn avail_qty_list(r: String, p: usize) -> Vec<Vec<String>> {
+            let query = format!("SELECT cutting_id, part_no, (ok_qty - issued_qty) FROM cutting WHERE rm_id = '{}' AND part_no = '{}'  AND (ok_qty - issued_qty) > 0 ORDER BY created_at;", r, p);
 
+            row_parser(query.to_string(), 3)
+        }
     }
 }
