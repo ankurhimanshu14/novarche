@@ -4,9 +4,12 @@ pub mod forging {
     use mysql::*;
     use mysql::prelude::*;
 
-    use crate::apis::utils::row_parser::parser::row_parser;
-    use crate::apis::utils::parse::parse::parse_from_row;
-    use crate::apis::utils::gen_uuid::gen_uuid::generate_uuid;
+    use crate::apis::utils::{
+        row_parser::parser::row_parser,
+        parse::parse::parse_from_row,
+        gen_uuid::gen_uuid::generate_uuid,
+        check_table_exists::check::check,
+    };
 
     #[derive(Debug, Clone)]
     pub struct Forging {
@@ -138,6 +141,17 @@ pub mod forging {
             FROM forging ORDER BY planned_date DESC;";
 
             row_parser(query.to_string(), 11)
+        }
+
+        pub fn qty_in_plan(p: usize) -> isize {
+
+            let query = format!("SELECT SUM(planned_qty) FROM forging WHERE part_no = {} AND actual_qty = 0 GROUP BY cutting_id, part_no;", p);
+
+            match check("forging".to_string()) {
+                Ok(false) => 0,
+                Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
+                Err(e) => -1
+            }            
         }
 
         pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {

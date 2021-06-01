@@ -98,53 +98,36 @@ pub mod forging {
                         v.selection()
                     }).unwrap();
 
+                    //Return the vector of vectors of cutting id, part no and avail qty as strings
                     let avail_cuttings = Cutting::avail_qty_list(r.to_string(), p);
 
                     let part_code = &Part::find_part_code(p.clone())[0];
 
-                    let mut q = q;
+                    for cut in avail_cuttings {
+                        
+                        let cut_qty = cut[2].parse::<usize>().unwrap();
 
-                    let mut i = 0;
-
-                    match i < avail_cuttings.clone().len() {
-                        true => {
-                            let qty = avail_cuttings[i][2].parse::<usize>().unwrap();
-
-                            while q != 0 {
-                                match q > qty {
+                        match Forging::qty_in_plan(p) {
+                            -1 => s.add_layer(Dialog::info("Error in fetching forging plan")),
+                            0 => {
+                                Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty).post(cut[0].clone());
+                                s.add_layer(Dialog::text(format!(
+                                    "Short cutting quantity in store. \nRaise cutting request for {} Nos", q - cut_qty)
+                                ).dismiss_button("Ok"));
+                            },
+                            v => {
+                                let v = v as usize;
+                                match q + v > cut_qty {
                                     true => {
-                                        match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), qty).post(avail_cuttings[i][0].clone()) {
-                                            Ok(m) => {
-                                                s.pop_layer();
-                                                s.add_layer(Dialog::info(format!("Forging plan updated. Insert Id: {}", m)));
-        
-                                                q = q - qty;
-                                                
-                                                i = i + 1;
-
-                                                break;
-                                            },
-                                            Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
-                                        }
+                                        Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - v).post(cut[0].clone());
+                                        s.add_layer(Dialog::text(format!("Planned Qty is more than available cutting. \n{} Nos are planned for forging. \nRaise cutting request for {} Nos", cut_qty, q + v - cut_qty)).dismiss_button("Ok"));
                                     },
                                     false => {
-                                        match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(avail_cuttings[i][0].clone()) {
-                                            Ok(m) => {
-                                                s.pop_layer();
-                                                s.add_layer(Dialog::info(format!("Forging plan updated. Insert Id: {}", m)));
-
-                                                q = 0;
-
-                                                i = i + 1;
-                                            },
-                                            Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
-                                        }
+                                        Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - v).post(cut[0].clone());
+                                        s.add_layer(Dialog::text(format!("Planning of {} Nos is created.", q)).dismiss_button("Ok"));
                                     }
                                 }
                             }
-                        },
-                        false => {
-                            s.add_layer(Dialog::info(format!("Planned quantity is more than total available quantity. \nRaise cutting order for {} nos with Cutting Section.", q)));
                         }
                     }
                 }
