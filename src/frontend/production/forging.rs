@@ -104,35 +104,47 @@ pub mod forging {
 
                     let mut q = q;
 
-                    for val in avail_cuttings.clone() {
+                    let mut i = 0;
 
-                        let qty = val[2].parse::<usize>().unwrap();
+                    match i < avail_cuttings.clone().len() {
+                        true => {
+                            let qty = avail_cuttings[i][2].parse::<usize>().unwrap();
 
-                        while q > 0 {
-                            match q > qty {
-                                true => {
-                                    match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), qty).post(val[0].clone()) {
-                                        Ok(_) => {
-                                            s.pop_layer();
-                                            s.add_layer(Dialog::info("Forging plan updated"));
-    
-                                            q = q - qty;
-                                        },
-                                        Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
-                                    }
-                                },
-                                false => {
-                                    match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(val[0].clone()) {
-                                        Ok(_) => {
-                                            s.pop_layer();
-                                            s.add_layer(Dialog::info("Forging plan updated"));
+                            while q != 0 {
+                                match q > qty {
+                                    true => {
+                                        match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), qty).post(avail_cuttings[i][0].clone()) {
+                                            Ok(m) => {
+                                                s.pop_layer();
+                                                s.add_layer(Dialog::info(format!("Forging plan updated. Insert Id: {}", m)));
+        
+                                                q = q - qty;
+                                                
+                                                i = i + 1;
 
-                                            q = 0;
-                                        },
-                                        Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
+                                                break;
+                                            },
+                                            Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
+                                        }
+                                    },
+                                    false => {
+                                        match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(avail_cuttings[i][0].clone()) {
+                                            Ok(m) => {
+                                                s.pop_layer();
+                                                s.add_layer(Dialog::info(format!("Forging plan updated. Insert Id: {}", m)));
+
+                                                q = 0;
+
+                                                i = i + 1;
+                                            },
+                                            Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
+                                        }
                                     }
                                 }
                             }
+                        },
+                        false => {
+                            s.add_layer(Dialog::info(format!("Planned quantity is more than total available quantity. \nRaise cutting order for {} nos with Cutting Section.", q)));
                         }
                     }
                 }

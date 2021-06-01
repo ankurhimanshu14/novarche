@@ -124,19 +124,20 @@ pub mod forging {
 
         pub fn get_forging_list() -> Vec<Vec<String>> {
             let query = "SELECT
+            cutting_id,
             forging_id,
             planned_date,
             machine,
             part_no,
             forging_wt,
-            AVG(planned_qty),
-            AVG(actual_qty),
-            AVG(ok_qty),
-            AVG(rej_qty),
-            AVG(issued_qty)
-            FROM forging GROUP BY forging_id, planned_date, machine, part_no, forging_wt ORDER BY planned_date DESC;";
+            planned_qty,
+            actual_qty,
+            ok_qty,
+            rej_qty,
+            issued_qty
+            FROM forging ORDER BY planned_date DESC;";
 
-            row_parser(query.to_string(), 10)
+            row_parser(query.to_string(), 11)
         }
 
         pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {
