@@ -58,7 +58,7 @@ pub mod forging {
         )
     }
 
-    pub fn submit_forging_plan(r: String, s: &mut Cursive, d: NaiveDate, p: usize, q: usize) {
+    pub fn submit_forging_plan(r: String, s: &mut Cursive, d: NaiveDate, p: usize, q: usize, t: usize) {
         s.add_layer(
             Dialog::new()
             .title("Forging Plan")
@@ -98,65 +98,67 @@ pub mod forging {
                         v.selection()
                     }).unwrap();
 
+                    let part_code = &Part::find_part_code(p.clone())[0];
+
                     //Return the vector of vectors of cutting id, part no and avail qty as strings
                     let avail_cuttings = Cutting::avail_qty_list(r.to_string(), p);
 
-                    let part_code = &Part::find_part_code(p.clone())[0];
-
                     let mut q = q;
 
-                    for cut in avail_cuttings {
-                        
-                        let cut_qty = cut[2].parse::<usize>().unwrap();
+                    for cut in &avail_cuttings {
 
-                        match Forging::qty_in_plan(p) {
-                            -1 => s.add_layer(Dialog::info("Error in fetching forging plan")),
-                            0 => {
-                                match q <= cut_qty {
-                                    true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(cut[0].clone()) {
-                                        Ok(m) => {
-                                            s.add_layer(Dialog::text(format!(
-                                                "Plan saved succssfully: Insert Id: {}", m)
-                                            ).dismiss_button("Ok"));
+                        let mut cut_qty = cut[2].parse::<usize>().unwrap();
 
-                                            q = 0;
+                        let in_plan = Forging::qty_in_plan(p.clone());
+
+                        while q > 0 {
+
+                            let t = t - in_plan as usize;
+
+                            match t > q {
+                                true => {
+                                    match cut_qty > q {
+                                        true => {
+                                            match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(cut[0].clone()) {
+                                                Ok(i) => {
+                                                    s.pop_layer();
+                                                    s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", q, i)).dismiss_button("Ok"));
+                                                    cut_qty = cut_qty - q;
+                                                    q = 0;
+                                                },
+                                                Err(e) => {
+                                                    s.pop_layer();
+                                                    s.add_layer(Dialog::text(format!("Error : {}", e)).dismiss_button("Ok"));
+                                                }
+                                            }
                                         },
-                                        Err(e) => s.add_layer(Dialog::text(format!("Error: {:?}", e)).dismiss_button("Ok"))
-                                    },
-                                    false => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty).post(cut[0].clone()) {
-                                        Ok(m) => {
-                                            s.add_layer(Dialog::text(format!(
-                                                "Plan saved succssfully: Insert Id: {}", m)
-                                            ).dismiss_button("Ok"));
-
-                                            q = q - cut_qty;
-                                        },
-                                        Err(e) => s.add_layer(Dialog::text(format!("Error: {:?}", e)).dismiss_button("Ok"))
+                                        false => {
+                                            match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty).post(cut[0].clone()) {
+                                                Ok(i) => {
+                                                    s.pop_layer();
+                                                    s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", q, i)).dismiss_button("Ok"));
+                                                    q = q - cut_qty;
+                                                    cut_qty = 0;
+                                                },
+                                                Err(e) => {
+                                                    s.pop_layer();
+                                                    s.add_layer(Dialog::text(format!("Error : {}", e)).dismiss_button("Ok"));
+                                                }
+                                            }
+                                        }
                                     }
-                                }
-                            },
-                            v => {
-                                let v = v as usize;
-                                match q + v <= cut_qty {
-                                    true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(cut[0].clone()) {
-                                        Ok(m) => {
-                                            s.add_layer(Dialog::text(format!(
-                                                "Plan saved succssfully: Insert Id: {}", m)
-                                            ).dismiss_button("Ok"));
-
-                                            q = 0;
+                                },
+                                false => {
+                                    match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), t).post(cut[0].clone()) {
+                                        Ok(i) => {
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.\nRaise cutting request for minimum {} nos.", t, i, q - t)).dismiss_button("Ok"));
+                                            q = q -t;
                                         },
-                                        Err(e) => s.add_layer(Dialog::text(format!("Error: {:?}", e)).dismiss_button("Ok"))
-                                    },
-                                    false => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty).post(cut[0].clone()) {
-                                        Ok(m) => {
-                                            s.add_layer(Dialog::text(format!(
-                                                "Plan saved succssfully: Insert Id: {}.\nRaise cutting request for {} Nos.", m, q - cut_qty)
-                                            ).dismiss_button("Ok"));
-
-                                            q = q - cut_qty;
-                                        },
-                                        Err(e) => s.add_layer(Dialog::text(format!("Error: {:?}", e)).dismiss_button("Ok"))
+                                        Err(e) => {
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::text(format!("Error : {}", e)).dismiss_button("Ok"));
+                                        }
                                     }
                                 }
                             }
