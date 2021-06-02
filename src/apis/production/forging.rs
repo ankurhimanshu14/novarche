@@ -150,7 +150,7 @@ pub mod forging {
             match check("forging".to_string()) {
                 Ok(false) => 0,
                 Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
-                Err(e) => -1
+                Err(_) => -1
             }            
         }
 
