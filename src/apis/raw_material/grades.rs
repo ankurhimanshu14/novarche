@@ -1,7 +1,5 @@
 pub mod grades {
 
-    
-    use chrono::NaiveDate;
     use mysql::prelude::*;
     use mysql::*;
     
@@ -36,7 +34,7 @@ pub mod grades {
 
             let insert = "INSERT INTO grades(grade_name) VALUES(:grade_name);";
 
-            let result = conn.exec_drop(insert, params!{
+            conn.exec_drop(insert, params!{
                 "grade_name" => self.grade_name.clone()
             })?;
 

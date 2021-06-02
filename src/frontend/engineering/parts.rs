@@ -3,13 +3,10 @@ pub mod parts {
     use cursive::{
         Cursive,
         traits::*,
-        CursiveExt,
-        event::Key,
-        menu,
         view::{ Nameable, Resizable },
-        align::{ HAlign, VAlign },
-        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, TextArea, LinearLayout },
-        direction::Orientation::{ Horizontal, Vertical }
+        align::{ VAlign },
+        views::{ Dialog, EditView, ListView, SelectView, TextView, LinearLayout },
+        direction::Orientation::{ Horizontal }
     };
 
     use crate::apis::{
@@ -37,7 +34,7 @@ pub mod parts {
                                     .v_align(VAlign::Center)
                                     .autojump()
                                     .with_all_str(grd)
-                                    .on_select(|s, item| {
+                                    .on_select(|_, item| {
                                         println!("{}", &item)
                                     })
                                     .with_name("grade")
@@ -51,7 +48,7 @@ pub mod parts {
                                     .v_align(VAlign::Center)
                                     .autojump()
                                     .with_all_str(&["DIA".to_string(), "RCS".to_string()])
-                                    .on_select(|s, item| {
+                                    .on_select(|_, item| {
                                         println!("{}", &item)
                                     })
                                     .with_name("sec_type")
@@ -66,7 +63,7 @@ pub mod parts {
                                 .v_align(VAlign::Center)
                                 .autojump()
                                 .with_all_str(&["Normalized".to_string(), "Isothermal Annealed".to_string(), "Annealed".to_string(), "As Forged".to_string()])
-                                .on_select(|s, item| {
+                                .on_select(|_, item| {
                                     println!("{}", &item)
                                 })
                                 .with_name("del_cond")

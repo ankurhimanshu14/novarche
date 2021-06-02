@@ -5,7 +5,7 @@ pub mod authenticate {
 
     use crate::apis::admin::user_signup::user_signup::User;
 
-    use bcrypt::{ hash, verify, DEFAULT_COST };
+    use bcrypt::verify;
 
     pub fn get_user(u: String) -> Result<Vec<User>> {
         let query = format!("SELECT employee_id, username, hash, roles_name

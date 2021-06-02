@@ -1,5 +1,5 @@
 pub mod employee {
-    use crate::apis::human_resources::person::person::Person;
+
     use chrono::NaiveDate;
     use mysql::prelude::*;
     use mysql::*;
@@ -151,42 +151,6 @@ pub mod employee {
 
             Ok(v)
         }
-
-        pub fn get_employee_dept_list() -> Result<Vec<(String, String)>> {
-            let mut v: Vec<(String, String)> = Vec::new();
-
-            let emp_vec: Vec<Employee> = Employee::get_employee_list().unwrap();
-
-            for e in emp_vec {
-                v.push((e.employee_id, e.dept_code))
-            }
-
-            Ok(v)
-        }
-
-        pub fn get_employee_joining_date_list() -> Result<Vec<(String, NaiveDate)>> {
-            let mut v: Vec<(String, NaiveDate)> = Vec::new();
-
-            let emp_vec: Vec<Employee> = Employee::get_employee_list().unwrap();
-
-            for e in emp_vec {
-                v.push((e.employee_id, e.date_of_joining))
-            }
-            Ok(v)
-        }
-
-        pub fn get_employee_reporting_to_list() -> Result<Vec<(String, String)>> {
-            let mut v: Vec<(String, String)> = Vec::new();
-
-            let emp_vec: Vec<Employee> = Employee::get_employee_list().unwrap();
-
-            for e in emp_vec {
-                v.push((e.employee_id, e.reporting_to))
-            }
-            Ok(v)
-        }
-
-        ///get_employee() method searches the local database and return the employee details as per 
 
         pub fn get_employee(emp_id: &str) -> Vec<Employee> {
             let query = format!("SELECT employee_id, dept_code, designation, reporting_to, current_status, date_of_joining, date_of_leaving FROM employee WHERE employee_id = '{}';", emp_id);

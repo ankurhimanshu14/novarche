@@ -2,13 +2,8 @@ pub mod party {
 
     use cursive::{
         Cursive,
-        traits::*,
-        CursiveExt,
-        event::Key,
-        menu,
         view::{ Nameable, Resizable },
-        align::{ HAlign, VAlign },
-        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, TextArea },
+        views::{ Dialog, EditView, ListView, TextArea },
     };
 
     use crate::apis::rm_store::party::party::Party;

@@ -2,13 +2,8 @@ pub mod grades {
 
     use cursive::{
         Cursive,
-        traits::*,
-        CursiveExt,
-        event::Key,
-        menu,
         view::{ Nameable, Resizable },
-        align::{ HAlign, VAlign },
-        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView },
+        views::{  Dialog, EditView, ListView },
     };
 
     use crate::apis::raw_material::grades::grades::Grades;

@@ -2,9 +2,8 @@ pub mod department {
 
     use cursive::{
         Cursive,
-        align::{ HAlign, VAlign },
         view::{ Nameable, Resizable },
-        views::{ Dialog, EditView, ListView, SelectView },
+        views::{ Dialog, EditView, ListView },
     };
 
 

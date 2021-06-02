@@ -90,7 +90,7 @@ pub mod authority {
                                             .v_align(VAlign::Center)
                                             .autojump()
                                             .with_all_str(r)
-                                            .on_select(|s, item| {
+                                            .on_select(|_, item| {
                                                 println!("{}", &item);
                                             }
                                             )
@@ -104,7 +104,7 @@ pub mod authority {
                                             .h_align(HAlign::Center)
                                             .autojump()
                                             .with_all_str(v)
-                                            .on_select(|s, item| {
+                                            .on_select(|_, item| {
                                                 println!("{}", &item);
                                             }
                                             )

@@ -1,5 +1,5 @@
 pub mod employee {
-    use std::panic;
+
     use chrono::NaiveDate;
     
     use cursive::{

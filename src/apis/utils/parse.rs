@@ -1,7 +1,6 @@
 pub mod parse {
 
     use mysql::*;
-    use mysql::prelude::*;
 
     pub fn parse_from_row(row: &Row) -> Vec<String> {
         let length: &usize = &row.len();

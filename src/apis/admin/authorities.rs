@@ -113,31 +113,5 @@ pub mod authorities {
 
             Ok(())
         }
-
-        pub fn delete(activity: String) -> Result<()> {
-            let url = "mysql://root:@localhost:3306/mws_database".to_string();
-
-            let pool = Pool::new(url)?;
-    
-            let mut conn = pool.get_conn()?;
-
-            let query1 = format!("DELETE FROM authorities WHERE activity = '{}';", activity);
-
-            let query2 = format!("DELETE 
-                r.roles_name, a.activity
-                FROM 
-                    roles r
-                    INNER JOIN activity a
-                    ON a.activity = '{}'
-                    ORDER BY r.roles_name;",
-                    activity
-            );
-
-            conn.query_drop(query1)?;
-
-            conn.query_drop(query2)?;
-
-            Ok(())
-        }
     }
 }

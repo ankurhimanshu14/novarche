@@ -3,9 +3,8 @@ pub mod authenticate {
     use cursive::{
         Cursive,
         event::Key,
-        align::{ VAlign, HAlign },
         view::{ Nameable, Resizable },
-        views::{ Dialog, EditView, ListView, SelectView },
+        views::{ Dialog, EditView, ListView },
     };
 
     use crate::apis::admin::authenticate::authenticate::{

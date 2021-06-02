@@ -2,7 +2,7 @@ pub mod user_signup {
     
     use cursive::{
         Cursive,
-        align::{ HAlign, VAlign },
+        align::VAlign,
         view::{ Nameable, Resizable },
         views::{ Dialog, EditView, ListView, SelectView },
     };
@@ -37,7 +37,7 @@ pub mod user_signup {
                             .v_align(VAlign::Center)
                             .autojump()
                             .with_all_str(r)
-                            .on_select(|s, item| {
+                            .on_select(|_, item| {
                                 println!("{}", &item);
                             }
                             )

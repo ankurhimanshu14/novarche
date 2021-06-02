@@ -5,13 +5,9 @@ pub mod gate_entry {
     use cursive::{
         Cursive,
         traits::*,
-        CursiveExt,
-        event::Key,
-        menu,
         view::{ Nameable, Resizable },
-        align::{ HAlign, VAlign },
-        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, TextArea, LinearLayout },
-        direction::Orientation::{ Horizontal, Vertical }
+        views::{ Dialog, EditView, ListView, SelectView, TextView, TextArea, LinearLayout },
+        direction::Orientation::{ Horizontal }
     };
 
     use crate::apis::rm_store:: {
@@ -41,7 +37,7 @@ pub mod gate_entry {
                     .popup()
                     .autojump()
                     .with_all_str(p)
-                    .on_select(|s, item| {
+                    .on_select(|_, item| {
                         println!("{}", &item);
                     }
                     )
@@ -142,7 +138,7 @@ pub mod gate_entry {
                     .popup()
                     .autojump()
                     .with_all_str(h)
-                    .on_select(|s, item| {
+                    .on_select(|_, item| {
                         println!("{:?}", &item);
                     })
                     .with_name("heat_no")

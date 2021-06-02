@@ -4,8 +4,6 @@ pub mod part {
     use mysql::prelude::*;
     use mysql::*;
 
-    use crate::apis::utils::parse::parse::parse_from_row;
-
     #[derive(Debug)]
     pub struct Part {
         pub part_code: String,
@@ -223,82 +221,6 @@ pub mod part {
             };
 
             v
-        }
-
-        pub fn get_steel(p: usize) -> Vec<(String, usize, String)> {
-            let url = "mysql://root:@localhost:3306/mws_database".to_string();
-
-            let pool = Pool::new(url).unwrap();
-    
-            let mut conn = pool.get_conn().unwrap();
-
-            let query = format!("SELECT grade, sec_size, sec_type FROM part WHERE part_no = '{}';", p);
-
-            let mut v: Vec<(String, usize, String)> = Vec::new();
-
-            let if_exist = "SELECT COUNT(*)
-                FROM information_schema.tables 
-                WHERE table_schema = DATABASE()
-                AND table_name = 'part';";
-
-            let result = conn.query_map(
-                if_exist,
-                |count: usize| {
-                    count
-                }
-            ).unwrap();
-
-            match &result[0] {
-                0 => vec![()],
-                _ => {
-                    conn.query_map(
-                        query,
-                        |(grade, sec_size, sec_type): (String, usize, String)| {
-                            v.push((grade, sec_size, sec_type))
-                        }
-                    ).unwrap()
-                }
-            };
-
-            v
-        }
-
-        pub fn get_cut_wt(p: usize) -> f64 {
-            let query = format!("SELECT cut_wt FROM part WHERE part_no = '{}';", p);
-
-            let url = "mysql://root:@localhost:3306/mws_database".to_string();
-
-            let pool = Pool::new(url).unwrap();
-    
-            let mut conn = pool.get_conn().unwrap();
-
-            let cut_wt = conn.query_map(
-                query,
-                |v: Row| {
-                    v
-                }
-            ).unwrap();
-
-            parse_from_row(&cut_wt[0])[0].parse::<f64>().unwrap()
-        }
-
-        pub fn fetch_cut_wt(pc: String) -> f64 {
-            let query = format!("SELECT cut_wt FROM part WHERE part_code = '{}';", pc);
-
-            let url = "mysql://root:@localhost:3306/mws_database".to_string();
-
-            let pool = Pool::new(url).unwrap();
-    
-            let mut conn = pool.get_conn().unwrap();
-
-            let cut_wt = conn.query_map(
-                query,
-                |v: Row| {
-                    v
-                }
-            ).unwrap();
-
-            parse_from_row(&cut_wt[0])[0].parse::<f64>().unwrap()
         }
 
         pub fn match_with_steel(p: usize, g: String, s: usize, t: String) -> Result<()> {

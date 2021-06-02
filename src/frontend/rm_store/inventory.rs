@@ -3,13 +3,10 @@ pub mod inventory {
     use cursive::{
         Cursive,
         traits::*,
-        CursiveExt,
-        event::Key,
-        menu,
-        view::{ Nameable, Resizable },
-        align::{ HAlign, VAlign },
-        views::{ Menubar, Dialog, EditView, ListView, SelectView, TextView, TextArea, LinearLayout },
-        direction::Orientation::{ Horizontal, Vertical }
+        view::{ Resizable },
+
+        views::{ Dialog, ListView, TextView, LinearLayout },
+        direction::Orientation::{ Horizontal }
     };
 
     use crate::apis::rm_store::inventory::inventory::Inventory;
