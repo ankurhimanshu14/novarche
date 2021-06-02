@@ -23,7 +23,7 @@ pub mod employee {
             reporting_to: String,
             current_status: String,
             date_of_joining: NaiveDate,
-            date_of_leaving: Option<NaiveDate>,
+            _date_of_leaving: Option<NaiveDate>,
         ) -> Self {
 
             Employee {

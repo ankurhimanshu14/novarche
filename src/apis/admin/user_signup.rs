@@ -2,10 +2,7 @@ pub mod user_signup {
 
     use mysql::*;
     use mysql::prelude::*;
-    use crate::apis::admin::roles::roles::Roles;
-    use crate::apis::admin::authorities::authorities::Authorities;
-    use crate::apis::human_resources::employee::employee::Employee;
-    use bcrypt::{ hash, verify, DEFAULT_COST };
+    use bcrypt::{ hash, DEFAULT_COST };
 
     #[derive(Debug, Clone)]
     pub struct User {

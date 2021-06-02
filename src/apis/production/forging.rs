@@ -6,7 +6,6 @@ pub mod forging {
 
     use crate::apis::utils::{
         row_parser::parser::row_parser,
-        parse::parse::parse_from_row,
         gen_uuid::gen_uuid::generate_uuid,
         check_table_exists::check::check,
     };
