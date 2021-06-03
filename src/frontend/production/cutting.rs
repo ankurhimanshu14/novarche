@@ -309,83 +309,84 @@ pub mod cutting {
 
         let cutting_list = Cutting::cutting_heat(p);
 
-        match cutting_list.len() {
-            0 => s.add_layer(Dialog::info("No cutting available")),
-            _ => {
-                s.add_layer(
-                    Dialog::new()
-                    .title("Available Heats")
-                    .padding_lrtb(1, 1, 1, 1)
-                    .content(
-                        ListView::new()
-                        .with(
-                            |list| {
-                                list.add_child(
-                                    "",
-                                    LinearLayout::new(Horizontal)
-                                    .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(3))
-                                    .child(TextView::new(format!("Part No")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(3))
-                                    .child(TextView::new(format!("Heat No")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(3))
-                                    .child(TextView::new(format!("Heat Code")).center().fixed_width(10))
-                                    .child(TextView::new(format!("|")).center().fixed_width(3))
-                                    .child(TextView::new(format!("Available Qty (Nos)")).center().fixed_width(20))
-                                );
-        
-                                let mut count: usize = 0;
-                                for cut in cutting_list {
-                                    count = count + 1;
-
-                                    let enable_button: bool = match &cut[4].parse::<usize>().unwrap() {
-                                        0 => false,
-                                        _ => true
-                                    };
-        
-                                    list
-                                    .add_child(
+        match cutting_list[0].len() {
+            1 => s.add_layer(Dialog::text(format!("No cutting available for part no. {}.\nRaise cutting request.", p)).dismiss_button("Ok")),
+            _ => match cutting_list.len() {
+                0 => s.add_layer(Dialog::info("No cutting available")),
+                _ => {
+                    s.add_layer(
+                        Dialog::new()
+                        .title("Available Heats")
+                        .padding_lrtb(1, 1, 1, 1)
+                        .content(
+                            ListView::new()
+                            .with(
+                                |list| {
+                                    list.add_child(
                                         "",
                                         LinearLayout::new(Horizontal)
-                                        .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
+                                        .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[1]).center().fixed_width(10))
+                                        .child(TextView::new(format!("Part No")).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[2]).center().fixed_width(10))
+                                        .child(TextView::new(format!("Heat No")).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[3]).center().fixed_width(10))
+                                        .child(TextView::new(format!("Heat Code")).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[4]).center().fixed_width(20))
-                                        .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(EditView::new().with_name("planned_qty").fixed_width(20))
-                                        .child(Button::new_raw(
-                                            "Plan",
-                                            move |s| {
-                                                let p = s.call_on_name("planned_qty", |v: &mut EditView| {
-                                                    v.get_content()
-                                                }).unwrap();
-
-                                                let planned_qty = p.parse::<usize>().unwrap();
-
-                                                let part_no = cut[1].parse::<usize>().unwrap();
-
-                                                let r_id = cut[0].to_string();
-
-                                                let tot_qty = cut[4].parse::<usize>().unwrap();
-
-                                                s.pop_layer();
-                                                submit_forging_plan(r_id, s, p_date, part_no, planned_qty, tot_qty);
-                                            }
-                                        ).with_enabled(enable_button))
-                                    )
+                                        .child(TextView::new(format!("Available Qty (Nos)")).center().fixed_width(20))
+                                    );
+            
+                                    let mut count: usize = 0;
+                                    for cut in cutting_list {
+                                        count = count + 1;
+    
+                                        let enable_button: bool = match &cut[4].parse::<usize>().unwrap() {
+                                            0 => false,
+                                            _ => true
+                                        };
+            
+                                        list
+                                        .add_child(
+                                            "",
+                                            LinearLayout::new(Horizontal)
+                                            .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
+                                            .child(TextView::new(format!("|")).center().fixed_width(3))
+                                            .child(TextView::new(&cut[1]).center().fixed_width(10))
+                                            .child(TextView::new(format!("|")).center().fixed_width(3))
+                                            .child(TextView::new(&cut[2]).center().fixed_width(10))
+                                            .child(TextView::new(format!("|")).center().fixed_width(3))
+                                            .child(TextView::new(&cut[3]).center().fixed_width(10))
+                                            .child(TextView::new(format!("|")).center().fixed_width(3))
+                                            .child(TextView::new(&cut[4]).center().fixed_width(20))
+                                            .child(TextView::new(format!("|")).center().fixed_width(3))
+                                            .child(EditView::new().with_name("planned_qty").fixed_width(20))
+                                            .child(Button::new_raw(
+                                                "Plan",
+                                                move |s| {
+                                                    let p = s.call_on_name("planned_qty", |v: &mut EditView| {
+                                                        v.get_content()
+                                                    }).unwrap();
+    
+                                                    let planned_qty = p.parse::<usize>().unwrap();
+    
+                                                    let part_no = cut[1].parse::<usize>().unwrap();
+    
+                                                    let r_id = cut[0].to_string();
+    
+                                                    let tot_qty = cut[4].parse::<usize>().unwrap();
+    
+                                                    s.pop_layer();
+                                                    submit_forging_plan(r_id, s, p_date, part_no, planned_qty, tot_qty);
+                                                }
+                                            ).with_enabled(enable_button))
+                                        )
+                                    }
                                 }
-                            }
-                        )              
-                    ).dismiss_button("Cancel")
-                )
+                            )              
+                        ).dismiss_button("Cancel")
+                    )
+                }
             }
         }
-
-        
     }
 }

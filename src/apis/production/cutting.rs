@@ -4,9 +4,11 @@ pub mod cutting {
     use mysql::*;
     use mysql::prelude::*;
 
-    use crate::apis::utils::parse::parse::parse_from_row;
-    use crate::apis::utils::row_parser::parser::row_parser;
-    use crate::apis::utils::gen_uuid::gen_uuid::generate_uuid;
+    use crate::apis::utils::{
+        parse::parse::parse_from_row,
+        row_parser::parser::row_parser,
+        gen_uuid::gen_uuid::generate_uuid
+    };
 
     #[derive(Debug, Clone)]
     pub struct Cutting {
@@ -120,7 +122,7 @@ pub mod cutting {
                 CONSTRAINT          sr_fk_cut_rm    FOREIGN KEY(rm_id)            REFERENCES      approved_components(rm_id)       ON UPDATE CASCADE ON DELETE CASCADE
             )ENGINE = InnoDB;";
 
-            let insert = "INSERT INTO cutting(rm_id, cutting_id, planned_date, machine, part_no, heat_no, heat_code, grade, size, section, cut_wt, planned_qty)
+            let insert = "INSERT INTO cutting(requisition_id, rm_id, cutting_id, planned_date, machine, part_no, heat_no, heat_code, grade, size, section, cut_wt, planned_qty)
             SELECT
             a.rm_id,
             c.cutting_id,
@@ -222,9 +224,7 @@ pub mod cutting {
         pub fn cutting_heat(p: usize) -> Vec<Vec<String>> {
             let query = format!("SELECT rm_id, part_no, heat_no, heat_code, SUM(ok_qty - issued_qty) FROM cutting WHERE part_no = {} AND ok_qty - issued_qty > 0 GROUP BY rm_id, heat_no, heat_code LIMIT 1;", p);
             
-            let list = row_parser(query, 5);
-
-            list
+            row_parser(query, 5)
         }
 
         pub fn get_cutting_list() -> Vec<Vec<String>> {

@@ -17,6 +17,7 @@ pub mod forging {
     };
 
     use crate::frontend::production::cutting::cutting::display_cutting_heat;
+    use crate::frontend::production::requisition::requisition::raise_requisition;
 
     pub fn forging_plan(s: &mut Cursive) {
         s.add_layer(
@@ -107,19 +108,15 @@ pub mod forging {
 
                     for l in 0..avail_cuttings.len() {
 
-                        println!("-------------------L: {}", &l);
-
-                        let cut_qty = avail_cuttings[l][2].parse::<usize>().unwrap();
+                        let cut_qty = avail_cuttings[l][2].parse::<usize>().unwrap().clone();
 
                         let in_plan = Forging::qty_in_plan(p.clone());
 
                         let c_id = avail_cuttings[l][0].clone();
 
-                        println!("---------------------Hello, {:?}", &c_id);
+                        let part_no = avail_cuttings[l][1].parse::<usize>().unwrap().clone();
 
                         while q > 0 {
-
-                            println!("--------------q: {}", &q);
 
                             let tc = t - in_plan as usize;
 
@@ -128,17 +125,14 @@ pub mod forging {
                                 v => v
                             };
 
-                            println!("---------------booked_qty: {}", &booked_qty);
-
                             match tc > q {
                                 true => {                                    
                                     match cut_qty - booked_qty as usize > q {
                                         true => {
                                             match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(avail_cuttings[l][0].clone()) {
                                                 Ok(i) => {
-                                                    println!("--------------------Arm 1");
                                                     s.pop_layer();
-                                                    s.add_layer(Dialog::text(format!("New Plan: Forging Plan created for {} nos.\nInsert ID: {}.", q, i)).dismiss_button("Ok"));
+                                                    s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", q, i)).dismiss_button("Ok"));
                                                     q = 0;
                                                 },
                                                 Err(e) => {
@@ -150,9 +144,8 @@ pub mod forging {
                                         false => match cut_qty > booked_qty as usize {
                                             true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - booked_qty as usize).post(avail_cuttings[l][0].clone()) {
                                                 Ok(i) => {
-                                                    println!("------------------------Arm 2");
                                                     s.pop_layer();
-                                                    s.add_layer(Dialog::text(format!("Repeat Plan: Forging Plan created for {} nos.\nInsert ID: {}.", cut_qty - booked_qty as usize, i)).dismiss_button("Ok"));
+                                                    s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", cut_qty - booked_qty as usize, i)).dismiss_button("Ok"));
                                                     q = q + booked_qty as usize - cut_qty;
                                                 },
                                                 Err(e) => {
@@ -162,7 +155,15 @@ pub mod forging {
                                             },
                                             false => {
                                                 s.pop_layer();
-                                                s.add_layer(Dialog::text(format!("All cuttings are booked for forging.\nRaise cutting request for {} nos.", q)).dismiss_button("Ok"));
+                                                s.add_layer(Dialog::text(format!("All cuttings are booked for forging.\nRaise cutting request for {} nos.", q))
+                                                .button(
+                                                    "Create Request",
+                                                    move |s| {
+                                                        raise_requisition(s, part_no, "FORGING".to_string(), "CUTTING".to_string())
+                                                    }
+                                                )
+                                                .dismiss_button("Cancel")
+                                            );
                                                 break;
                                             }
                                         }
@@ -171,9 +172,8 @@ pub mod forging {
                                 false => match cut_qty - booked_qty as usize > q {
                                     true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), tc).post(avail_cuttings[l][0].clone()) {
                                         Ok(i) => {
-                                            println!("-----------------------Arm 3");
                                             s.pop_layer();
-                                            s.add_layer(Dialog::text(format!("Repeat Plan 2: Forging Plan created for {} nos.\nInsert ID: {}.\nRaise cutting request for minimum {} nos.", tc, i, q - tc)).dismiss_button("Ok"));
+                                            s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.\nRaise cutting request for minimum {} nos.", tc, i, q - tc)).dismiss_button("Ok"));
                                             q = q -tc;
                                         },
                                         Err(e) => {
@@ -184,9 +184,8 @@ pub mod forging {
                                     false => match cut_qty > booked_qty as usize {
                                         true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - booked_qty as usize).post(avail_cuttings[l][0].clone()) {
                                             Ok(i) => {
-                                                println!("------------------------Arm 2");
                                                 s.pop_layer();
-                                                s.add_layer(Dialog::text(format!("Repeat Plan: Forging Plan created for {} nos.\nInsert ID: {}.", cut_qty - booked_qty as usize, i)).dismiss_button("Ok"));
+                                                s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", cut_qty - booked_qty as usize, i)).dismiss_button("Ok"));
                                                 q = q + booked_qty as usize - cut_qty;
                                             },
                                             Err(e) => {

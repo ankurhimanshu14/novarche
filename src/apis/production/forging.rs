@@ -7,7 +7,7 @@ pub mod forging {
     use crate::apis::utils::{
         row_parser::parser::row_parser,
         gen_uuid::gen_uuid::generate_uuid,
-        check_table_exists::check::check,
+        mysql_commands::mysql_commands::check_table_exists,
     };
 
     #[derive(Debug, Clone)]
@@ -128,7 +128,7 @@ pub mod forging {
 
             let query = format!("SELECT SUM(planned_qty) FROM forging WHERE part_no = {} AND actual_qty = 0 GROUP BY cutting_id, part_no;", p);
 
-            match check("forging".to_string()) {
+            match check_table_exists("forging".to_string()) {
                 Ok(false) => 0,
                 Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
                 Err(_) => -1
@@ -139,7 +139,7 @@ pub mod forging {
 
             let query = format!("SELECT SUM(planned_qty) FROM forging WHERE cutting_id = '{}' AND part_no = {} AND actual_qty = 0 GROUP BY cutting_id, part_no;", c_id, p);
 
-            match check("forging".to_string()) {
+            match check_table_exists("forging".to_string()) {
                 Ok(false) => 0,
                 Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
                 Err(_) => -1
