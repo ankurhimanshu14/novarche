@@ -227,14 +227,6 @@ pub mod cutting {
             list
         }
 
-        pub fn heatwise_qty(p: usize) -> Vec<Vec<String>> {
-            let query = format!("SELECT SUM(ok_qty - issued_qty) FROM cutting WHERE part_no = {} AND ok_qty - issued_qty > 0 GROUP BY rm_id, heat_no, heat_code;", p);
-            
-            let list = row_parser(query, 1);
-
-            list
-        }
-
         pub fn get_cutting_list() -> Vec<Vec<String>> {
             let query = "SELECT
             rm_id,

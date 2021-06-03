@@ -4,8 +4,6 @@ pub mod forging {
     use mysql::*;
     use mysql::prelude::*;
 
-    use crate::apis::production::cutting::cutting::Cutting;
-
     use crate::apis::utils::{
         row_parser::parser::row_parser,
         gen_uuid::gen_uuid::generate_uuid,
