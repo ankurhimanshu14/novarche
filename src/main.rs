@@ -55,7 +55,7 @@ use frontend::{
     },
     production::{
         cutting::cutting::{
-            plan,
+            get_request,
             get_cutting_list
         },
         forging::forging::{
@@ -161,11 +161,11 @@ fn main() {
             .subtree(
                 "Cutting",
                 menu::MenuTree::new()
-                .leaf("New Plan", |s|{ plan(s) })
+                .leaf("Cutting Requests", |s|{ get_request(s) })
                 .leaf("Cutting List", |s|{ get_cutting_list(s) })
             )
             .subtree(
-                "forging",
+                "Forging",
                 menu::MenuTree::new()
                 .leaf("New Plan", |s|{ forging_plan(s) })
             )

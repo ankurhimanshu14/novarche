@@ -15,14 +15,20 @@ pub mod cutting {
         rm_store::gate_entry::gate_entry::GateEntry,
         raw_material::steel::steel::Steel,
         engineering::part::part::Part,
-        production::cutting::cutting::Cutting
+        production::cutting::cutting::Cutting,
+        production::requisition::requisition::Requisition
     };
 
     use crate::frontend::production::forging::forging::submit_forging_plan;
+    use crate::frontend::production::requisition::requisition::raise_requisition;
 
     pub fn get_request(s: &mut Cursive) {
-        let request_list = match Requisition::get_requisition("CUTTING".to_string()) {
-            Ok(m) => {
+
+        let m = Requisition::get_requisition("CUTTING".to_string());
+
+        match m.is_empty() {
+            true => s.add_layer(Dialog::info("No requisition raised")),
+            false => {
                 s.add_layer(
                     Dialog::new()
                     .title("Requisition List")
@@ -30,7 +36,7 @@ pub mod cutting {
                     .content(
                         ListView::new()
                         .with(
-                            |list| {
+                            move |list| {
                                 list
                                 .add_child(
                                     "",
@@ -45,16 +51,18 @@ pub mod cutting {
                                     .child(TextView::new("|").center().fixed_width(3))
                                     .child(TextView::new("Comment").center().fixed_width(10))
                                     .child(TextView::new("|").center().fixed_width(3))
+                                    .child(TextView::new("Reply").center().fixed_width(20))
+                                    .child(TextView::new("|").center().fixed_width(3))
                                     .child(TextView::new("Create Cutting").center().fixed_width(20))
                                 );
         
                                 let mut count: usize = 0;
-                                for cut in cutting_list {
+                                for req in m {
                                     count = count + 1;
 
-                                    let enable_button: bool = match &cut[7].parse::<usize>().unwrap() {
-                                        0 => true,
-                                        _ => false
+                                    let enable_button: bool = match &*req[7].to_string() {
+                                        "Open" => false,
+                                        _ => true
                                     };
 
                                     list
@@ -63,27 +71,29 @@ pub mod cutting {
                                         LinearLayout::new(Horizontal)
                                         .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[2]).center().fixed_width(20))
+                                        .child(TextView::new(req[1].to_string()).center().fixed_width(20))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[3]).center().fixed_width(10))
+                                        .child(TextView::new(req[3].to_string()).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[4]).center().fixed_width(10))
+                                        .child(TextView::new(req[4].to_string()).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[5]).center().fixed_width(10))
+                                        .child(TextView::new(req[5].to_string()).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[6]).center().fixed_width(20))
-                                        .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[7]).center().fixed_width(20))
-                                        .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[8]).center().fixed_width(20))
-                                        .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[9]).center().fixed_width(20))
+                                        .child(EditView::new().with_name("reply").fixed_width(20))
                                         .child(Button::new_raw(
-                                            "        Update       ",
+                                            "        Create Plan       ",
                                             move |s| {
-                                                let r_id = &cut[0];
-                                                let p_id = &cut[1];
-                                                update_cutting_status(s, r_id.to_string(), p_id.to_string())
+                                                let req_id = req[0].clone();
+
+                                                let part_no = req[3].clone();
+
+                                                let requested_qty = req[4].clone();
+
+                                                let reply = s.call_on_name("reply", |v: &mut EditView| {
+                                                    v.get_content()
+                                                }).unwrap();
+
+                                                cutting_plan(s, req_id.to_string(), part_no.parse::<usize>().unwrap(), requested_qty.parse::<usize>().unwrap())
                                             }
                                         ).with_enabled(enable_button))
                                     )
@@ -95,147 +105,147 @@ pub mod cutting {
                     )
                     .dismiss_button("Ok")
                 )
-            },
-            Err(_) => s.add_layer(Dialog::info(""))
+            }
         };
     }
 
-    pub fn plan(s: &mut Cursive) {
+    pub fn cutting_plan(s: &mut Cursive, req_id: String, p_no:usize , requested_qty: usize) {
 
-        let h = GateEntry::get_heat_no_list().unwrap();
+        let h = GateEntry::get_approved_heats(p_no).unwrap();
 
-        s.add_layer(
-            Dialog::new()
-            .title("Cutting Plan")
-            .padding_lrtb(1, 1, 1, 1)
-            .content(
-                ListView::new()
-                    .child("Date", EditView::new().with_name("planned_date").fixed_width(30))
-                    .child(
-                        "Machine",
-                        SelectView::new()
-                        .popup()
-                        .autojump()
-                        .with_all_str(&["BS01".to_string(), "BS02".to_string(), "BS03".to_string(), "BS04".to_string(), "BS05".to_string(), "SH-4 INCH".to_string(), "SH-5 INCH".to_string(), "SH-6 INCH".to_string()])
-                        .on_select(|_, item| {
-                            println!("{}", &item);
-                        }
-                        )
-                        .with_name("machine")
-                        .fixed_width(30)
-                        .min_height(2)    
+        match h.is_empty() {
+            true => {
+                s.pop_layer();
+                s.add_layer(Dialog::info(format!("No approved heat for part no. {} is available in the RM Store", p_no)));
+            },
+            false => {
+                s.add_layer(
+                    Dialog::new()
+                    .title("Cutting Plan")
+                    .padding_lrtb(1, 1, 1, 1)
+                    .content(
+                        ListView::new()
+                            .child("Date", EditView::new().with_name("planned_date").fixed_width(30))
+                            .child(
+                                "Machine",
+                                SelectView::new()
+                                .popup()
+                                .autojump()
+                                .with_all_str(&["BS01".to_string(), "BS02".to_string(), "BS03".to_string(), "BS04".to_string(), "BS05".to_string(), "SH-4 INCH".to_string(), "SH-5 INCH".to_string(), "SH-6 INCH".to_string()])
+                                .on_select(|_, item| {
+                                    println!("{}", &item);
+                                }
+                                )
+                                .with_name("machine")
+                                .fixed_width(30)
+                                .min_height(2)    
+                            )
+                            .child("Part No", TextView::new(p_no.to_string()).fixed_width(30))
+                            .child("Steel Grade", EditView::new().with_name("grade").fixed_width(30))
+                            .child("Bar Size", EditView::new().with_name("bar_size").fixed_width(30))
+                            .child(
+                                "Bar Type",
+                                SelectView::new()
+                                .popup()
+                                .h_align(HAlign::Center)
+                                .autojump()
+                                .with_all_str(&["DIA".to_string(), "RCS".to_string()])
+                                .on_select(|_, item| {
+                                    println!("{}", item);
+                                })
+                                .with_name("section")
+                                .fixed_width(30)
+                            )
+                            .child(
+                                "Heat No",
+                                SelectView::new()
+                                .popup()
+                                .h_align(HAlign::Center)
+                                .autojump()
+                                .with_all_str(h)
+                                .on_select(|_, item| {
+                                    println!("{}", item);
+                                })
+                                .with_name("heat_no")
+                                .fixed_width(30)
+                            )
+                            .child("Planned Qty", TextView::new(requested_qty.to_string()).fixed_width(30))
                     )
-                    .child("Part No", EditView::new().with_name("part_no").fixed_width(30))
-                    .child("Steel Grade", EditView::new().with_name("grade").fixed_width(30))
-                    .child("Bar Size", EditView::new().with_name("bar_size").fixed_width(30))
-                    .child(
-                        "Bar Type",
-                        SelectView::new()
-                        .popup()
-                        .h_align(HAlign::Center)
-                        .autojump()
-                        .with_all_str(&["DIA".to_string(), "RCS".to_string()])
-                        .on_select(|_, item| {
-                            println!("{}", item);
-                        })
-                        .with_name("section")
-                        .fixed_width(30)
-                    )
-                    .child(
-                        "Heat No",
-                        SelectView::new()
-                        .popup()
-                        .h_align(HAlign::Center)
-                        .autojump()
-                        .with_all_str(h)
-                        .on_select(|_, item| {
-                            println!("{}", item);
-                        })
-                        .with_name("heat_no")
-                        .fixed_width(30)
-                    )
-                    .child("Planned Qty", EditView::new().with_name("planned_qty").fixed_width(30))
-            )
-            .button(
-                "Add",
-                |s| {
-                    let pd = s.call_on_name("planned_date", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
-                    let planned_date = NaiveDate::parse_from_str(&pd.to_string(), "%d-%m-%Y").unwrap();
-
-                    let machine = s.call_on_name("machine", |v: &mut SelectView| {
-                        v.selection()
-                    }).unwrap();
-
-                    let p_no = s.call_on_name("part_no", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
-                    let part_code = Part::find_part_code(p_no.to_string().parse::<usize>().unwrap());
-
-                    let gd = s.call_on_name("grade", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
-                    let bs = s.call_on_name("bar_size", |v: &mut EditView| {
-                        v.get_content()
-                    }).unwrap();
-
-                    let bt = s.call_on_name("section", |v: &mut SelectView| {
-                        v.selection()
-                    }).unwrap();
-
-                    match Part::match_with_steel(
-                        p_no.to_string().parse::<usize>().unwrap(),
-                        gd.to_string(),
-                        bs.parse::<usize>().unwrap(),
-                        bt.clone().unwrap().to_string()
-                    ) {
-                        Ok(()) => {
-                            let steel_code = Steel::find_steel_code(gd.to_string(), bs.to_string().parse::<usize>().unwrap(), bt.unwrap().to_string());
-
-                            let heat_no = s.call_on_name("heat_no", |v: &mut SelectView| {
-                                v.selection()
-                            }).unwrap();
-        
-                            let planned_qty = s.call_on_name("planned_qty", |v: &mut EditView| {
+                    .button(
+                        "Add",
+                        move |s| {
+                            let pd = s.call_on_name("planned_date", |v: &mut EditView| {
                                 v.get_content()
                             }).unwrap();
         
-                            match part_code.is_empty() {
-                                false => match steel_code.is_empty() {
-                                    true => s.add_layer(Dialog::info("Steel is not available")),
-                                    false => {
-                                        let new_plan = Cutting::new(
-                                            planned_date,
-                                            machine.unwrap().to_string(),
-                                            part_code[0].clone(),
-                                            steel_code[0].clone(),
-                                            heat_no.clone().unwrap().to_string(),
-                                            planned_qty.to_string().parse::<usize>().unwrap()
-                                        );
-            
-                                        match Cutting::post(&new_plan) {
-                                            Ok(0) => s.add_layer(Dialog::info("Check planning again")),
-                                            Ok(m) =>{
-                                                s.pop_layer();
-                                                s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
-                                            },
-                                            Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
-                                        }
+                            let planned_date = NaiveDate::parse_from_str(&pd.to_string(), "%d-%m-%Y").unwrap();
+        
+                            let machine = s.call_on_name("machine", |v: &mut SelectView| {
+                                v.selection()
+                            }).unwrap();
+        
+                            let part_code = Part::find_part_code(p_no);
+        
+                            let gd = s.call_on_name("grade", |v: &mut EditView| {
+                                v.get_content()
+                            }).unwrap();
+        
+                            let bs = s.call_on_name("bar_size", |v: &mut EditView| {
+                                v.get_content()
+                            }).unwrap();
+        
+                            let bt = s.call_on_name("section", |v: &mut SelectView| {
+                                v.selection()
+                            }).unwrap();
+        
+                            match Part::match_with_steel(
+                                p_no.to_string().parse::<usize>().unwrap(),
+                                gd.to_string(),
+                                bs.parse::<usize>().unwrap(),
+                                bt.clone().unwrap().to_string()
+                            ) {
+                                Ok(()) => {
+                                    let steel_code = Steel::find_steel_code(gd.to_string(), bs.to_string().parse::<usize>().unwrap(), bt.unwrap().to_string());
+        
+                                    let heat_no = s.call_on_name("heat_no", |v: &mut SelectView| {
+                                        v.selection()
+                                    }).unwrap();
+                
+                                    match part_code.is_empty() {
+                                        false => match steel_code.is_empty() {
+                                            true => s.add_layer(Dialog::info("Steel is not available")),
+                                            false => {
+                                                let new_plan = Cutting::new(
+                                                    req_id.to_string(),
+                                                    planned_date,
+                                                    machine.unwrap().to_string(),
+                                                    part_code[0].clone(),
+                                                    steel_code[0].clone(),
+                                                    heat_no.clone().unwrap().to_string(),
+                                                    requested_qty
+                                                );
+                    
+                                                match Cutting::post(&new_plan) {
+                                                    Ok(0) => s.add_layer(Dialog::info("Check planning again")),
+                                                    Ok(m) =>{
+                                                        s.pop_layer();
+                                                        s.add_layer(Dialog::text(format!("Plan added successfully. Insert ID: {}", m)).dismiss_button("Ok"))
+                                                    },
+                                                    Err(e) => s.add_layer(Dialog::text(format!("Error encountered: {}", e)).dismiss_button("Ok"))
+                                                }
+                                            }
+                                        },
+                                        true => s.add_layer(Dialog::info("Part is not available"))
                                     }
                                 },
-                                true => s.add_layer(Dialog::info("Part is not available"))
+                                Err(e) => s.add_layer(Dialog::text(format!("{:#?}", e)).dismiss_button("Ok"))
                             }
-                        },
-                        Err(e) => s.add_layer(Dialog::text(format!("{:#?}", e)).dismiss_button("Ok"))
-                    }
-                }
-            )
-            .dismiss_button("Cancel")
-        )
+                        }
+                    )
+                    .dismiss_button("Cancel")
+                )
+            }
+        }
     }
 
     pub fn get_cutting_list(s: &mut Cursive) {
@@ -389,8 +399,16 @@ pub mod cutting {
 
         let cutting_list = Cutting::cutting_heat(p);
 
-        match cutting_list[0].len() {
-            1 => s.add_layer(Dialog::text(format!("No cutting available for part no. {}.\nRaise cutting request.", p)).dismiss_button("Ok")),
+        println!("{:?}", &cutting_list);
+
+        match cutting_list.len() {
+            0 => s.add_layer(Dialog::text(format!("No cutting available for part no. {}.\nRaise cutting request.", p))
+            .button(
+                "Create Request",
+                move |s| {
+                    raise_requisition(s, p, "FORGING".to_string(), "CUTTING".to_string())
+                }
+            ).dismiss_button("Ok")),
             _ => match cutting_list.len() {
                 0 => s.add_layer(Dialog::info("No cutting available")),
                 _ => {

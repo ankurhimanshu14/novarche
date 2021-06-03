@@ -10,23 +10,28 @@ pub mod parser {
 
         let conn = pool.get_conn().unwrap();
 
+        let rows: Vec<Row> = s.fetch(conn).unwrap();
+
         let mut outer_v: Vec<Vec<String>> = Vec::new();
 
-        let cut_rows: Vec<Row> = s.fetch(conn).unwrap();
+        for row in rows {
 
-        if cut_rows.len() == 0 {
-            outer_v = vec![vec!["0".to_string()]]
-        } else {
-            for row in cut_rows {
+            let mut v: Vec<String> = Vec::new();
+            
+            for i in 0..n {
 
-                let mut v: Vec<String> = Vec::new();
-                
-                for i in 0..n {
-                    v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
+                let value = row.get_opt::<String, usize>(i);
+
+                match value {
+                    Some(Ok(val)) => v.push(val.to_string()),
+                    Some(Err(_)) => v.push("".to_string()),
+                    None => v.push("".to_string())
                 }
-                outer_v.push(v.clone());
+
             }
+            outer_v.push(v.clone());
         }
+        
         outer_v
     }
 }

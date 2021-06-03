@@ -379,129 +379,128 @@ pub mod gate_entry {
             v
         }
 
-        // pub fn get_approved_heats(p: usize) -> Vec<String> {
-        //     let query = format!("SELECT DISTINCT heat_no FROM approved_components WHERE part_no = '{}';", p);
+        pub fn get_approved_heats(p: usize) -> Result<Vec<String>> {
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
+
+            let pool = Pool::new(url)?;
     
-        //     let url = "mysql://root:@localhost:3306/mws_database".to_string();
-    
-        //     let pool = Pool::new(url).unwrap();
-    
-        //     let mut conn = pool.get_conn().unwrap();
-    
-        //     let mut v: Vec<String> = Vec::new();
-    
-        //     let if_exist = "SELECT COUNT(*)
-        //         FROM information_schema.tables 
-        //         WHERE table_schema = DATABASE()
-        //         AND table_name = 'approved_components';";
-    
-        //     let result = conn.query_map(
-        //         if_exist,
-        //         |count: usize| {
-        //             count
-        //         }
-        //     ).unwrap();
-    
-        //     match &result[0] {
-        //         0 => vec![()],
-        //         _ => {
-        //             conn.query_map(
-        //                 query,
-        //                 |heat_no: String| {
-    
-        //                     v.push(heat_no.to_string());
-        //                 }
-        //             ).unwrap()
-        //         }
-        //     };
+            let mut conn = pool.get_conn()?;
             
-        //     v
-        // }
-
-        // pub fn get_avail_qty(h: String) -> f64 {
-        //     let query = format!("SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{}';", h.to_string());
-
-        //     let url = "mysql://root:@localhost:3306/mws_database".to_string();
+            let query = format!("SELECT DISTINCT heat_no FROM approved_components WHERE part_no = {};", p);
     
-        //     let pool = Pool::new(url).unwrap();
+            let mut v: Vec<String> = Vec::new();
+
+            let if_exist = "SELECT COUNT(*)
+                FROM information_schema.tables 
+                WHERE table_schema = DATABASE()
+                AND table_name = 'approved_components';";
+
+            let result = conn.query_map(
+                if_exist,
+                |count: usize| {
+                    count
+                }
+            ).unwrap();
+
+            match &result[0] {
+                0 => vec![()],
+                _ => {
+                    conn.query_map(
+                        query,
+                        |heat_no: String| {
+                            v.push(heat_no.to_string())
+                        }
+                    ).unwrap()
+                }
+            };
+            
+            Ok(v)
+        }
+
+        pub fn get_avail_qty(h: String) -> f64 {
+            let query = format!("SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{}';", h.to_string());
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
     
-        //     let mut conn = pool.get_conn().unwrap();
-
-        //     let avail_qty = conn.query_map(
-        //         query,
-        //         |v: Row| {
-        //             v
-        //         }
-        //     ).unwrap();
-
-        //     parse_from_row(&avail_qty[0])[0].parse::<f64>().unwrap()
-        // }
-
-        // pub fn get_next_avail_supply(h: String, pl_wt: f64) -> Vec<usize> {
-
-        //     let query1 = format!("SET @total_avail := (SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{0}');", &h.to_string());
-        //     let query2 = format!("SELECT challan_no FROM gate_entry WHERE heat_no = '{0}' AND @total_avail >= '{1}' ORDER BY challan_date;", h.to_string(), pl_wt);
-
-        //     let url = "mysql://root:@localhost:3306/mws_database".to_string();
+            let pool = Pool::new(url).unwrap();
     
-        //     let pool = Pool::new(url).unwrap();
+            let mut conn = pool.get_conn().unwrap();
+
+            let avail_qty = conn.query_map(
+                query,
+                |v: Row| {
+                    v
+                }
+            ).unwrap();
+
+            parse_from_row(&avail_qty[0])[0].parse::<f64>().unwrap()
+        }
+
+        pub fn get_next_avail_supply(h: String, pl_wt: f64) -> Vec<usize> {
+
+            let query1 = format!("SET @total_avail := (SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{0}');", &h.to_string());
+            let query2 = format!("SELECT challan_no FROM gate_entry WHERE heat_no = '{0}' AND @total_avail >= '{1}' ORDER BY challan_date;", h.to_string(), pl_wt);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
     
-        //     let mut conn = pool.get_conn().unwrap();
-
-        //     conn.query_drop(query1).unwrap();
-        //     let avail_heat = conn.query_map(
-        //         query2,
-        //         |v: Row| {
-        //             v
-        //         }
-        //     ).unwrap();
-
-        //     match &avail_heat.len() {
-        //         0 => vec![0],
-        //         _ => {
-        //             let mut ch_vec: Vec<usize> = Vec::new();
-
-        //             for entries in &avail_heat {
-        //                 let parsed = parse_from_row(entries)[0].to_string().parse::<usize>().unwrap();
-
-        //                 ch_vec.push(parsed);
-        //             }
-        //             ch_vec
-        //         }
-        //     }
-        // }
-
-        // pub fn check_availability(h: String, w: f64) -> bool {
-        //     let query = format!("SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{}'", h.to_string());
-
-        //     let url = "mysql://root:@localhost:3306/mws_database".to_string();
+            let pool = Pool::new(url).unwrap();
     
-        //     let pool = Pool::new(url).unwrap();
+            let mut conn = pool.get_conn().unwrap();
+
+            conn.query_drop(query1).unwrap();
+            let avail_heat = conn.query_map(
+                query2,
+                |v: Row| {
+                    v
+                }
+            ).unwrap();
+
+            match &avail_heat.len() {
+                0 => vec![0],
+                _ => {
+                    let mut ch_vec: Vec<usize> = Vec::new();
+
+                    for entries in &avail_heat {
+                        let parsed = parse_from_row(entries)[0].to_string().parse::<usize>().unwrap();
+
+                        ch_vec.push(parsed);
+                    }
+                    ch_vec
+                }
+            }
+        }
+
+        pub fn check_availability(h: String, w: f64) -> bool {
+            let query = format!("SELECT SUM(avail_qty) FROM gate_entry WHERE heat_no = '{}'", h.to_string());
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
     
-        //     let mut conn = pool.get_conn().unwrap();
-
-        //     let avail_qty = conn.query_map(
-        //         query,
-        //         |v: Row| {
-        //             v
-        //         }
-        //     ).unwrap();
-
-        //     parse_from_row(&avail_qty[0])[0].parse::<f64>().unwrap() >= w
-        // }
-
-        // pub fn update_by_ch_no(tot_wt: f64, c: usize) -> Result<()> {
-        //     let query = format!("UPDATE gate_entry SET avail_qty = (avail_qty - '{}') WHERE challan_no = '{}' LIMIT 1;", tot_wt, c);
-
-        //     let url = "mysql://root:@localhost:3306/mws_database".to_string();
+            let pool = Pool::new(url).unwrap();
     
-        //     let pool = Pool::new(url).unwrap();
+            let mut conn = pool.get_conn().unwrap();
+
+            let avail_qty = conn.query_map(
+                query,
+                |v: Row| {
+                    v
+                }
+            ).unwrap();
+
+            parse_from_row(&avail_qty[0])[0].parse::<f64>().unwrap() >= w
+        }
+
+        pub fn update_by_ch_no(tot_wt: f64, c: usize) -> Result<()> {
+            let query = format!("UPDATE gate_entry SET avail_qty = (avail_qty - '{}') WHERE challan_no = '{}' LIMIT 1;", tot_wt, c);
+
+            let url = "mysql://root:@localhost:3306/mws_database".to_string();
     
-        //     let mut conn = pool.get_conn().unwrap();
+            let pool = Pool::new(url).unwrap();
+    
+            let mut conn = pool.get_conn().unwrap();
 
-        //     conn.query_drop(query)?;
+            conn.query_drop(query)?;
 
-        //     Ok(())
-        // }
+            Ok(())
+        }
     }
 }

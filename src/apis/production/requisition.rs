@@ -3,7 +3,10 @@ pub mod requisition {
     use mysql::*;
     use mysql::prelude::*;
 
-    use crate::apis::utils::gen_uuid::gen_uuid::generate_uuid;
+    use crate::apis::utils::{
+        gen_uuid::gen_uuid::generate_uuid,
+        row_parser::parser::row_parser
+    };
 
     #[derive(Debug, Clone)]
     pub struct Requisition {
@@ -46,6 +49,7 @@ pub mod requisition {
                 requested_qty       INT                 NOT NULL,
                 comments            TEXT,
                 reply               TEXT,
+                status              VARCHAR(20)         NOT NULL                    DEFAULT                     'OPEN',
                 created_at          DATETIME            NOT NULL                    DEFAULT                     CURRENT_TIMESTAMP,
                 modified_at         DATETIME                                        ON UPDATE                   CURRENT_TIMESTAMP
             )ENGINE = InnoDB;";
@@ -92,8 +96,14 @@ pub mod requisition {
             Ok(conn.last_insert_id())
         }
 
-        pub fn get_requisition(dept: String) -> Result<Self> {
-            let select = "SELECT requisition_id, request_from, request_to, part_no, request_qty, comments, reply FROM requisition WHERE request_to = '{}' ORDER BY created_at;";
+        pub fn get_requisition(dept: String) -> Vec<Vec<String>> {
+            let select = format!("SELECT requisition_id, request_from, request_to, part_no, requested_qty, comments, reply, status FROM requisition WHERE request_to = '{}' AND status = 'OPEN' ORDER BY created_at;", dept);
+
+            row_parser(select, 8)
+        }
+
+        pub fn update_status(req_id: String) -> Result<()> {
+            let query = format!("UPDATE requisition SET status = 'CLOSED' WHERE requisition_id = '{}';", req_id);
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
 
@@ -101,16 +111,7 @@ pub mod requisition {
 
             let mut conn = pool.get_conn()?;
 
-            let req = conn.query_map(
-                select,
-                |(requisition_id, request_from, request_to, part_no, request_qty, comments, reply)| {
-                    Requisition{
-                        requisition_id, request_from, request_to, part_no, request_qty, comments, reply
-                    }
-                }
-            )?;
-
-            Ok(req)
+            conn.query_drop(query)
         }
     }
 }

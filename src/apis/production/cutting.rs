@@ -5,6 +5,7 @@ pub mod cutting {
     use mysql::prelude::*;
 
     use crate::apis::utils::{
+        mysql_commands::mysql_commands::check_table_exists,
         parse::parse::parse_from_row,
         row_parser::parser::row_parser,
         gen_uuid::gen_uuid::generate_uuid
@@ -12,6 +13,7 @@ pub mod cutting {
 
     #[derive(Debug, Clone)]
     pub struct Cutting {
+        pub requisition_id: String,
         pub cutting_id: String,
         pub planned_date: NaiveDate,
         pub machine: String,
@@ -23,6 +25,7 @@ pub mod cutting {
 
     impl Cutting {
         pub fn new(
+            requisition_id: String,
             planned_date: NaiveDate,
             machine: String,
             part_code: String,
@@ -32,6 +35,7 @@ pub mod cutting {
         ) -> Self {
             Cutting {
                 cutting_id: generate_uuid(),
+                requisition_id,
                 planned_date,
                 machine,
                 part_code,
@@ -45,6 +49,7 @@ pub mod cutting {
 
             let temp_table = "CREATE TEMPORARY TABLE cutting_temp(
                 temp_id             INT             NOT NULL            PRIMARY KEY             AUTO_INCREMENT,
+                requisition_id      VARCHAR(200)    NOT NULL,
                 cutting_id          VARCHAR(100)    NOT NULL            UNIQUE,
                 planned_date        DATETIME        NOT NULL,
                 machine             VARCHAR(10)     NOT NULL,
@@ -63,6 +68,7 @@ pub mod cutting {
             conn.query_drop(temp_table)?;
 
             let insert = "INSERT INTO cutting_temp(
+                requisition_id,
                 cutting_id,
                 planned_date,
                 machine,
@@ -71,6 +77,7 @@ pub mod cutting {
                 heat_no,
                 planned_qty
             ) VALUES (
+                :requisition_id,
                 :cutting_id,
                 :planned_date,
                 :machine,
@@ -83,6 +90,7 @@ pub mod cutting {
             conn.exec_drop(
                 insert,
                 params! {
+                    "requisition_id" => self.requisition_id.clone(),
                     "cutting_id" => self.cutting_id.clone(),
                     "planned_date" => self.planned_date.clone(),
                     "machine" => self.machine.clone(),
@@ -96,6 +104,7 @@ pub mod cutting {
             let cutting_table = "CREATE TABLE IF NOT EXISTS cutting
             (   
                 id                     INT             NOT NULL        PRIMARY KEY         AUTO_INCREMENT,
+                requisition_id         VARCHAR(100)    NOT NULL,
                 rm_id                  VARCHAR(100)    NOT NULL,
                 cutting_id             VARCHAR(100)    NOT NULL         UNIQUE,
                 planned_date           DATETIME        NOT NULL,
@@ -122,8 +131,11 @@ pub mod cutting {
                 CONSTRAINT          sr_fk_cut_rm    FOREIGN KEY(rm_id)            REFERENCES      approved_components(rm_id)       ON UPDATE CASCADE ON DELETE CASCADE
             )ENGINE = InnoDB;";
 
+            conn.query_drop(cutting_table)?;
+
             let insert = "INSERT INTO cutting(requisition_id, rm_id, cutting_id, planned_date, machine, part_no, heat_no, heat_code, grade, size, section, cut_wt, planned_qty)
             SELECT
+            c.requisition_id,
             a.rm_id,
             c.cutting_id,
             c.planned_date,
@@ -148,9 +160,35 @@ pub mod cutting {
             INNER JOIN gate_entry g
             ON a.rm_id = g.gate_entry_id;";
 
-            conn.query_drop(cutting_table)?;
+            let trig = "CREATE TRIGGER before_cutting_insert
+            BEFORE INSERT
+            ON cutting FOR EACH ROW
+            BEGIN
+                UPDATE requisition
+                SET status = 'CLOSED'
+                WHERE requisition_id = NEW.requisition_id;
+            END;";
 
-            conn.query_drop(insert)?;
+            let result = conn.query_map(
+                "SHOW TRIGGERS FROM mws_database;",
+                |t: Row| {
+                    parse_from_row(&t)
+                }
+            ).unwrap();
+
+            let mut trig_name: Vec<String> = Vec::new();
+
+            for v in result.clone() {
+                trig_name.push(v[0].clone());
+            }
+
+            match trig_name.contains(&"before_cutting_insert".to_string()) {
+                true => conn.query_drop(insert)?,
+                false => {
+                    conn.query_drop(trig)?;
+                    conn.query_drop(insert)?;
+                }
+            }
 
             Ok(conn.last_insert_id())
         }
@@ -222,9 +260,15 @@ pub mod cutting {
         }
 
         pub fn cutting_heat(p: usize) -> Vec<Vec<String>> {
+
             let query = format!("SELECT rm_id, part_no, heat_no, heat_code, SUM(ok_qty - issued_qty) FROM cutting WHERE part_no = {} AND ok_qty - issued_qty > 0 GROUP BY rm_id, heat_no, heat_code LIMIT 1;", p);
             
-            row_parser(query, 5)
+            match check_table_exists("cutting".to_string()) {
+                Ok(true) => row_parser(query, 5),
+                _ => vec![vec!["0".to_string()]]
+            }
+            
+            
         }
 
         pub fn get_cutting_list() -> Vec<Vec<String>> {
