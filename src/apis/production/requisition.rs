@@ -40,8 +40,8 @@ pub mod requisition {
             let table = "CREATE TABLE IF NOT EXISTS requisition (
                 id                  INT                 NOT NULL                    PRIMARY KEY                 AUTO_INCREMENT,
                 requisition_id      VARCHAR(100)        NOT NULL                    UNIQUE,
-                request_from        VARCHAR(4)          NOT NULL,
-                request_to          VARCHAR(4)          NOT NULL,
+                request_from        VARCHAR(20)          NOT NULL,
+                request_to          VARCHAR(20)          NOT NULL,
                 part_no             INT                 NOT NULL,
                 requested_qty       INT                 NOT NULL,
                 comments            TEXT,
@@ -90,6 +90,27 @@ pub mod requisition {
             )?;
 
             Ok(conn.last_insert_id())
+        }
+
+        pub fn get_requisition(dept: String) -> Result<Self> {
+            let select = "SELECT requisition_id, request_from, request_to, part_no, request_qty, comments, reply FROM requisition WHERE request_to = '{}' ORDER BY created_at;";
+
+            let url: &str = "mysql://root:@localhost:3306/mws_database";
+
+            let pool: Pool = Pool::new(url)?;
+
+            let mut conn = pool.get_conn()?;
+
+            let req = conn.query_map(
+                select,
+                |(requisition_id, request_from, request_to, part_no, request_qty, comments, reply)| {
+                    Requisition{
+                        requisition_id, request_from, request_to, part_no, request_qty, comments, reply
+                    }
+                }
+            )?;
+
+            Ok(req)
         }
     }
 }

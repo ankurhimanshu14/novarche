@@ -20,6 +20,86 @@ pub mod cutting {
 
     use crate::frontend::production::forging::forging::submit_forging_plan;
 
+    pub fn get_request(s: &mut Cursive) {
+        let request_list = match Requisition::get_requisition("CUTTING".to_string()) {
+            Ok(m) => {
+                s.add_layer(
+                    Dialog::new()
+                    .title("Requisition List")
+                    .padding_lrtb(1, 1, 1, 0)
+                    .content(
+                        ListView::new()
+                        .with(
+                            |list| {
+                                list
+                                .add_child(
+                                    "",
+                                    LinearLayout::new(Horizontal)
+                                    .child(TextView::new("Sr. No.").center().fixed_width(10))
+                                    .child(TextView::new("|").center().fixed_width(3))
+                                    .child(TextView::new("Request Raised By").center().fixed_width(20))
+                                    .child(TextView::new("|").center().fixed_width(3))
+                                    .child(TextView::new("Part No").center().fixed_width(10))
+                                    .child(TextView::new("|").center().fixed_width(3))
+                                    .child(TextView::new("Requested Quantity (Nos)").center().fixed_width(10))
+                                    .child(TextView::new("|").center().fixed_width(3))
+                                    .child(TextView::new("Comment").center().fixed_width(10))
+                                    .child(TextView::new("|").center().fixed_width(3))
+                                    .child(TextView::new("Create Cutting").center().fixed_width(20))
+                                );
+        
+                                let mut count: usize = 0;
+                                for cut in cutting_list {
+                                    count = count + 1;
+
+                                    let enable_button: bool = match &cut[7].parse::<usize>().unwrap() {
+                                        0 => true,
+                                        _ => false
+                                    };
+
+                                    list
+                                    .add_child(
+                                        "",
+                                        LinearLayout::new(Horizontal)
+                                        .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[2]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[3]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[4]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[5]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[6]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[7]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[8]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&cut[9]).center().fixed_width(20))
+                                        .child(Button::new_raw(
+                                            "        Update       ",
+                                            move |s| {
+                                                let r_id = &cut[0];
+                                                let p_id = &cut[1];
+                                                update_cutting_status(s, r_id.to_string(), p_id.to_string())
+                                            }
+                                        ).with_enabled(enable_button))
+                                    )
+                                }
+                            }
+                        )
+                        .scrollable()
+        
+                    )
+                    .dismiss_button("Ok")
+                )
+            },
+            Err(_) => s.add_layer(Dialog::info(""))
+        };
+    }
+
     pub fn plan(s: &mut Cursive) {
 
         let h = GateEntry::get_heat_no_list().unwrap();

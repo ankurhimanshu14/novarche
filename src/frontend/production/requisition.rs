@@ -18,7 +18,7 @@ pub mod requisition {
                 ListView::new()
                 .child("Part No", TextView::new(p.clone().to_string()))
                 .child("Requested Qty (Nos)", EditView::new().with_name("req_qty").fixed_width(30))
-                .child("Comments", TextArea::new().with_name("comments").fixed_width(30).min_height(5))
+                .child("Comments", EditView::new().with_name("comments").fixed_width(30).min_height(5))
             )
             .button(
                 "Send Request",
@@ -30,7 +30,7 @@ pub mod requisition {
                         v.get_content()
                     }).unwrap();
                     
-                    let comments = s.call_on_name("comments", |v: &mut TextArea| {
+                    let comments = s.call_on_name("comments", |v: &mut EditView| {
                         v.get_content()
                     }).unwrap();
 

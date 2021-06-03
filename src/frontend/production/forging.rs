@@ -173,7 +173,15 @@ pub mod forging {
                                     true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), tc).post(avail_cuttings[l][0].clone()) {
                                         Ok(i) => {
                                             s.pop_layer();
-                                            s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.\nRaise cutting request for minimum {} nos.", tc, i, q - tc)).dismiss_button("Ok"));
+                                            s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.\nRaise cutting request for minimum {} nos.", tc, i, q - tc))
+                                            .button(
+                                                "Create Request",
+                                                move |s| {
+                                                    raise_requisition(s, part_no, "FORGING".to_string(), "CUTTING".to_string())
+                                                }
+                                            )
+                                            .dismiss_button("Cancel")
+                                        );
                                             q = q -tc;
                                         },
                                         Err(e) => {
@@ -195,7 +203,15 @@ pub mod forging {
                                         },
                                         false => {
                                             s.pop_layer();
-                                            s.add_layer(Dialog::text(format!("All cuttings are booked for forging.\nRaise cutting request for {} nos.", q)).dismiss_button("Ok"));
+                                            s.add_layer(Dialog::text(format!("All cuttings are booked for forging.\nRaise cutting request for {} nos.", q))
+                                            .button(
+                                                "Create Request",
+                                                move |s| {
+                                                    raise_requisition(s, part_no, "FORGING".to_string(), "CUTTING".to_string())
+                                                }
+                                            )
+                                            .dismiss_button("Cancel")
+                                        );
                                             break;
                                         }
                                     }
