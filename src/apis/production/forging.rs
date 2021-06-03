@@ -137,6 +137,17 @@ pub mod forging {
             }            
         }
 
+        pub fn booked_qty(c_id: String, p: usize) -> isize {
+
+            let query = format!("SELECT SUM(planned_qty) FROM forging WHERE cutting_id = '{}' AND part_no = {} AND actual_qty = 0 GROUP BY cutting_id, part_no;", c_id, p);
+
+            match check("forging".to_string()) {
+                Ok(false) => 0,
+                Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
+                Err(_) => -1
+            }            
+        }
+
         // pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {
         //     let stmt = format!("UPDATE forging
         //     SET actual_qty = '{0}', ok_qty = '{1}'

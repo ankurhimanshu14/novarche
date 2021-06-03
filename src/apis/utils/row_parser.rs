@@ -14,14 +14,18 @@ pub mod parser {
 
         let cut_rows: Vec<Row> = s.fetch(conn).unwrap();
 
-        for row in cut_rows {
+        if cut_rows.len() == 0 {
+            outer_v = vec![vec!["0".to_string()]]
+        } else {
+            for row in cut_rows {
 
-            let mut v: Vec<String> = Vec::new();
-            
-            for i in 0..n {
-                v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
+                let mut v: Vec<String> = Vec::new();
+                
+                for i in 0..n {
+                    v.push(row.get_opt::<String, usize>(i).unwrap().unwrap().to_string());
+                }
+                outer_v.push(v.clone());
             }
-            outer_v.push(v.clone());
         }
         outer_v
     }

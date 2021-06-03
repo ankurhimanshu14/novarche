@@ -105,25 +105,40 @@ pub mod forging {
 
                     let mut q = q;
 
-                    for cut in &avail_cuttings {
+                    for l in 0..avail_cuttings.len() {
 
-                        let mut cut_qty = cut[2].parse::<usize>().unwrap();
+                        println!("-------------------L: {}", &l);
+
+                        let cut_qty = avail_cuttings[l][2].parse::<usize>().unwrap();
 
                         let in_plan = Forging::qty_in_plan(p.clone());
 
+                        let c_id = avail_cuttings[l][0].clone();
+
+                        println!("---------------------Hello, {:?}", &c_id);
+
                         while q > 0 {
 
-                            let t = t - in_plan as usize;
+                            println!("--------------q: {}", &q);
 
-                            match t > q {
-                                true => {
-                                    match cut_qty > q {
+                            let tc = t - in_plan as usize;
+
+                            let booked_qty = match Forging::booked_qty(c_id.clone().to_string(), p) {
+                                -1 => 0,
+                                v => v
+                            };
+
+                            println!("---------------booked_qty: {}", &booked_qty);
+
+                            match tc > q {
+                                true => {                                    
+                                    match cut_qty - booked_qty as usize > q {
                                         true => {
-                                            match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(cut[0].clone()) {
+                                            match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(avail_cuttings[l][0].clone()) {
                                                 Ok(i) => {
+                                                    println!("--------------------Arm 1");
                                                     s.pop_layer();
-                                                    s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", q, i)).dismiss_button("Ok"));
-                                                    cut_qty = cut_qty - q;
+                                                    s.add_layer(Dialog::text(format!("New Plan: Forging Plan created for {} nos.\nInsert ID: {}.", q, i)).dismiss_button("Ok"));
                                                     q = 0;
                                                 },
                                                 Err(e) => {
@@ -132,32 +147,57 @@ pub mod forging {
                                                 }
                                             }
                                         },
-                                        false => {
-                                            match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty).post(cut[0].clone()) {
+                                        false => match cut_qty > booked_qty as usize {
+                                            true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - booked_qty as usize).post(avail_cuttings[l][0].clone()) {
                                                 Ok(i) => {
+                                                    println!("------------------------Arm 2");
                                                     s.pop_layer();
-                                                    s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", q, i)).dismiss_button("Ok"));
-                                                    q = q - cut_qty;
-                                                    cut_qty = 0;
+                                                    s.add_layer(Dialog::text(format!("Repeat Plan: Forging Plan created for {} nos.\nInsert ID: {}.", cut_qty - booked_qty as usize, i)).dismiss_button("Ok"));
+                                                    q = q + booked_qty as usize - cut_qty;
                                                 },
                                                 Err(e) => {
                                                     s.pop_layer();
                                                     s.add_layer(Dialog::text(format!("Error : {}", e)).dismiss_button("Ok"));
                                                 }
+                                            },
+                                            false => {
+                                                s.pop_layer();
+                                                s.add_layer(Dialog::text(format!("All cuttings are booked for forging.\nRaise cutting request for {} nos.", q)).dismiss_button("Ok"));
+                                                break;
                                             }
                                         }
                                     }
                                 },
-                                false => {
-                                    match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), t).post(cut[0].clone()) {
+                                false => match cut_qty - booked_qty as usize > q {
+                                    true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), tc).post(avail_cuttings[l][0].clone()) {
                                         Ok(i) => {
+                                            println!("-----------------------Arm 3");
                                             s.pop_layer();
-                                            s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.\nRaise cutting request for minimum {} nos.", t, i, q - t)).dismiss_button("Ok"));
-                                            q = q -t;
+                                            s.add_layer(Dialog::text(format!("Repeat Plan 2: Forging Plan created for {} nos.\nInsert ID: {}.\nRaise cutting request for minimum {} nos.", tc, i, q - tc)).dismiss_button("Ok"));
+                                            q = q -tc;
                                         },
                                         Err(e) => {
                                             s.pop_layer();
                                             s.add_layer(Dialog::text(format!("Error : {}", e)).dismiss_button("Ok"));
+                                        }
+                                    },
+                                    false => match cut_qty > booked_qty as usize {
+                                        true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - booked_qty as usize).post(avail_cuttings[l][0].clone()) {
+                                            Ok(i) => {
+                                                println!("------------------------Arm 2");
+                                                s.pop_layer();
+                                                s.add_layer(Dialog::text(format!("Repeat Plan: Forging Plan created for {} nos.\nInsert ID: {}.", cut_qty - booked_qty as usize, i)).dismiss_button("Ok"));
+                                                q = q + booked_qty as usize - cut_qty;
+                                            },
+                                            Err(e) => {
+                                                s.pop_layer();
+                                                s.add_layer(Dialog::text(format!("Error : {}", e)).dismiss_button("Ok"));
+                                            }
+                                        },
+                                        false => {
+                                            s.pop_layer();
+                                            s.add_layer(Dialog::text(format!("All cuttings are booked for forging.\nRaise cutting request for {} nos.", q)).dismiss_button("Ok"));
+                                            break;
                                         }
                                     }
                                 }

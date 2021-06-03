@@ -373,6 +373,7 @@ pub mod cutting {
 
                                                 let tot_qty = cut[4].parse::<usize>().unwrap();
 
+                                                s.pop_layer();
                                                 submit_forging_plan(r_id, s, p_date, part_no, planned_qty, tot_qty);
                                             }
                                         ).with_enabled(enable_button))
