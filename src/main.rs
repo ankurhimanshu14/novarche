@@ -2,17 +2,11 @@ mod apis;
 mod frontend;
 
 use cursive::{
-    With,
     Cursive,
     CursiveExt,
     menu,
-    align::HAlign,
-    direction::Orientation::Vertical,
-    views::{ Menubar, Dialog, ListView, LinearLayout, Button, FixedLayout, TextView },
-    Rect
+    views::Menubar
 };
-
-use apis::production::requisition::requisition::Requisition;
 
 use frontend::{
     admin::{
