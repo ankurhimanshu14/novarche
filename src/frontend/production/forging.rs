@@ -49,6 +49,7 @@ pub mod forging {
                     match part_code.len() {
                         0 => s.add_layer(Dialog::info("Part not defined")),
                         1 => {
+                            s.pop_layer();
                             display_cutting_heat(s, part_no , planned_date);
                         },
                         _ => s.add_layer(Dialog::info("Error in fetching part list"))

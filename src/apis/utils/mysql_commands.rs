@@ -3,16 +3,6 @@ pub mod mysql_commands {
     use mysql::*;
     use mysql::prelude::*;
 
-    pub fn create_table(s: String) -> Result<()> {
-        let url: &str = "mysql://root:@localhost:3306/mws_database";
-
-        let pool: Pool = Pool::new(url)?;
-
-        let mut conn = pool.get_conn()?;
-
-        conn.query_drop(s.to_string())
-    }
-
     pub fn check_table_exists(table_name: String) -> Result<bool> {
 
         let url: &str = "mysql://root:@localhost:3306/mws_database";

@@ -130,7 +130,10 @@ pub mod forging {
 
             match check_table_exists("forging".to_string()) {
                 Ok(false) => 0,
-                Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
+                Ok(true) => match row_parser(query, "forging".to_string(), 1)[0][0].parse::<isize>().unwrap() {
+                    0 => 0,
+                    v => v
+                },
                 Err(_) => -1
             }            
         }
@@ -141,7 +144,7 @@ pub mod forging {
 
             match check_table_exists("forging".to_string()) {
                 Ok(false) => 0,
-                Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
+                Ok(true) => row_parser(query, "forging".to_string(), 1)[0][0].parse::<isize>().unwrap(),
                 Err(_) => -1
             }            
         }

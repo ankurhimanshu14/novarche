@@ -99,11 +99,18 @@ pub mod requisition {
         pub fn get_requisition(dept: String) -> Vec<Vec<String>> {
             let select = format!("SELECT requisition_id, request_from, request_to, part_no, requested_qty, comments, reply, status FROM requisition WHERE request_to = '{}' AND status = 'OPEN' ORDER BY created_at;", dept);
 
-            row_parser(select, 8)
+            row_parser(select, "requisition".to_string(), 8)
         }
 
-        pub fn update_status(req_id: String) -> Result<()> {
-            let query = format!("UPDATE requisition SET status = 'CLOSED' WHERE requisition_id = '{}';", req_id);
+        pub fn count_pending(dept: String) -> Vec<Vec<String>> {
+            let select = format!("SELECT COUNT(requisition_id) FROM requisition WHERE request_to = '{}' AND status = 'OPEN' ORDER BY created_at;", dept);
+
+            row_parser(select, "requisition".to_string(), 1)
+        }
+
+        pub fn update_reply(r: String, req_id: String) -> Result<()> {
+
+            let update = format!("UPDATE requisition SET reply = '{}' WHERE requisition_id = '{}';", r.to_string(), req_id.to_string());
 
             let url: &str = "mysql://root:@localhost:3306/mws_database";
 
@@ -111,7 +118,7 @@ pub mod requisition {
 
             let mut conn = pool.get_conn()?;
 
-            conn.query_drop(query)
+            conn.query_drop(update)
         }
     }
 }

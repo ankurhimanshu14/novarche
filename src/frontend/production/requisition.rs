@@ -3,7 +3,7 @@ pub mod requisition {
     use cursive::{
         Cursive,
         view::{ Nameable, Resizable },
-        views::{  Dialog, EditView, ListView, TextView, TextArea },
+        views::{  Dialog, EditView, ListView, TextView },
     };
 
     use crate::apis::production::requisition::requisition::Requisition;

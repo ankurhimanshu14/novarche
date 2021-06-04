@@ -2,11 +2,17 @@ mod apis;
 mod frontend;
 
 use cursive::{
+    With,
     Cursive,
     CursiveExt,
     menu,
-    views::{ Menubar },
+    align::HAlign,
+    direction::Orientation::Vertical,
+    views::{ Menubar, Dialog, ListView, LinearLayout, Button, FixedLayout, TextView },
+    Rect
 };
+
+use apis::production::requisition::requisition::Requisition;
 
 use frontend::{
     admin::{
@@ -55,6 +61,7 @@ use frontend::{
     },
     production::{
         cutting::cutting::{
+            display_cutting,
             get_request,
             get_cutting_list
         },
@@ -156,7 +163,7 @@ fn main() {
             )
         )
         .add_subtree(
-            "Production",
+            "Prod",
             menu::MenuTree::new()
             .subtree(
                 "Cutting",
@@ -168,6 +175,14 @@ fn main() {
                 "Forging",
                 menu::MenuTree::new()
                 .leaf("New Plan", |s|{ forging_plan(s) })
+            )
+        )
+        .add_subtree(
+            "Production",
+            menu::MenuTree::new()
+            .leaf(
+                "Cutting",
+                |s| {display_cutting(s) }
             )
         );
 
