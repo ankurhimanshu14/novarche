@@ -142,11 +142,11 @@ pub mod forging {
 
             let query = format!("SELECT SUM(planned_qty) FROM forging WHERE cutting_id = '{}' AND part_no = {} AND actual_qty = 0 GROUP BY cutting_id, part_no;", c_id, p);
 
-            match check_table_exists("forging".to_string()) {
-                Ok(false) => 0,
-                Ok(true) => row_parser(query, "forging".to_string(), 1)[0][0].parse::<isize>().unwrap(),
-                Err(_) => -1
-            }            
+            let b_qty = row_parser(query, "forging".to_string(), 1)[0][0].parse::<isize>().unwrap();
+            
+            println!("{:?}", &b_qty);
+
+            b_qty
         }
 
         // pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {

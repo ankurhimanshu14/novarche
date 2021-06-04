@@ -23,6 +23,8 @@ pub mod mysql_commands {
             }
         ).unwrap();
 
+        println!("{:?}", &table_exists[0]);
+
         match & table_exists[0] {
             0 => Ok(false),
             1 => Ok(true),

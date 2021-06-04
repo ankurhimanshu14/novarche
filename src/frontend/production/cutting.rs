@@ -57,15 +57,6 @@ pub mod cutting {
             .child(
                 Rect::from_size((30, 0), (300,100)),
                 Dialog::new().title("Data Field")
-                .content(
-                    LinearLayout::new(Vertical)
-                    .with(
-                        |list| {
-                            list
-                            .add_child(TextView::new("Requisition 2"))
-                        }
-                    )
-                )
             )
         )
     }
@@ -80,74 +71,80 @@ pub mod cutting {
                     true => s.add_layer(Dialog::info("No requisition raised")),
                     false => {
                         s.add_layer(
-                            Dialog::new()
-                            .title("Requisition List")
-                            .padding_lrtb(1, 1, 1, 0)
-                            .content(
-                                ListView::new()
-                                .with(
-                                    move |list| {
-                                        list
-                                        .add_child(
-                                            "",
-                                            LinearLayout::new(Horizontal)
-                                            .child(TextView::new("Sr. No.").center().fixed_width(10))
-                                            .child(TextView::new("|").center().fixed_width(3))
-                                            .child(TextView::new("Request Raised By").center().fixed_width(20))
-                                            .child(TextView::new("|").center().fixed_width(3))
-                                            .child(TextView::new("Part No").center().fixed_width(10))
-                                            .child(TextView::new("|").center().fixed_width(3))
-                                            .child(TextView::new("Requested Quantity (Nos)").center().fixed_width(10))
-                                            .child(TextView::new("|").center().fixed_width(3))
-                                            .child(TextView::new("Comment").center().fixed_width(10))
-                                            .child(TextView::new("|").center().fixed_width(3))
-                                            .child(TextView::new("Create Cutting").center().fixed_width(20))
-                                        );
-                
-                                        let mut count: usize = 0;
-                                        for req in m {
-                                            count = count + 1;
 
-                                            let enable_button: bool = match &*req[7].to_string() {
-                                                "Open" => false,
-                                                _ => true
-                                            };
-
+                            FixedLayout::new()
+                            .child(
+                                Rect::from_size((30, 0), (300,100)),
+                                Dialog::new()
+                                .title("Requisition List")
+                                .padding_lrtb(1, 1, 1, 0)
+                                .content(
+                                    ListView::new()
+                                    .with(
+                                        move |list| {
                                             list
                                             .add_child(
                                                 "",
                                                 LinearLayout::new(Horizontal)
-                                                .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
-                                                .child(TextView::new(format!("|")).center().fixed_width(3))
-                                                .child(TextView::new(req[1].to_string()).center().fixed_width(20))
-                                                .child(TextView::new(format!("|")).center().fixed_width(3))
-                                                .child(TextView::new(req[3].to_string()).center().fixed_width(10))
-                                                .child(TextView::new(format!("|")).center().fixed_width(3))
-                                                .child(TextView::new(req[4].to_string()).center().fixed_width(10))
-                                                .child(TextView::new(format!("|")).center().fixed_width(3))
-                                                .child(TextView::new(req[5].to_string()).center().fixed_width(10))
-                                                .child(TextView::new(format!("|")).center().fixed_width(3))
-                                                .child(Button::new_raw(
-                                                    "   Create Plan   ",
-                                                    move |s| {
-                                                        let req_id = req[0].clone();
+                                                .child(TextView::new("Sr. No.").center().fixed_width(10))
+                                                .child(TextView::new("|").center().fixed_width(3))
+                                                .child(TextView::new("Request Raised By").center().fixed_width(20))
+                                                .child(TextView::new("|").center().fixed_width(3))
+                                                .child(TextView::new("Part No").center().fixed_width(10))
+                                                .child(TextView::new("|").center().fixed_width(3))
+                                                .child(TextView::new("Requested Quantity (Nos)").center().fixed_width(10))
+                                                .child(TextView::new("|").center().fixed_width(3))
+                                                .child(TextView::new("Comment").center().fixed_width(10))
+                                                .child(TextView::new("|").center().fixed_width(3))
+                                                .child(TextView::new("Create Cutting").center().fixed_width(20))
+                                            );
+                    
+                                            let mut count: usize = 0;
+                                            for req in m {
+                                                count = count + 1;
 
-                                                        let part_no = req[3].clone();
+                                                let enable_button: bool = match &*req[7].to_string() {
+                                                    "Open" => false,
+                                                    _ => true
+                                                };
 
-                                                        let requested_qty = req[4].clone();
+                                                list
+                                                .add_child(
+                                                    "",
+                                                    LinearLayout::new(Horizontal)
+                                                    .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
+                                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                                    .child(TextView::new(req[1].to_string()).center().fixed_width(20))
+                                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                                    .child(TextView::new(req[3].to_string()).center().fixed_width(10))
+                                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                                    .child(TextView::new(req[4].to_string()).center().fixed_width(10))
+                                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                                    .child(TextView::new(req[5].to_string()).center().fixed_width(10))
+                                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                                    .child(Button::new_raw(
+                                                        "   Create Plan   ",
+                                                        move |s| {
+                                                            let req_id = req[0].clone();
 
-                                                        cutting_plan(s, req_id.to_string(), part_no.parse::<usize>().unwrap(), requested_qty.parse::<usize>().unwrap())
-                                                    }
-                                                ).with_enabled(enable_button))
-                                            )
+                                                            let part_no = req[3].clone();
+
+                                                            let requested_qty = req[4].clone();
+
+                                                            cutting_plan(s, req_id.to_string(), part_no.parse::<usize>().unwrap(), requested_qty.parse::<usize>().unwrap())
+                                                        }
+                                                    ).with_enabled(enable_button))
+                                                )
+                                            }
                                         }
-                                    }
+                                    )
+                                    .scrollable()
+                    
                                 )
-                                .scrollable()
-                
+                                .dismiss_button("Ok")
                             )
-                            .dismiss_button("Ok")
-                        )
+                            )
+                            
                     }
                 }
             },
@@ -314,7 +311,37 @@ pub mod cutting {
             true => s.add_layer(Dialog::new().padding_lrtb(10, 10, 0, 0).content(TextView::new(format!("No planning for cutting is found"))).dismiss_button("Ok")),
             false => {
                 s.add_layer(
-                    Dialog::new()
+                    FixedLayout::new()
+                    .child(
+                        Rect::from_size((0, 0), (30,100)),
+                        Dialog::new().title("Sub Menu")
+                        .content(
+                            LinearLayout::new(Vertical)
+                            .with(
+                                |list| {
+                                    list
+                                    .add_child(
+                                        LinearLayout::new(Vertical)
+                                        .child(Button::new_raw(
+                                            format!("Pending Requisitions"),
+                                            move |s| {
+                                                get_request(s)
+                                            }
+                                        ))
+                                        .child(Button::new_raw(
+                                            format!("Cutting List"),
+                                            move |s| {
+                                                get_cutting_list(s)
+                                            }
+                                        ))
+                                    )
+                                }
+                            )
+                        )
+                    )
+                    .child(
+                        Rect::from_size((30, 0), (300,100)),
+                        Dialog::new()
                     .title("Cutting List")
                     .padding_lrtb(1, 1, 1, 0)
                     .content(
@@ -335,14 +362,15 @@ pub mod cutting {
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
                                     .child(TextView::new(format!("Heat Code")).center().fixed_width(10))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
-                                    .child(TextView::new(format!("Planned Qty (Nos)")).center().fixed_width(20))
+                                    .child(TextView::new(format!("Planned Qty")).center().fixed_width(15))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
-                                    .child(TextView::new(format!("Actual Qty (Nos)")).center().fixed_width(20))
+                                    .child(TextView::new(format!("Actual Qty")).center().fixed_width(15))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
-                                    .child(TextView::new(format!("OK Qty (Nos)")).center().fixed_width(20))
+                                    .child(TextView::new(format!("OK Qty")).center().fixed_width(15))
                                     .child(TextView::new(format!("|")).center().fixed_width(3))
-                                    .child(TextView::new(format!("Reject Qty (Nos)")).center().fixed_width(20))
-                                    .child(TextView::new("Update Production").center().fixed_width(20))
+                                    .child(TextView::new(format!("Reject Qty")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new("Update").center().fixed_width(15))
                                 );
         
                                 let mut count: usize = 0;
@@ -368,29 +396,30 @@ pub mod cutting {
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(TextView::new(&cut[5]).center().fixed_width(10))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[6]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[6]).center().fixed_width(15))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[7]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[7]).center().fixed_width(15))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[8]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[8]).center().fixed_width(15))
                                         .child(TextView::new(format!("|")).center().fixed_width(3))
-                                        .child(TextView::new(&cut[9]).center().fixed_width(20))
+                                        .child(TextView::new(&cut[9]).center().fixed_width(15))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
                                         .child(Button::new_raw(
-                                            "        Update       ",
+                                            "Update",
                                             move |s| {
                                                 let r_id = &cut[0];
                                                 let p_id = &cut[1];
                                                 update_cutting_status(s, r_id.to_string(), p_id.to_string())
                                             }
-                                        ).with_enabled(enable_button))
+                                        ).with_enabled(enable_button).fixed_width(15))
                                     )
                                 }
                             }
                         )
                         .scrollable()
-        
                     )
                     .dismiss_button("Ok")
+                    )
                 )
             }
         }

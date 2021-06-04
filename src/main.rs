@@ -176,7 +176,7 @@ fn main() {
             menu::MenuTree::new()
             .leaf(
                 "Cutting",
-                |s| {display_cutting(s) }
+                |s| { display_cutting(s) }
             )
         );
 

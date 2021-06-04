@@ -9,7 +9,6 @@ pub mod requisition {
     use crate::apis::production::requisition::requisition::Requisition;
 
     pub fn raise_requisition(s: &mut Cursive, p: usize, from: String, to: String) {
-        s.pop_layer();
         s.add_layer(
             Dialog::new()
             .title("Raise Cutting Requisition")
