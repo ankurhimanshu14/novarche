@@ -97,15 +97,15 @@ pub mod requisition {
         }
 
         pub fn get_requisition(dept: String) -> Vec<Vec<String>> {
-            let select = format!("SELECT requisition_id, request_from, request_to, part_no, requested_qty, comments, reply, status FROM requisition WHERE request_to = '{}' AND status = 'OPEN' ORDER BY created_at;", dept);
+            let select = format!("SELECT requisition_id, request_from, request_to, part_no, requested_qty, comments, status FROM requisition WHERE request_to = '{}' AND status = 'OPEN' ORDER BY created_at;", dept);
 
-            row_parser(select, "requisition".to_string(), 8)
+            row_parser(select, 7)
         }
 
         pub fn count_pending(dept: String) -> Vec<Vec<String>> {
             let select = format!("SELECT COUNT(requisition_id) FROM requisition WHERE request_to = '{}' AND status = 'OPEN' ORDER BY created_at;", dept);
 
-            row_parser(select, "requisition".to_string(), 1)
+            row_parser(select, 1)
         }
 
         pub fn update_reply(r: String, req_id: String) -> Result<()> {

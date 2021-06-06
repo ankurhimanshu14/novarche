@@ -128,25 +128,25 @@ pub mod forging {
 
             let query = format!("SELECT SUM(planned_qty) FROM forging WHERE part_no = {} AND actual_qty = 0 GROUP BY cutting_id, part_no;", p);
 
+            println!("checking qty in plan");
+
             match check_table_exists("forging".to_string()) {
+                Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
                 Ok(false) => 0,
-                Ok(true) => match row_parser(query, "forging".to_string(), 1)[0][0].parse::<isize>().unwrap() {
-                    0 => 0,
-                    v => v
-                },
                 Err(_) => -1
-            }            
+            }       
         }
 
         pub fn booked_qty(c_id: String, p: usize) -> isize {
 
             let query = format!("SELECT SUM(planned_qty) FROM forging WHERE cutting_id = '{}' AND part_no = {} AND actual_qty = 0 GROUP BY cutting_id, part_no;", c_id, p);
 
-            let b_qty = row_parser(query, "forging".to_string(), 1)[0][0].parse::<isize>().unwrap();
-            
-            println!("{:?}", &b_qty);
+            match check_table_exists("forging".to_string()) {
+                Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
+                Ok(false) => 0,
+                Err(_) => -1
+            }
 
-            b_qty
         }
 
         // pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {

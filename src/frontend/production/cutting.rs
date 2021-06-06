@@ -74,6 +74,33 @@ pub mod cutting {
 
                             FixedLayout::new()
                             .child(
+                                Rect::from_size((0, 0), (30,100)),
+                                Dialog::new().title("Sub Menu")
+                                .content(
+                                    LinearLayout::new(Vertical)
+                                    .with(
+                                        |list| {
+                                            list
+                                            .add_child(
+                                                LinearLayout::new(Vertical)
+                                                .child(Button::new_raw(
+                                                    format!("Pending Requisitions"),
+                                                    move |s| {
+                                                        get_request(s)
+                                                    }
+                                                ))
+                                                .child(Button::new_raw(
+                                                    format!("Cutting List"),
+                                                    move |s| {
+                                                        get_cutting_list(s)
+                                                    }
+                                                ))
+                                            )
+                                        }
+                                    )
+                                )
+                            )
+                            .child(
                                 Rect::from_size((30, 0), (300,100)),
                                 Dialog::new()
                                 .title("Requisition List")
@@ -103,7 +130,7 @@ pub mod cutting {
                                             for req in m {
                                                 count = count + 1;
 
-                                                let enable_button: bool = match &*req[7].to_string() {
+                                                let enable_button: bool = match &*req[6].to_string() {
                                                     "Open" => false,
                                                     _ => true
                                                 };

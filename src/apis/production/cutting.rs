@@ -268,7 +268,7 @@ pub mod cutting {
             let query = format!("SELECT rm_id, part_no, heat_no, heat_code, SUM(ok_qty - issued_qty) FROM cutting WHERE part_no = {} AND ok_qty - issued_qty > 0 GROUP BY rm_id, heat_no, heat_code LIMIT 1;", p);
             
             match check_table_exists("cutting".to_string()) {
-                Ok(true) => row_parser(query, "cutting".to_string(), 5),
+                Ok(true) => row_parser(query, 5),
                 _ => vec![]
             }
             
@@ -289,13 +289,21 @@ pub mod cutting {
             rej_qty
             FROM cutting ORDER BY planned_date DESC;";
 
-            row_parser(query.to_string(), "cutting".to_string(), 10)
+            match check_table_exists("cutting".to_string()) {
+                Ok(true) => row_parser(query.to_string(), 10),
+                _ => vec![vec!["0".to_string()]]
+            }
+
+
         }
 
         pub fn avail_qty_list(r: String, p: usize) -> Vec<Vec<String>> {
             let query = format!("SELECT cutting_id, part_no, (ok_qty - issued_qty) FROM cutting WHERE rm_id = '{}' AND part_no = '{}'  AND (ok_qty - issued_qty) > 0 ORDER BY created_at;", r, p);
 
-            row_parser(query.to_string(), "cutting".to_string(), 3)
+            match check_table_exists("cutting".to_string()) {
+                Ok(true) => row_parser(query.to_string(), 3),
+                _ => vec![vec!["0".to_string()]]
+            }
         }
     }
 }

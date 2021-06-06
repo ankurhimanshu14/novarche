@@ -113,6 +113,8 @@ pub mod forging {
 
                         let in_plan = Forging::qty_in_plan(p.clone());
 
+                        println!("IN PLAN{:?}", &in_plan);
+
                         let c_id = avail_cuttings[l][0].clone();
 
                         let part_no = avail_cuttings[l][1].parse::<usize>().unwrap().clone();
