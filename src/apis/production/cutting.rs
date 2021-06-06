@@ -293,8 +293,6 @@ pub mod cutting {
                 Ok(true) => row_parser(query.to_string(), 10),
                 _ => vec![vec!["0".to_string()]]
             }
-
-
         }
 
         pub fn avail_qty_list(r: String, p: usize) -> Vec<Vec<String>> {

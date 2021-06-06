@@ -7,7 +7,6 @@ pub mod forging {
     use crate::apis::utils::{
         parse::parse::parse_from_row,
         row_parser::parser::row_parser,
-        gen_uuid::gen_uuid::generate_uuid,
         mysql_commands::mysql_commands::check_table_exists,
     };
 
@@ -22,13 +21,14 @@ pub mod forging {
 
     impl Forging {
         pub fn new(
+            forging_id: String,
             planned_date: NaiveDate,
             machine: String,
             part_code: String,
             planned_qty: usize
         ) -> Self {
             Forging {
-                forging_id: generate_uuid(),
+                forging_id,
                 planned_date,
                 machine,
                 part_code,
@@ -148,6 +148,24 @@ pub mod forging {
                 Err(_) => -1
             }
 
+        }
+
+        pub fn get_forging_list() -> Vec<Vec<String>> {
+            let query = "SELECT
+            cutting_id,
+            forging_id,
+            planned_date,
+            part_no,
+            planned_qty,
+            actual_qty,
+            ok_qty,
+            rej_qty
+            FROM forging ORDER BY planned_date DESC;";
+
+            match check_table_exists("forging".to_string()) {
+                Ok(true) => row_parser(query.to_string(), 8),
+                _ => vec![vec!["0".to_string()]]
+            }
         }
 
         pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {

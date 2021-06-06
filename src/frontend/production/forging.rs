@@ -4,12 +4,15 @@ pub mod forging {
 
     use cursive::{
         Cursive,
-        With,
+        traits::*,
         view::{ Nameable, Resizable },
-        views::{  Dialog, EditView, ListView, SelectView, TextView, FixedLayout,LinearLayout, Button },
-        direction::Orientation:: Vertical,
+        align::HAlign,
+        views::{ Dialog, EditView, ListView, SelectView, TextView, LinearLayout, Button, FixedLayout },
+        direction::Orientation::{ Horizontal, Vertical },
         Rect
     };
+
+    use crate::apis::utils::gen_uuid::gen_uuid::generate_uuid;
 
     use crate::apis::{
         engineering::part::part::Part,
@@ -39,6 +42,12 @@ pub mod forging {
                                     format!("Create Plan"),
                                     move |s| {
                                         forging_plan(s)
+                                    }
+                                ))
+                                .child(Button::new_raw(
+                                    format!("Update Plan"),
+                                    move |s| {
+                                        get_forging_list(s)
                                     }
                                 ))
                             )
@@ -130,6 +139,8 @@ pub mod forging {
                 "Submit",
                 move |s| {
 
+                    let f_id = generate_uuid();
+
                     let m = s.call_on_name("machine", |v: &mut SelectView| {
                         v.selection()
                     }).unwrap();
@@ -146,8 +157,6 @@ pub mod forging {
                         let cut_qty = avail_cuttings[l][2].parse::<usize>().unwrap().clone();
 
                         let in_plan = Forging::qty_in_plan(p.clone());
-
-                        println!("IN PLAN{:?}", &in_plan);
 
                         let c_id = avail_cuttings[l][0].clone();
 
@@ -166,7 +175,7 @@ pub mod forging {
                                 true => {                                    
                                     match cut_qty - booked_qty as usize > q {
                                         true => {
-                                            match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(avail_cuttings[l][0].clone()) {
+                                            match Forging::new(f_id.clone(), d, m.clone().unwrap().to_string(), part_code.to_string(), q).post(avail_cuttings[l][0].clone()) {
                                                 Ok(i) => {
                                                     s.pop_layer();
                                                     s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", q, i)).dismiss_button("Ok"));
@@ -179,7 +188,7 @@ pub mod forging {
                                             }
                                         },
                                         false => match cut_qty > booked_qty as usize {
-                                            true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - booked_qty as usize).post(avail_cuttings[l][0].clone()) {
+                                            true => match Forging::new(f_id.clone(), d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - booked_qty as usize).post(avail_cuttings[l][0].clone()) {
                                                 Ok(i) => {
                                                     s.pop_layer();
                                                     s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", cut_qty - booked_qty as usize, i)).dismiss_button("Ok"));
@@ -207,7 +216,7 @@ pub mod forging {
                                     }
                                 },
                                 false => match cut_qty - booked_qty as usize > q {
-                                    true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), tc).post(avail_cuttings[l][0].clone()) {
+                                    true => match Forging::new(f_id.clone(), d, m.clone().unwrap().to_string(), part_code.to_string(), tc).post(avail_cuttings[l][0].clone()) {
                                         Ok(i) => {
                                             s.pop_layer();
                                             s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.\nRaise cutting request for minimum {} nos.", tc, i, q - tc))
@@ -227,7 +236,7 @@ pub mod forging {
                                         }
                                     },
                                     false => match cut_qty > booked_qty as usize {
-                                        true => match Forging::new(d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - booked_qty as usize).post(avail_cuttings[l][0].clone()) {
+                                        true => match Forging::new(f_id.clone(), d, m.clone().unwrap().to_string(), part_code.to_string(), cut_qty - booked_qty as usize).post(avail_cuttings[l][0].clone()) {
                                             Ok(i) => {
                                                 s.pop_layer();
                                                 s.add_layer(Dialog::text(format!("Forging Plan created for {} nos.\nInsert ID: {}.", cut_qty - booked_qty as usize, i)).dismiss_button("Ok"));
@@ -256,6 +265,164 @@ pub mod forging {
                             }
                         }
                     }
+                }
+            )
+            .dismiss_button("Cancel")
+        )
+    }
+
+    pub fn get_forging_list(s: &mut Cursive) {
+
+        let forging_list = Forging::get_forging_list();
+
+        match forging_list.is_empty() {
+            true => s.add_layer(Dialog::new().padding_lrtb(10, 10, 0, 0).content(TextView::new(format!("No planning for forging is found"))).dismiss_button("Ok")),
+            false => {
+                s.add_layer(
+                    FixedLayout::new()
+                    .child(
+                        Rect::from_size((0, 0), (30,100)),
+                        Dialog::new().title("Sub Menu")
+                        .content(
+                            LinearLayout::new(Vertical)
+                            .with(
+                                |list| {
+                                    list
+                                    .add_child(
+                                        LinearLayout::new(Vertical)
+                                        .child(Button::new_raw(
+                                            format!("Cutting List"),
+                                            move |s| {
+                                                get_forging_list(s)
+                                            }
+                                        ))
+                                    )
+                                }
+                            )
+                        )
+                    )
+                    .child(
+                        Rect::from_size((30, 0), (300,100)),
+                        Dialog::new()
+                    .title("Forging List")
+                    .padding_lrtb(1, 1, 1, 0)
+                    .content(
+                        ListView::new()
+                        .with(
+                            |list| {
+                                list
+                                .add_child(
+                                    "",
+                                    LinearLayout::new(Horizontal)
+                                    .child(TextView::new(format!("Sr. No.")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Planned Date")).center().fixed_width(20))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Part No")).center().fixed_width(10))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Planned Qty")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Actual Qty")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("OK Qty")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new(format!("Reject Qty")).center().fixed_width(15))
+                                    .child(TextView::new(format!("|")).center().fixed_width(3))
+                                    .child(TextView::new("Update").center().fixed_width(15))
+                                );
+        
+                                let mut count: usize = 0;
+                                for forg in forging_list {
+                                    count = count + 1;
+
+                                    let enable_button: bool = match &forg[5].parse::<usize>().unwrap() {
+                                        0 => true,
+                                        _ => false
+                                    };
+
+                                    list
+                                    .add_child(
+                                        "",
+                                        LinearLayout::new(Horizontal)
+                                        .child(TextView::new(format!("{:?}", count)).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&forg[2]).center().fixed_width(20))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&forg[3]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&forg[4]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&forg[5]).center().fixed_width(10))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&forg[6]).center().fixed_width(15))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(TextView::new(&forg[7]).center().fixed_width(15))
+                                        .child(TextView::new(format!("|")).center().fixed_width(3))
+                                        .child(Button::new_raw(
+                                            "Update",
+                                            move |s| {
+                                                let c_id = &forg[0];
+                                                let f_id = &forg[1];
+                                                update_forging_status(s, c_id.to_string(), f_id.to_string())
+                                            }
+                                        ).with_enabled(enable_button).fixed_width(15))
+                                    )
+                                }
+                            }
+                        )
+                        .scrollable()
+                    )
+                    .dismiss_button("Ok")
+                    )
+                )
+            }
+        }
+    }
+
+    pub fn update_forging_status(s: &mut Cursive, c: String, f: String) {
+
+        s.add_layer(
+            Dialog::new()
+            .title("Update Forging Status")
+            .padding_lrtb(1, 1, 1, 1)
+            .content(
+                ListView::new()
+                .child("Actual Qty", EditView::new().with_name("actual_qty").fixed_width(40))
+                .child("Ok Qty", EditView::new().with_name("ok_qty").fixed_width(40))
+            )
+            .button(
+                "Update",
+                move |s| {
+                    let actual_qty = s.call_on_name("actual_qty", |v: &mut EditView|{
+                        v.get_content()
+                    }).unwrap();
+
+                    let actual_qty = actual_qty.parse::<usize>().unwrap();
+
+                    let ok_qty = s.call_on_name("ok_qty", |v: &mut EditView|{
+                        v.get_content()
+                    }).unwrap();
+
+                    let ok_qty = ok_qty.parse::<usize>().unwrap();
+
+                    match ok_qty <= actual_qty {
+                        true => {
+                            match Forging::update_forging_status(c.clone(), f.clone(), actual_qty, ok_qty) {
+                                Ok(_) => {
+                                    s.pop_layer();
+                                    s.add_layer(Dialog::text("Forging Status updated").button("Ok", |c| {
+                                        c.pop_layer();
+                                        c.pop_layer();
+                                        get_forging_list(c);
+                                    }))
+                                },
+                                Err(e) => s.add_layer(Dialog::info(format!("Error: {}", e)))
+                            }
+                        },
+                        false => s.add_layer(Dialog::info("OK Qty is more than Actual Production"))
+                    }
+
+
                 }
             )
             .dismiss_button("Cancel")

@@ -332,8 +332,6 @@ pub mod cutting {
 
         let cutting_list = Cutting::get_cutting_list();
 
-        println!("{:?}", cutting_list.is_empty());
-
         match cutting_list.is_empty() {
             true => s.add_layer(Dialog::new().padding_lrtb(10, 10, 0, 0).content(TextView::new(format!("No planning for cutting is found"))).dismiss_button("Ok")),
             false => {
