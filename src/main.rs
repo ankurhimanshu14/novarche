@@ -60,6 +60,7 @@ use frontend::{
             get_cutting_list
         },
         forging::forging::{
+            display_forging,
             forging_plan
         }
     }
@@ -177,6 +178,10 @@ fn main() {
             .leaf(
                 "Cutting",
                 |s| { display_cutting(s) }
+            )
+            .leaf(
+                "Forging",
+                |s| { display_forging(s) }
             )
         );
 

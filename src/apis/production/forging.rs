@@ -5,6 +5,7 @@ pub mod forging {
     use mysql::prelude::*;
 
     use crate::apis::utils::{
+        parse::parse::parse_from_row,
         row_parser::parser::row_parser,
         gen_uuid::gen_uuid::generate_uuid,
         mysql_commands::mysql_commands::check_table_exists,
@@ -128,10 +129,10 @@ pub mod forging {
 
             let query = format!("SELECT SUM(planned_qty) FROM forging WHERE part_no = {} AND actual_qty = 0 GROUP BY cutting_id, part_no;", p);
 
-            println!("checking qty in plan");
-
             match check_table_exists("forging".to_string()) {
-                Ok(true) => row_parser(query, 1)[0][0].parse::<isize>().unwrap(),
+                Ok(true) => {
+                    row_parser(query, 1)[0][0].parse::<isize>().unwrap()
+                },
                 Ok(false) => 0,
                 Err(_) => -1
             }       
@@ -149,70 +150,69 @@ pub mod forging {
 
         }
 
-        // pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {
-        //     let stmt = format!("UPDATE forging
-        //     SET actual_qty = '{0}', ok_qty = '{1}'
-        //     WHERE cutting_id = '{2}' AND forging_id = '{3}';", aq, oq, c_id, f_id);
+        pub fn update_forging_status(c_id: String, f_id: String, aq: usize, oq: usize) -> Result<()> {
+            let stmt = format!("UPDATE forging
+            SET actual_qty = '{0}', ok_qty = '{1}'
+            WHERE cutting_id = '{2}' AND forging_id = '{3}';", aq, oq, c_id, f_id);
 
-        //     let trig1 = "CREATE TRIGGER before_forging_update
-        //     BEFORE UPDATE
-        //     ON forging FOR EACH ROW
-        //         SET
-        //         new.rej_qty = (new.actual_qty - new.ok_qty),
-        //         new.ok_wt = (old.forging_wt * new.ok_qty),
-        //         new.rej_wt = (old.forging_wt * new.rej_qty),
-        //         new.total_wt = (old.forging_wt * new.actual_qty);";
+            let trig1 = "CREATE TRIGGER before_forging_update
+            BEFORE UPDATE
+            ON forging FOR EACH ROW
+                SET
+                new.rej_qty = (new.actual_qty - new.ok_qty),
+                new.ok_wt = (old.forging_wt * new.ok_qty),
+                new.rej_wt = (old.forging_wt * new.rej_qty),
+                new.total_wt = (old.forging_wt * new.actual_qty);";
 
-        //     let trig2 = "CREATE TRIGGER after_forging_update
-        //     AFTER UPDATE
-        //     ON forging FOR EACH ROW
-        //     BEGIN
-        //         UPDATE cutting SET issued_qty = new.actual_qty
-        //         WHERE cutting_id = (SELECT DISTINCT cutting_id FROM forging WHERE forging_id = old.forging_id);
-        //     END ;";
+            let trig2 = "CREATE TRIGGER after_forging_update
+            AFTER UPDATE
+            ON forging FOR EACH ROW
+            BEGIN
+                UPDATE cutting SET issued_qty = new.actual_qty
+                WHERE cutting_id = (SELECT DISTINCT cutting_id FROM forging WHERE forging_id = old.forging_id);
+            END ;";
 
-        //     let url: &str = "mysql://root:@localhost:3306/mws_database";
+            let url: &str = "mysql://root:@localhost:3306/mws_database";
     
-        //     let pool: Pool = Pool::new(url)?;
+            let pool: Pool = Pool::new(url)?;
     
-        //     let mut conn = pool.get_conn()?;
+            let mut conn = pool.get_conn()?;
 
-        //     let result = conn.query_map(
-        //         "SHOW TRIGGERS FROM mws_database;",
-        //         |t: Row| {
-        //             parse_from_row(&t)
-        //         }
-        //     ).unwrap();
+            let result = conn.query_map(
+                "SHOW TRIGGERS FROM mws_database;",
+                |t: Row| {
+                    parse_from_row(&t)
+                }
+            ).unwrap();
 
-        //     let mut trig_name: Vec<String> = Vec::new();
+            let mut trig_name: Vec<String> = Vec::new();
 
-        //     for v in result.clone() {
-        //         trig_name.push(v[0].clone());
-        //     }
+            for v in result.clone() {
+                trig_name.push(v[0].clone());
+            }
 
-        //     match trig_name.contains(&"before_forging_update".to_string()) {
-        //         true => {
-        //             match trig_name.contains(&"after_forging_update".to_string()) {
-        //                 true => conn.query_drop(stmt)?,
-        //                 false => {
-        //                     conn.query_drop(trig2)?;
-        //                     conn.query_drop(stmt)?;
-        //                 }
-        //             }
-        //         },
-        //         false => {
-        //             conn.query_drop(trig1)?;
-        //             match trig_name.contains(&"after_forging_update".to_string()) {
-        //                 true => conn.query_drop(stmt)?,
-        //                 false => {
-        //                     conn.query_drop(trig2)?;
-        //                     conn.query_drop(stmt)?;
-        //                 }
-        //             }
-        //         }
-        //     }
-
-        //     Ok(())
-        // }
+            match trig_name.contains(&"before_forging_update".to_string()) {
+                true => {
+                    match trig_name.contains(&"after_forging_update".to_string()) {
+                        true => conn.query_drop(stmt)?,
+                        false => {
+                            conn.query_drop(trig2)?;
+                            conn.query_drop(stmt)?;
+                        }
+                    }
+                },
+                false => {
+                    conn.query_drop(trig1)?;
+                    match trig_name.contains(&"after_forging_update".to_string()) {
+                        true => conn.query_drop(stmt)?,
+                        false => {
+                            conn.query_drop(trig2)?;
+                            conn.query_drop(stmt)?;
+                        }
+                    }
+                }
+            }
+            Ok(())
+        }
     }
 }

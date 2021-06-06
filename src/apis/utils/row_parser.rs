@@ -14,25 +14,23 @@ pub mod parser {
 
         let rows: Vec<Row> = s.fetch(conn).unwrap();
 
-        for row in rows {
-
-            println!("ROW: {:?}", &row);
-
-            let mut v: Vec<String> = Vec::new();
-            
-            for i in 0..n {
-
-                let value = row.get_opt::<String, usize>(i);
-
-                println!("{:?}", &value);
-
-                match value {
-                    Some(Ok(val)) => v.push(val.to_string()),
-                    Some(Err(_)) => v.push("0".to_string()),
-                    None => v.push("0".to_string())
+        match rows.is_empty() {
+            true => outer_v.push(vec!["0".to_string()]),
+            false => for row in rows {    
+                let mut v: Vec<String> = Vec::new();
+                
+                for i in 0..n {
+    
+                    let value = row.get_opt::<String, usize>(i);
+    
+                    match value {
+                        Some(Ok(val)) => v.push(val.to_string()),
+                        Some(Err(_)) => v.push("0".to_string()),
+                        None => v.push("0".to_string())
+                    }
                 }
+                outer_v.push(v.clone());
             }
-            outer_v.push(v.clone());
         }
         outer_v
     }

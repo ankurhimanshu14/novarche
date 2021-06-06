@@ -4,8 +4,11 @@ pub mod forging {
 
     use cursive::{
         Cursive,
+        With,
         view::{ Nameable, Resizable },
-        views::{  Dialog, EditView, ListView, SelectView, TextView },
+        views::{  Dialog, EditView, ListView, SelectView, TextView, FixedLayout,LinearLayout, Button },
+        direction::Orientation:: Vertical,
+        Rect
     };
 
     use crate::apis::{
@@ -18,6 +21,37 @@ pub mod forging {
 
     use crate::frontend::production::cutting::cutting::display_cutting_heat;
     use crate::frontend::production::requisition::requisition::raise_requisition;
+
+    pub fn display_forging(s: &mut Cursive) {
+        s.add_layer(
+            FixedLayout::new()
+            .child(
+                Rect::from_size((0, 0), (30,100)),
+                Dialog::new().title("Sub Menu")
+                .content(
+                    LinearLayout::new(Vertical)
+                    .with(
+                        |list| {
+                            list
+                            .add_child(
+                                LinearLayout::new(Vertical)
+                                .child(Button::new_raw(
+                                    format!("Create Plan"),
+                                    move |s| {
+                                        forging_plan(s)
+                                    }
+                                ))
+                            )
+                        }
+                    )
+                )
+            )
+            .child(
+                Rect::from_size((30, 0), (300,100)),
+                Dialog::new().title("Data Field")
+            )
+        )
+    }
 
     pub fn forging_plan(s: &mut Cursive) {
         s.add_layer(
