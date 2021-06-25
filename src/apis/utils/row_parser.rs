@@ -15,7 +15,7 @@ pub mod parser {
         let rows: Vec<Row> = s.fetch(conn).unwrap();
 
         match rows.is_empty() {
-            true => outer_v.push(vec!["0".to_string()]),
+            true => {},
             false => for row in rows {    
                 let mut v: Vec<String> = Vec::new();
                 
